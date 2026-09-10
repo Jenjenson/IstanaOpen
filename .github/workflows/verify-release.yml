@@ -1,0 +1,255 @@
+name: Verify published v1.0.0 anonymously
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [codex/istana-open]
+    paths: [.github/workflows/verify-release.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      GIT_CONFIG_NOSYSTEM: "1"
+      GIT_CONFIG_GLOBAL: /dev/null
+      GIT_TERMINAL_PROMPT: "0"
+      GCM_INTERACTIVE: Never
+      GIT_LFS_SKIP_SMUDGE: "1"
+    steps:
+      - name: Independently fetch and verify immutable source and release assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path, PurePosixPath
+          import re
+          import shutil
+          import stat
+          import subprocess
+          import sys
+          import tempfile
+          import time
+          import urllib.error
+          import urllib.request
+          import zipfile
+
+          REPOSITORY = "https://github.com/Jenjenson/IstanaOpen.git"
+          TAG = "v1.0.0"
+          COMMIT = "7ea4727993ef9560a85f1a9e7f1454b5be56c67c"
+          TRACKED_COUNT = 281
+          BASE_URL = "https://github.com/Jenjenson/IstanaOpen/releases/download/" + TAG + "/"
+          EXPECTED = {
+              "IstanaOpen-Source-2026-09-10.zip": "d506c7ab0270d8761a3ea60cad058a4eb3ec7412ce4d1aa661816bf6b99dd38e",
+              "IstanaOpen-Windows-2026-09-10.zip": "eed50b318336f320dc08c85b110cebb2ffb4248d80a9d2082bfde1b365953770",
+          }
+          POINTER = b"version https://git-lfs.github.com/spec/v1"
+          checks = {}
+          receipt = {"release": TAG, "commit": COMMIT, "checks": checks, "status": "FAIL"}
+          work = Path(tempfile.mkdtemp(prefix="istana-release-", dir=os.environ["RUNNER_TEMP"]))
+
+          def run(arguments, cwd=None, timeout=120):
+              result = subprocess.run(arguments, cwd=cwd, text=True, stdout=subprocess.PIPE,
+                                      stderr=subprocess.PIPE, timeout=timeout)
+              if result.returncode:
+                  raise RuntimeError(f"{arguments[0]} failed ({result.returncode}): " + result.stderr[-1800:])
+              return result.stdout.strip()
+
+          def sha256(path):
+              digest = hashlib.sha256()
+              with path.open("rb") as stream:
+                  for block in iter(lambda: stream.read(1024 * 1024), b""):
+                      digest.update(block)
+              return digest.hexdigest()
+
+          def safe_relative(name):
+              value = PurePosixPath(name)
+              if (not name or "\\" in name or ":" in name or value.is_absolute()
+                      or ".." in value.parts or not value.parts):
+                  raise ValueError("Unsafe archive/manifest path")
+              return value
+
+          def download(name, expected_hash=None):
+              target = work / name
+              expected_size = None
+              last_error = None
+              for attempt in range(3):
+                  offset = target.stat().st_size if target.exists() else 0
+                  headers = {"User-Agent": "IstanaOpen-anonymous-release-verifier"}
+                  if offset:
+                      headers["Range"] = f"bytes={offset}-"
+                  # Anonymous HTTPS only: no token, Authorization header or credential helper.
+                  request = urllib.request.Request(BASE_URL + name, headers=headers)
+                  try:
+                      # Socket inactivity is bounded; an active large transfer may finish.
+                      with urllib.request.urlopen(request, timeout=120) as response:
+                          status = response.getcode()
+                          if status == 206:
+                              match = re.fullmatch(r"bytes (\d+)-(\d+)/(\d+)", response.headers.get("Content-Range", ""))
+                              if not match or int(match[1]) != offset:
+                                  raise ValueError("Invalid download resume range")
+                              total = int(match[3])
+                              if expected_size is not None and expected_size != total:
+                                  raise ValueError("Download size changed during resume")
+                              expected_size = total
+                              mode = "ab"
+                          elif status == 200:
+                              offset = 0  # Server ignored Range: restart this bounded attempt safely.
+                              size = response.headers.get("Content-Length")
+                              expected_size = int(size) if size is not None else None
+                              mode = "wb"
+                          else:
+                              raise ValueError(f"Unexpected HTTP status {status}")
+                          digest = hashlib.sha256()
+                          if offset:
+                              with target.open("rb") as prefix:
+                                  for block in iter(lambda: prefix.read(1024 * 1024), b""):
+                                      digest.update(block)
+                          with target.open(mode) as output:
+                              while True:
+                                  block = response.read(1024 * 1024)
+                                  if not block:
+                                      break
+                                  output.write(block)
+                                  digest.update(block)
+                          actual_size = target.stat().st_size
+                          if actual_size == 0 or (expected_size is not None and actual_size != expected_size):
+                              raise ValueError("Incomplete download byte count")
+                          actual_hash = digest.hexdigest()
+                          if expected_hash and actual_hash != expected_hash:
+                              target.unlink()  # An intact but incorrect object cannot be resumed.
+                              expected_size = None
+                              raise ValueError("Downloaded SHA-256 mismatch")
+                          return target, {"bytes": actual_size, "sha256": actual_hash}
+                  except (OSError, ValueError, urllib.error.URLError) as error:
+                      last_error = error
+                      if attempt < 2:
+                          time.sleep(2 * (attempt + 1))
+              raise RuntimeError(f"Download failed after three attempts: {name}: {last_error}")
+
+          def validate_extract(path, expected_root):
+              destination = work / (path.stem + "-extracted")
+              destination.mkdir()
+              with zipfile.ZipFile(path) as archive:
+                  seen = set()
+                  infos = archive.infolist()
+                  if not infos:
+                      raise ValueError("Empty release archive")
+                  for info in infos:
+                      relative = safe_relative(info.filename)
+                      if relative.parts[0] != expected_root:
+                          raise ValueError("Unexpected archive root")
+                      key = str(relative).casefold()
+                      if key in seen:
+                          raise ValueError("Duplicate archive member")
+                      seen.add(key)
+                      mode = info.external_attr >> 16
+                      if stat.S_ISLNK(mode) or (stat.S_IFMT(mode) not in (0, stat.S_IFREG, stat.S_IFDIR)):
+                          raise ValueError("Non-regular archive member")
+                  if bad := archive.testzip():
+                      raise ValueError("ZIP CRC failure: " + bad)
+                  for info in infos:
+                      target = destination.joinpath(*safe_relative(info.filename).parts)
+                      if not target.resolve().is_relative_to(destination.resolve()):
+                          raise ValueError("Archive member escapes extraction directory")
+                      if info.is_dir():
+                          target.mkdir(parents=True, exist_ok=True)
+                      else:
+                          target.parent.mkdir(parents=True, exist_ok=True)
+                          with archive.open(info) as source, target.open("xb") as output:
+                              shutil.copyfileobj(source, output, 1024 * 1024)
+                          if target.stat().st_size != info.file_size:
+                              raise ValueError("Extracted byte count mismatch")
+              return destination / expected_root
+
+          def verify_tree(root, expected_paths, expected_audit_hash):
+              audit_path = root / "Docs/submission-audit.json"
+              if sha256(audit_path) != expected_audit_hash:
+                  raise ValueError("Source audit differs from the pinned Git commit")
+              audit = json.loads(audit_path.read_text(encoding="utf-8-sig"))
+              records = audit["files"]
+              if audit["status"] != "PASS" or audit.get("findings"):
+                  raise ValueError("Source audit is not clean")
+              if len(records) != audit["file_count"] or len(records) != TRACKED_COUNT - 1:
+                  raise ValueError("Unexpected source audit file count")
+              paths = {entry["path"] for entry in records}
+              if len(paths) != len(records) or paths | {"Docs/submission-audit.json"} != expected_paths:
+                  raise ValueError("Audit does not cover exactly the 281 release files")
+              for record in records:
+                  path = root.joinpath(*safe_relative(record["path"]).parts)
+                  if not path.is_file() or path.is_symlink():
+                      raise ValueError("Source file missing or linked: " + record["path"])
+                  if path.stat().st_size != record["bytes"] or sha256(path) != record["sha256"]:
+                      raise ValueError("Source hash/size mismatch: " + record["path"])
+              for relative in expected_paths:
+                  with (root / relative).open("rb") as stream:
+                      if stream.read(len(POINTER)) == POINTER:
+                          raise ValueError("Unresolved Git LFS pointer: " + relative)
+              run([sys.executable, str(root / "Tools/verify_release.py"), "--source-root", str(root), "--source-only"])
+              return {"files": len(expected_paths), "audit_hashes": len(records), "source_assets": 60}
+
+          try:
+              checkout = work / "source"
+              run(["git", "-c", "credential.helper=", "-c", "http.extraheader=", "clone", "--depth", "1", "--branch", TAG, REPOSITORY, str(checkout)])
+              actual_commit = run(["git", "rev-parse", "HEAD"], checkout)
+              if actual_commit != COMMIT:
+                  raise ValueError("Release tag does not match the pinned commit")
+              tracked = set(run(["git", "ls-files", "-z"], checkout).split("\0"))
+              tracked.discard("")
+              if len(tracked) != TRACKED_COUNT:
+                  raise ValueError(f"Expected 281 tracked files, found {len(tracked)}")
+              run(["git", "lfs", "install", "--local"], checkout)
+              os.environ.pop("GIT_LFS_SKIP_SMUDGE", None)
+              run(["git", "-c", "credential.helper=", "-c", "http.extraheader=", "lfs", "pull"], checkout, timeout=6000)
+              run(["git", "lfs", "fsck"], checkout, timeout=180)
+              checks["anonymous_clone_and_lfs_fsck"] = "PASS"
+              audit_hash = sha256(checkout / "Docs/submission-audit.json")
+              checks["pinned_git_source"] = verify_tree(checkout, tracked, audit_hash)
+
+              sums_path, _ = download("SHA256SUMS.txt")
+              if sums_path.stat().st_size > 4096:
+                  raise ValueError("Unexpected checksum document size")
+              published = {}
+              for line in sums_path.read_text(encoding="utf-8-sig").splitlines():
+                  fields = line.split()
+                  if len(fields) != 2 or not re.fullmatch(r"[a-fA-F0-9]{64}", fields[0]):
+                      raise ValueError("Malformed SHA256SUMS entry")
+                  name = fields[1].lstrip("*")
+                  if name in published:
+                      raise ValueError("Duplicate SHA256SUMS entry")
+                  published[name] = fields[0].lower()
+              if published != EXPECTED:
+                  raise ValueError("Published checksums differ from the pinned v1.0.0 artifacts")
+              checks["published_checksums"] = "PASS"
+
+              for name, expected_hash in EXPECTED.items():
+                  archive_path, result = download(name, expected_hash)
+                  is_source = "-Source-" in name
+                  extracted = validate_extract(archive_path, "IstanaOpen-Source" if is_source else "IstanaOpen-Windows")
+                  result["zip_crc_and_paths"] = "PASS"
+                  if is_source:
+                      actual_paths = {p.relative_to(extracted).as_posix() for p in extracted.rglob("*") if p.is_file()}
+                      if actual_paths != tracked:
+                          raise ValueError("Source ZIP does not contain exactly the 281 tracked release files")
+                      result["source_integrity"] = verify_tree(extracted, tracked, audit_hash)
+                  else:
+                      result["release_integrity"] = json.loads(run([sys.executable, str(checkout / "Tools/verify_release.py"), "--release", str(extracted)], timeout=180))
+                  checks[name] = result
+              receipt["status"] = "PASS"
+          except Exception as error:
+              receipt["error"] = f"{type(error).__name__}: {error}"
+          finally:
+              print(json.dumps(receipt, indent=2))
+              with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
+                  summary.write("## v1.0.0 independent release verification: " + receipt["status"] + "\n\n")
+                  summary.write("```json\n" + json.dumps(receipt, indent=2) + "\n```\n\n")
+                  summary.write("Integrity and package-structure checks only; Unreal was not executed on this Linux runner.\n")
+          if receipt["status"] != "PASS":
+              sys.exit(1)
+          PY
