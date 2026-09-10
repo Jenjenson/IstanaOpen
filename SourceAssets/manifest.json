@@ -1,0 +1,482 @@
+[
+  {
+    "path": "SourceAssets/Nature/island_tree_02/island_tree_02_2k.fbx",
+    "source": "IstanaPublicViewExploreV4/Sources/Vegetation/assets/polyhaven/island_tree_02/island_tree_02_2k.fbx",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/island_tree_02",
+    "sha256": "b80ee7416b5ca9bcadd0ef21f105a42619b9a48c861681b58e8b59a368d673b9",
+    "bytes": 32258924
+  },
+  {
+    "path": "SourceAssets/Nature/island_tree_02/textures/island_tree_02_branches_diff_2k.png",
+    "source": "IstanaPublicViewExploreV4/Sources/Vegetation/assets/polyhaven/island_tree_02/textures/island_tree_02_branches_diff_2k.png",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/island_tree_02",
+    "sha256": "fcfaaa1262cb8f31327ca084e6f8d69cda0b6af0d1f065a68c5a47b906ec02ff",
+    "bytes": 19963299
+  },
+  {
+    "path": "SourceAssets/Nature/island_tree_02/textures/island_tree_02_branches_nor_gl_2k.png",
+    "source": "IstanaPublicViewExploreV4/Sources/Vegetation/assets/polyhaven/island_tree_02/textures/island_tree_02_branches_nor_gl_2k.png",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/island_tree_02",
+    "sha256": "2ee3ff83fdf8f01cd9d26d5c4665b866bf69f2557e02582577f23d6d007f9c78",
+    "bytes": 20594936
+  },
+  {
+    "path": "SourceAssets/Nature/island_tree_02/textures/island_tree_02_branches_rough_2k.png",
+    "source": "IstanaPublicViewExploreV4/Sources/Vegetation/assets/polyhaven/island_tree_02/textures/island_tree_02_branches_rough_2k.png",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/island_tree_02",
+    "sha256": "e6d3c688b07dea15344672516433d7ba681727f5149c8be446dc1a5bbed9afdc",
+    "bytes": 4730461
+  },
+  {
+    "path": "SourceAssets/Nature/island_tree_02/textures/island_tree_02_diff_2k.jpg",
+    "source": "IstanaPublicViewExploreV4/Sources/Vegetation/assets/polyhaven/island_tree_02/textures/island_tree_02_diff_2k.jpg",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/island_tree_02",
+    "sha256": "2ca2706adc5bde6bc46fa4a4680041a1797cf6684a31629259559935a97e0057",
+    "bytes": 2684467
+  },
+  {
+    "path": "SourceAssets/Nature/island_tree_02/textures/island_tree_02_leaves_alpha_2k.png",
+    "source": "IstanaPublicViewExploreV4/Sources/Vegetation/assets/polyhaven/island_tree_02/textures/island_tree_02_leaves_alpha_2k.png",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/island_tree_02",
+    "sha256": "30c36ae0d9023400035f0af9d336ed5f73a84bf8a88c8e2bec8faa07d725992b",
+    "bytes": 139077
+  },
+  {
+    "path": "SourceAssets/Nature/island_tree_02/textures/island_tree_02_leaves_diff_2k.png",
+    "source": "IstanaPublicViewExploreV4/Sources/Vegetation/assets/polyhaven/island_tree_02/textures/island_tree_02_leaves_diff_2k.png",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/island_tree_02",
+    "sha256": "fca98db31845a92e6374fccd032d40d6134e2c80fdca8038b063897c8e8f0035",
+    "bytes": 6428036
+  },
+  {
+    "path": "SourceAssets/Nature/island_tree_02/textures/island_tree_02_leaves_nor_gl_2k.png",
+    "source": "IstanaPublicViewExploreV4/Sources/Vegetation/assets/polyhaven/island_tree_02/textures/island_tree_02_leaves_nor_gl_2k.png",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/island_tree_02",
+    "sha256": "2d152d8530e707056fce44303de71cf63503f5d95b80d0820dc7625c99d8d2d9",
+    "bytes": 10109651
+  },
+  {
+    "path": "SourceAssets/Nature/island_tree_02/textures/island_tree_02_leaves_rough_2k.png",
+    "source": "IstanaPublicViewExploreV4/Sources/Vegetation/assets/polyhaven/island_tree_02/textures/island_tree_02_leaves_rough_2k.png",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/island_tree_02",
+    "sha256": "eccee8f209c8dd869b478a209ec0b44a3de6bae11c9594700f7e201771a9eac2",
+    "bytes": 2723975
+  },
+  {
+    "path": "SourceAssets/Nature/island_tree_02/textures/island_tree_02_nor_gl_2k.exr",
+    "source": "IstanaPublicViewExploreV4/Sources/Vegetation/assets/polyhaven/island_tree_02/textures/island_tree_02_nor_gl_2k.exr",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/island_tree_02",
+    "sha256": "05a12d271c5eb1f732f80490a3091dc6ccf4f1e2662c1409ad9a84b3cd0faec7",
+    "bytes": 8745504
+  },
+  {
+    "path": "SourceAssets/Nature/island_tree_02/textures/island_tree_02_rough_2k.exr",
+    "source": "IstanaPublicViewExploreV4/Sources/Vegetation/assets/polyhaven/island_tree_02/textures/island_tree_02_rough_2k.exr",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/island_tree_02",
+    "sha256": "85ae31cb29eb65e517572a7f736f516fbdb0b3b74b35fb147e5e9ef5e56a0290",
+    "bytes": 3207462
+  },
+  {
+    "path": "SourceAssets/Nature/tree_small_02/tree_small_02_2k.fbx",
+    "source": "IstanaPublicViewExploreV4/Sources/Vegetation/assets/polyhaven/tree_small_02/tree_small_02_2k.fbx",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/tree_small_02",
+    "sha256": "14d6d0754b79a442254795663c4e5ffa1f679e54562f48b21ab0bbc78858724d",
+    "bytes": 75487180
+  },
+  {
+    "path": "SourceAssets/Nature/tree_small_02/textures/tree_small_02_branch_diff_2k.png",
+    "source": "IstanaPublicViewExploreV4/Sources/Vegetation/assets/polyhaven/tree_small_02/textures/tree_small_02_branch_diff_2k.png",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/tree_small_02",
+    "sha256": "553d0cdbc12b63be3bd85756713f95bec5cdf8cc57dae74d3f19d8df13ac126c",
+    "bytes": 2714537
+  },
+  {
+    "path": "SourceAssets/Nature/tree_small_02/textures/tree_small_02_branch_nor_gl_2k.png",
+    "source": "IstanaPublicViewExploreV4/Sources/Vegetation/assets/polyhaven/tree_small_02/textures/tree_small_02_branch_nor_gl_2k.png",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/tree_small_02",
+    "sha256": "a8aa5f945a5977d82111f1f397a525acb8103d108d86bf09087be4d7d1f976d6",
+    "bytes": 15596069
+  },
+  {
+    "path": "SourceAssets/Nature/tree_small_02/textures/tree_small_02_branch_rough_2k.png",
+    "source": "IstanaPublicViewExploreV4/Sources/Vegetation/assets/polyhaven/tree_small_02/textures/tree_small_02_branch_rough_2k.png",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/tree_small_02",
+    "sha256": "2acfc7ebd7269e65917d0535c463bcf4adf44627b3c34f528e2b1623cb2a5b9c",
+    "bytes": 835917
+  },
+  {
+    "path": "SourceAssets/Nature/tree_small_02/textures/tree_small_02_diff_2k.jpg",
+    "source": "IstanaPublicViewExploreV4/Sources/Vegetation/assets/polyhaven/tree_small_02/textures/tree_small_02_diff_2k.jpg",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/tree_small_02",
+    "sha256": "4ab3210b6ec6bb1181145500bca71d1c1f81ead6baaa8600f5979c2cec50c6a4",
+    "bytes": 3170612
+  },
+  {
+    "path": "SourceAssets/Nature/tree_small_02/textures/tree_small_02_leaves_alpha_2k.png",
+    "source": "IstanaPublicViewExploreV4/Sources/Vegetation/assets/polyhaven/tree_small_02/textures/tree_small_02_leaves_alpha_2k.png",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/tree_small_02",
+    "sha256": "566484c7047ce67af5a4435c1e4da2b773578d73f83ae45dfad0fd442df7b9d5",
+    "bytes": 636661
+  },
+  {
+    "path": "SourceAssets/Nature/tree_small_02/textures/tree_small_02_leaves_diff_2k.png",
+    "source": "IstanaPublicViewExploreV4/Sources/Vegetation/assets/polyhaven/tree_small_02/textures/tree_small_02_leaves_diff_2k.png",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/tree_small_02",
+    "sha256": "da46f05805bbc3b608051b66ee9e2b3705108de3c897ea998ab98e0360dc2b72",
+    "bytes": 7729923
+  },
+  {
+    "path": "SourceAssets/Nature/tree_small_02/textures/tree_small_02_leaves_nor_gl_2k.png",
+    "source": "IstanaPublicViewExploreV4/Sources/Vegetation/assets/polyhaven/tree_small_02/textures/tree_small_02_leaves_nor_gl_2k.png",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/tree_small_02",
+    "sha256": "01c79158aa9287cc5db2d1c660a578de9d0a1a522877f9ca40c5be6b36bdc7bf",
+    "bytes": 18978122
+  },
+  {
+    "path": "SourceAssets/Nature/tree_small_02/textures/tree_small_02_leaves_rough_2k.png",
+    "source": "IstanaPublicViewExploreV4/Sources/Vegetation/assets/polyhaven/tree_small_02/textures/tree_small_02_leaves_rough_2k.png",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/tree_small_02",
+    "sha256": "5e7fee2eb56afa1265178bb2bf9267dba12c95149d9e2068adfc1ebf2d44d082",
+    "bytes": 2953248
+  },
+  {
+    "path": "SourceAssets/Nature/tree_small_02/textures/tree_small_02_nor_gl_2k.exr",
+    "source": "IstanaPublicViewExploreV4/Sources/Vegetation/assets/polyhaven/tree_small_02/textures/tree_small_02_nor_gl_2k.exr",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/tree_small_02",
+    "sha256": "2cba0db5ecc512414822d21f508a7d9df05716e28cec3e185c694ff6e36fd6ce",
+    "bytes": 9058409
+  },
+  {
+    "path": "SourceAssets/Nature/tree_small_02/textures/tree_small_02_rough_2k.exr",
+    "source": "IstanaPublicViewExploreV4/Sources/Vegetation/assets/polyhaven/tree_small_02/textures/tree_small_02_rough_2k.exr",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/tree_small_02",
+    "sha256": "486cda88e05f1fa0d63a49122b016287d61683921cf60fa465dd0bd53114b092",
+    "bytes": 3573742
+  },
+  {
+    "path": "SourceAssets/Nature/shrub_04/shrub_04_2k.fbx",
+    "source": "IstanaPublicViewExploreV4/Sources/Vegetation/assets/polyhaven/shrub_04/shrub_04_2k.fbx",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/shrub_04",
+    "sha256": "bb07591834364e3de8898c4dee76b77ca5c45916d497f2e1fa146a5f9ce22d1b",
+    "bytes": 852556
+  },
+  {
+    "path": "SourceAssets/Nature/shrub_04/textures/shrub_04_alpha_2k.png",
+    "source": "IstanaPublicViewExploreV4/Sources/Vegetation/assets/polyhaven/shrub_04/textures/shrub_04_alpha_2k.png",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/shrub_04",
+    "sha256": "6c30e2ffb781b3d54b246a2b1f9bf128e0c814fa9314b8d842e253f4914ac4de",
+    "bytes": 91048
+  },
+  {
+    "path": "SourceAssets/Nature/shrub_04/textures/shrub_04_diff_2k.jpg",
+    "source": "IstanaPublicViewExploreV4/Sources/Vegetation/assets/polyhaven/shrub_04/textures/shrub_04_diff_2k.jpg",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/shrub_04",
+    "sha256": "a45e95f3c78c31a1d411c58232089bd472bb31ebe146ba4237c3f1a930f49fc9",
+    "bytes": 1202317
+  },
+  {
+    "path": "SourceAssets/Nature/shrub_04/textures/shrub_04_mask_2k.png",
+    "source": "IstanaPublicViewExploreV4/Sources/Vegetation/assets/polyhaven/shrub_04/textures/shrub_04_mask_2k.png",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/shrub_04",
+    "sha256": "1dab74521b98685653257259897d0ea2062a2f9f34f493b23300537d5ccced64",
+    "bytes": 19483
+  },
+  {
+    "path": "SourceAssets/Nature/shrub_04/textures/shrub_04_nor_gl_2k.exr",
+    "source": "IstanaPublicViewExploreV4/Sources/Vegetation/assets/polyhaven/shrub_04/textures/shrub_04_nor_gl_2k.exr",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/shrub_04",
+    "sha256": "84234b8e698a4f355877722c755adaa4d53f37b5f7be81d2bd2d8d38fa657adb",
+    "bytes": 2998775
+  },
+  {
+    "path": "SourceAssets/Nature/shrub_04/textures/shrub_04_rough_2k.exr",
+    "source": "IstanaPublicViewExploreV4/Sources/Vegetation/assets/polyhaven/shrub_04/textures/shrub_04_rough_2k.exr",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/shrub_04",
+    "sha256": "7926caa1d9b61ac8ac9ad4a6561684f9ddb29b081f2dcd7b0bd3defb106b481a",
+    "bytes": 841015
+  },
+  {
+    "path": "SourceAssets/Nature/grass_medium_01/grass_medium_01_2k.fbx",
+    "source": "IstanaPublicViewExploreV4/Sources/Vegetation/assets/polyhaven/grass_medium_01/grass_medium_01_2k.fbx",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/grass_medium_01",
+    "sha256": "b3e83c69883501fb3af03c6829dbf69089896add52d16d596376badd54ad2419",
+    "bytes": 1056796
+  },
+  {
+    "path": "SourceAssets/Nature/grass_medium_01/textures/grass_medium_01_alpha_2k.png",
+    "source": "IstanaPublicViewExploreV4/Sources/Vegetation/assets/polyhaven/grass_medium_01/textures/grass_medium_01_alpha_2k.png",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/grass_medium_01",
+    "sha256": "4af2c3d5ebf167764ad3746f8c925dc4fbe28f0df023656599123cb593b793dd",
+    "bytes": 1580653
+  },
+  {
+    "path": "SourceAssets/Nature/grass_medium_01/textures/grass_medium_01_diff_2k.jpg",
+    "source": "IstanaPublicViewExploreV4/Sources/Vegetation/assets/polyhaven/grass_medium_01/textures/grass_medium_01_diff_2k.jpg",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/grass_medium_01",
+    "sha256": "f768aa68daf14f37a92dd96621628a5252b169f4d94b4d1cc830d62cd3ac9e68",
+    "bytes": 1166527
+  },
+  {
+    "path": "SourceAssets/Nature/grass_medium_01/textures/grass_medium_01_nor_gl_2k.exr",
+    "source": "IstanaPublicViewExploreV4/Sources/Vegetation/assets/polyhaven/grass_medium_01/textures/grass_medium_01_nor_gl_2k.exr",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/grass_medium_01",
+    "sha256": "37488442da10568ce47a24096df77ab82f35b2ccf294ca1c960b7506c95d47f1",
+    "bytes": 7389519
+  },
+  {
+    "path": "SourceAssets/Nature/grass_medium_01/textures/grass_medium_01_rough_2k.exr",
+    "source": "IstanaPublicViewExploreV4/Sources/Vegetation/assets/polyhaven/grass_medium_01/textures/grass_medium_01_rough_2k.exr",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/grass_medium_01",
+    "sha256": "f71e4e0c66f7ab0e53ea4352824b86ab074471eba1864c8a7b81fa8fca785470",
+    "bytes": 2627410
+  },
+  {
+    "path": "SourceAssets/Nature/pachira_aquatica_01/pachira_aquatica_01_2k.fbx",
+    "source": "IstanaPublicViewExploreV5/Sources/Vegetation/polyhaven/pachira_aquatica_01/pachira_aquatica_01_2k.fbx",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/pachira_aquatica_01",
+    "sha256": "d30ce1ae236e148f531ac902a7383c347dc3f4712f0df4e62ce60386528b7b4a",
+    "bytes": 2481564
+  },
+  {
+    "path": "SourceAssets/Nature/pachira_aquatica_01/textures/pachira_aquatica_01_bark_diff_2k.png",
+    "source": "IstanaPublicViewExploreV5/Sources/Vegetation/polyhaven/pachira_aquatica_01/textures/pachira_aquatica_01_bark_diff_2k.png",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/pachira_aquatica_01",
+    "sha256": "f770f32f92805064dc9364d1b02075b6bef8f96b407924c32334f073a763a26c",
+    "bytes": 11564938
+  },
+  {
+    "path": "SourceAssets/Nature/pachira_aquatica_01/textures/pachira_aquatica_01_bark_nor_gl_2k.png",
+    "source": "IstanaPublicViewExploreV5/Sources/Vegetation/polyhaven/pachira_aquatica_01/textures/pachira_aquatica_01_bark_nor_gl_2k.png",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/pachira_aquatica_01",
+    "sha256": "6cebb2532694fd90b29cc15f13ff7abd1db9cf9c725c279d002b8c4a509d9c8a",
+    "bytes": 11940638
+  },
+  {
+    "path": "SourceAssets/Nature/pachira_aquatica_01/textures/pachira_aquatica_01_bark_rough_2k.png",
+    "source": "IstanaPublicViewExploreV5/Sources/Vegetation/polyhaven/pachira_aquatica_01/textures/pachira_aquatica_01_bark_rough_2k.png",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/pachira_aquatica_01",
+    "sha256": "0c8b27f3a735d74c02ab46465f3929f9b2685126fcd18c62b34797fa120696f0",
+    "bytes": 3486282
+  },
+  {
+    "path": "SourceAssets/Nature/pachira_aquatica_01/textures/pachira_aquatica_01_leaves_alpha_2k.png",
+    "source": "IstanaPublicViewExploreV5/Sources/Vegetation/polyhaven/pachira_aquatica_01/textures/pachira_aquatica_01_leaves_alpha_2k.png",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/pachira_aquatica_01",
+    "sha256": "579a63e9b680d0660ba996c0279f79e7f86f14060da22a4846f49b476fee74b3",
+    "bytes": 162415
+  },
+  {
+    "path": "SourceAssets/Nature/pachira_aquatica_01/textures/pachira_aquatica_01_leaves_diff_2k.png",
+    "source": "IstanaPublicViewExploreV5/Sources/Vegetation/polyhaven/pachira_aquatica_01/textures/pachira_aquatica_01_leaves_diff_2k.png",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/pachira_aquatica_01",
+    "sha256": "b89558599dde104318929621f6b31f894b1375e97f503038cb8a33eb2c4d05fb",
+    "bytes": 8481246
+  },
+  {
+    "path": "SourceAssets/Nature/pachira_aquatica_01/textures/pachira_aquatica_01_leaves_nor_gl_2k.png",
+    "source": "IstanaPublicViewExploreV5/Sources/Vegetation/polyhaven/pachira_aquatica_01/textures/pachira_aquatica_01_leaves_nor_gl_2k.png",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/pachira_aquatica_01",
+    "sha256": "c06529abfd5d9850fa945ce3a807007736130d8b568fe3c44a54567d97f4d380",
+    "bytes": 11274169
+  },
+  {
+    "path": "SourceAssets/Nature/pachira_aquatica_01/textures/pachira_aquatica_01_leaves_rough_2k.png",
+    "source": "IstanaPublicViewExploreV5/Sources/Vegetation/polyhaven/pachira_aquatica_01/textures/pachira_aquatica_01_leaves_rough_2k.png",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/pachira_aquatica_01",
+    "sha256": "102fefbfa7b73a65c40f36170ab004dd87565cd598b39fe89c3b11c7c3b60a06",
+    "bytes": 2251537
+  },
+  {
+    "path": "SourceAssets/Surfaces/PH_fine_grained_wood_Diffuse_4k.jpg",
+    "source": "IstanaPublicView/HeroMaterialsV3/Source/PolyHaven/PH_fine_grained_wood_Diffuse_4k.jpg",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/fine_grained_wood",
+    "sha256": "0c71b4505412216bbe7b2dc2b2bcfe414dfd319d13e48992cdaeb2961f44146f",
+    "bytes": 4744081
+  },
+  {
+    "path": "SourceAssets/Surfaces/PH_fine_grained_wood_NormalDX_4k.jpg",
+    "source": "IstanaPublicView/HeroMaterialsV3/Source/PolyHaven/PH_fine_grained_wood_NormalDX_4k.jpg",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/fine_grained_wood",
+    "sha256": "911a031e934bb7604b8eb28bcb94190286a8b998042e956c16274c328c3408f1",
+    "bytes": 2794854
+  },
+  {
+    "path": "SourceAssets/Surfaces/PH_fine_grained_wood_Roughness_4k.jpg",
+    "source": "IstanaPublicView/HeroMaterialsV3/Source/PolyHaven/PH_fine_grained_wood_Roughness_4k.jpg",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/fine_grained_wood",
+    "sha256": "abd1d509d037c404168fbb23f6cf8ac9bf61bf7dd14b4e4e91a6a022f6d14f37",
+    "bytes": 3094322
+  },
+  {
+    "path": "SourceAssets/Surfaces/PH_rock_01_Diffuse_4k.jpg",
+    "source": "IstanaPublicView/HeroMaterialsV3/Source/PolyHaven/PH_rock_01_Diffuse_4k.jpg",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/rock_01",
+    "sha256": "8fcb8d2a6726b5fa16fac99cabdc85e9f6d0273a1297f35757c9f931349046f9",
+    "bytes": 11989566
+  },
+  {
+    "path": "SourceAssets/Surfaces/PH_rock_01_NormalDX_4k.jpg",
+    "source": "IstanaPublicView/HeroMaterialsV3/Source/PolyHaven/PH_rock_01_NormalDX_4k.jpg",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/rock_01",
+    "sha256": "b053a90e22befa7fd8ec08f4ac694aed262181e4832ca29db64c3dde31f66992",
+    "bytes": 8712392
+  },
+  {
+    "path": "SourceAssets/Surfaces/PH_rock_01_Roughness_4k.jpg",
+    "source": "IstanaPublicView/HeroMaterialsV3/Source/PolyHaven/PH_rock_01_Roughness_4k.jpg",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/rock_01",
+    "sha256": "29eee2277d7c8be4baff6e1b2167e96aa49d0b0540b064dfc77dc88853143ef8",
+    "bytes": 6555215
+  },
+  {
+    "path": "SourceAssets/Surfaces/PH_roof_slates_03_Diffuse_4k.jpg",
+    "source": "IstanaPublicView/HeroMaterialsV3/Source/PolyHaven/PH_roof_slates_03_Diffuse_4k.jpg",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/roof_slates_03",
+    "sha256": "40f364964ab6ca99c45a8080f0458354d4977433fb72d0c08404951a492ae298",
+    "bytes": 5877117
+  },
+  {
+    "path": "SourceAssets/Surfaces/PH_roof_slates_03_NormalDX_4k.jpg",
+    "source": "IstanaPublicView/HeroMaterialsV3/Source/PolyHaven/PH_roof_slates_03_NormalDX_4k.jpg",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/roof_slates_03",
+    "sha256": "9f4ef0f03f746eba6a636cc28fd537266c2c7b02767de668324c39ef523d8578",
+    "bytes": 8918935
+  },
+  {
+    "path": "SourceAssets/Surfaces/PH_roof_slates_03_Roughness_4k.jpg",
+    "source": "IstanaPublicView/HeroMaterialsV3/Source/PolyHaven/PH_roof_slates_03_Roughness_4k.jpg",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/roof_slates_03",
+    "sha256": "74b6f43125ca14db3fc67a6893ce8f8c3ded7ce00ad8071d47fa3f05d51e2956",
+    "bytes": 196964
+  },
+  {
+    "path": "SourceAssets/Surfaces/PH_white_plaster_02_Diffuse_4k.jpg",
+    "source": "IstanaPublicView/HeroMaterialsV3/Source/PolyHaven/PH_white_plaster_02_Diffuse_4k.jpg",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/white_plaster_02",
+    "sha256": "a0c48b2de0d4e4c5ad51cda7110dbeb31698fa41b87bce3b28caa608b6e64745",
+    "bytes": 10554018
+  },
+  {
+    "path": "SourceAssets/Surfaces/PH_white_plaster_02_NormalDX_4k.jpg",
+    "source": "IstanaPublicView/HeroMaterialsV3/Source/PolyHaven/PH_white_plaster_02_NormalDX_4k.jpg",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/white_plaster_02",
+    "sha256": "02991922cfb43e6e748385ff613b2bae2caf280b22dbf2481f38da73cacd82c8",
+    "bytes": 13512501
+  },
+  {
+    "path": "SourceAssets/Surfaces/PH_white_plaster_02_Roughness_4k.jpg",
+    "source": "IstanaPublicView/HeroMaterialsV3/Source/PolyHaven/PH_white_plaster_02_Roughness_4k.jpg",
+    "license": "CC0-1.0",
+    "url": "https://polyhaven.com/a/white_plaster_02",
+    "sha256": "810fc5511cbf898fc803d307694d930d646be62c1dc4ba29071363baf0e04a4f",
+    "bytes": 6643592
+  },
+  {
+    "path": "SourceAssets/Surfaces/Grass001_2K-JPG_Color.jpg",
+    "source": "IstanaPublicViewExploreV4/Sources/Vegetation/assets/ambientcg/Grass001/extracted/Grass001_2K-JPG_Color.jpg",
+    "license": "CC0-1.0",
+    "url": "https://ambientcg.com/view?id=Grass001",
+    "sha256": "8a8bfcffd087134caad2a7def216f3dd2d307fbe02340ca47e3c5c71f49d50b4",
+    "bytes": 6953345
+  },
+  {
+    "path": "SourceAssets/Surfaces/Grass001_2K-JPG_NormalDX.jpg",
+    "source": "IstanaPublicViewExploreV4/Sources/Vegetation/assets/ambientcg/Grass001/extracted/Grass001_2K-JPG_NormalDX.jpg",
+    "license": "CC0-1.0",
+    "url": "https://ambientcg.com/view?id=Grass001",
+    "sha256": "26343d7d725a2d5e3f82d0c3fbc9319f517715df08297a4ee42c96dde88815c7",
+    "bytes": 9975086
+  },
+  {
+    "path": "SourceAssets/Surfaces/Grass001_2K-JPG_Roughness.jpg",
+    "source": "IstanaPublicViewExploreV4/Sources/Vegetation/assets/ambientcg/Grass001/extracted/Grass001_2K-JPG_Roughness.jpg",
+    "license": "CC0-1.0",
+    "url": "https://ambientcg.com/view?id=Grass001",
+    "sha256": "2a2a3f9220a351f14858075d4c6ba1ff7fde8bedd7009c94cb432bc2b9a362e4",
+    "bytes": 3286058
+  },
+  {
+    "path": "SourceAssets/Geodata/osm_context.overpass.json",
+    "source": "IstanaPublicViewExploreV3/Sources/geodata/osm_context_1km_2026-08-25.overpass.json",
+    "license": "ODbL-1.0",
+    "url": "https://www.openstreetmap.org/copyright",
+    "sha256": "ded5ed0cf10400fe6f32f01b329b922bb9dd5f7ed1d8452bfa35d967667bdf8f",
+    "bytes": 2319447
+  },
+  {
+    "path": "SourceAssets/Surfaces/PH_asphalt_02_Diffuse_4k.jpg",
+    "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/asphalt_02/asphalt_02_diff_4k.jpg",
+    "url": "https://polyhaven.com/a/asphalt_02",
+    "license": "CC0-1.0",
+    "sha256": "d1601354507b6c4a46aa741b9134f9f23f738596a2bdcd20792e50ca554018e0",
+    "bytes": 11654128
+  },
+  {
+    "path": "SourceAssets/Surfaces/PH_asphalt_02_NormalDX_4k.jpg",
+    "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/asphalt_02/asphalt_02_nor_dx_4k.jpg",
+    "url": "https://polyhaven.com/a/asphalt_02",
+    "license": "CC0-1.0",
+    "sha256": "710e8b2d5c7fd2fc0e6c8b5bdff7044cd1da249fa84590777904cb7b7bd21a08",
+    "bytes": 17813588
+  },
+  {
+    "path": "SourceAssets/Surfaces/PH_asphalt_02_Roughness_4k.jpg",
+    "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/4k/asphalt_02/asphalt_02_rough_4k.jpg",
+    "url": "https://polyhaven.com/a/asphalt_02",
+    "license": "CC0-1.0",
+    "sha256": "62e0461c25fe1cb411abf8ef3afaf080e16bf96ef7fd2acd180e9867ce95aabd",
+    "bytes": 8506335
+  }
+]

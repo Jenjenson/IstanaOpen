@@ -1,0 +1,23 @@
+{
+	"project": "IstanaOpen",
+	"map": "Istana",
+	"standalone_world": true,
+	"camera_possessed": true,
+	"screenshot_saved": true,
+	"screenshot": "D:\\triad\\IstanaOpen\\Saved\\Review\\packaged-aerial-high.png",
+	"gpu": "NVIDIA TITAN V",
+	"quality": "High",
+	"average_fps_after_warmup": 59.50958471873092,
+	"measured_frames": 1668,
+	"measured_seconds": 28.029098302125931,
+	"elapsed_seconds": 33.017013002187014,
+	"viewport_width": 1600,
+	"viewport_height": 900,
+	"requested_viewport_width": 1600,
+	"requested_viewport_height": 900,
+	"requested_resolution_honored": true,
+	"static_mesh_actors": 28,
+	"camera_location_cm": "X=10000.000 Y=-25000.000 Z=27000.000",
+	"camera_rotation_degrees": "P=-44.217253 Y=111.801409 R=-0.000000",
+	"view": 3
+}

@@ -1,0 +1,55 @@
+{
+  "island_tree_02": {
+    "island_tree_02": {
+      "baseColor": "island_tree_02_diff_2k.jpg",
+      "normalGL": "island_tree_02_nor_gl_2k.exr",
+      "roughness": "island_tree_02_rough_2k.exr"
+    },
+    "island_tree_02_leaves": {
+      "baseColor": "island_tree_02_leaves_diff_2k.png",
+      "opacityMask": "island_tree_02_leaves_alpha_2k.png",
+      "normalGL": "island_tree_02_leaves_nor_gl_2k.png",
+      "roughness": "island_tree_02_leaves_rough_2k.png"
+    },
+    "island_tree_02_branches": {
+      "baseColor": "island_tree_02_branches_diff_2k.png",
+      "normalGL": "island_tree_02_branches_nor_gl_2k.png",
+      "roughness": "island_tree_02_branches_rough_2k.png"
+    }
+  },
+  "tree_small_02": {
+    "tree_small_02_branches": {
+      "baseColor": "tree_small_02_branch_diff_2k.png",
+      "normalGL": "tree_small_02_branch_nor_gl_2k.png",
+      "roughness": "tree_small_02_branch_rough_2k.png"
+    },
+    "tree_small_02_leaves": {
+      "baseColor": "tree_small_02_leaves_diff_2k.png",
+      "opacityMask": "tree_small_02_leaves_alpha_2k.png",
+      "normalGL": "tree_small_02_leaves_nor_gl_2k.png",
+      "roughness": "tree_small_02_leaves_rough_2k.png"
+    },
+    "tree_small_02_trunk": {
+      "baseColor": "tree_small_02_diff_2k.jpg",
+      "normalGL": "tree_small_02_nor_gl_2k.exr",
+      "roughness": "tree_small_02_rough_2k.exr"
+    }
+  },
+  "shrub_04": {
+    "shrub_04": {
+      "baseColor": "shrub_04_diff_2k.jpg",
+      "opacityMask": "shrub_04_alpha_2k.png",
+      "mask": "shrub_04_mask_2k.png",
+      "normalGL": "shrub_04_nor_gl_2k.exr",
+      "roughness": "shrub_04_rough_2k.exr"
+    }
+  },
+  "grass_medium_01": {
+    "grass_medium_01": {
+      "baseColor": "grass_medium_01_diff_2k.jpg",
+      "opacityMask": "grass_medium_01_alpha_2k.png",
+      "normalGL": "grass_medium_01_nor_gl_2k.exr",
+      "roughness": "grass_medium_01_rough_2k.exr"
+    }
+  }
+}

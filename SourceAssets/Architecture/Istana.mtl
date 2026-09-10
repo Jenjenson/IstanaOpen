@@ -1,0 +1,49 @@
+# CC0 material values; replace with UE PBR materials using architecture_manifest.json
+newmtl plaster
+Kd 0.8700 0.8450 0.7700
+Ka 0.03 0.03 0.03
+Ks 0.1 0.1 0.1
+Ns 25.00
+d 1.0
+illum 2
+
+newmtl stone
+Kd 0.6400 0.6000 0.5000
+Ka 0.03 0.03 0.03
+Ks 0.1 0.1 0.1
+Ns 11.00
+d 1.0
+illum 2
+
+newmtl slate
+Kd 0.0850 0.1200 0.1450
+Ka 0.03 0.03 0.03
+Ks 0.1 0.1 0.1
+Ns 33.00
+d 1.0
+illum 2
+
+newmtl glass
+Kd 0.0550 0.1050 0.1150
+Ka 0.03 0.03 0.03
+Ks 0.1 0.1 0.1
+Ns 89.00
+d 1.0
+illum 2
+
+newmtl dark_wood
+Kd 0.0650 0.0790 0.0630
+Ka 0.03 0.03 0.03
+Ks 0.1 0.1 0.1
+Ns 36.00
+d 1.0
+illum 2
+
+newmtl metal
+Kd 0.1050 0.1150 0.1000
+Ka 0.03 0.03 0.03
+Ks 0.1 0.1 0.1
+Ns 63.00
+d 1.0
+illum 2
+

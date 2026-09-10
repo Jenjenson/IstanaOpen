@@ -1,0 +1,23 @@
+{
+	"project": "IstanaOpen",
+	"map": "Istana",
+	"standalone_world": true,
+	"camera_possessed": true,
+	"screenshot_saved": true,
+	"screenshot": "D:\\triad\\IstanaOpen\\Saved\\Review\\packaged-dx11.png",
+	"gpu": "NVIDIA TITAN V",
+	"quality": "Medium",
+	"average_fps_after_warmup": 59.474026979362797,
+	"measured_frames": 1667,
+	"measured_seconds": 28.02904199808836,
+	"elapsed_seconds": 33.014616601169109,
+	"viewport_width": 1600,
+	"viewport_height": 900,
+	"requested_viewport_width": 1600,
+	"requested_viewport_height": 900,
+	"requested_resolution_honored": true,
+	"static_mesh_actors": 28,
+	"camera_location_cm": "X=-7000.000 Y=-9500.000 Z=700.000",
+	"camera_rotation_degrees": "P=2.080419 Y=50.527540 R=0.000000",
+	"view": 2
+}

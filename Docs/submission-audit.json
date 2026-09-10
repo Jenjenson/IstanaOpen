@@ -1,0 +1,2261 @@
+{
+  "created_utc": "2026-09-10T10:42:50.086499+00:00",
+  "status": "PASS",
+  "scope": "Source files only; build products, caches and release packages excluded. Technical checks do not determine legal rights.",
+  "excluded_directories": [
+    ".git",
+    ".vs",
+    "__pycache__",
+    "binaries",
+    "build",
+    "ddc",
+    "deriveddatacache",
+    "intermediate",
+    "node_modules",
+    "releases",
+    "saved"
+  ],
+  "file_count": 280,
+  "total_bytes": 1108240943,
+  "extensions": {
+    "(none)": 3,
+    ".cpp": 2,
+    ".cs": 3,
+    ".exr": 8,
+    ".fbx": 5,
+    ".h": 1,
+    ".ini": 3,
+    ".jpg": 22,
+    ".json": 9,
+    ".md": 8,
+    ".mtl": 2,
+    ".obj": 28,
+    ".png": 27,
+    ".ps1": 3,
+    ".py": 8,
+    ".uasset": 146,
+    ".umap": 1,
+    ".uproject": 1
+  },
+  "provenance_entries_verified": 60,
+  "obj_file_count": 28,
+  "obj_total_triangles": 764537,
+  "findings": [],
+  "warnings": [],
+  "geometry": {
+    "SourceAssets/Architecture/Istana_Balustrades.obj": {
+      "counts": {
+        "v": 80736,
+        "vt": 80736,
+        "vn": 80736,
+        "faces": 41688,
+        "triangles": 41688
+      },
+      "bounds": [
+        [
+          -4012.5,
+          -1929.5,
+          691.0
+        ],
+        [
+          4012.5,
+          327.5,
+          2543.5
+        ]
+      ],
+      "materials": [
+        "plaster",
+        "stone"
+      ],
+      "zero_area_triangles": 0,
+      "zero_area_sample_lines": [],
+      "errors_count": 0,
+      "errors": []
+    },
+    "SourceAssets/Architecture/Istana_Colonnades.obj": {
+      "counts": {
+        "v": 71592,
+        "vt": 71592,
+        "vn": 71592,
+        "faces": 37726,
+        "triangles": 37726
+      },
+      "bounds": [
+        [
+          -5081.5,
+          -1990.0,
+          118.0
+        ],
+        [
+          5081.5,
+          1138.5,
+          2835.0
+        ]
+      ],
+      "materials": [
+        "glass",
+        "metal",
+        "plaster"
+      ],
+      "zero_area_triangles": 0,
+      "zero_area_sample_lines": [],
+      "errors_count": 0,
+      "errors": []
+    },
+    "SourceAssets/Architecture/Istana_Cornices.obj": {
+      "counts": {
+        "v": 25392,
+        "vt": 25392,
+        "vn": 25392,
+        "faces": 12696,
+        "triangles": 12696
+      },
+      "bounds": [
+        [
+          -5155.0,
+          -1975.0,
+          117.5
+        ],
+        [
+          5155.0,
+          1671.0,
+          2278.486
+        ]
+      ],
+      "materials": [
+        "plaster"
+      ],
+      "zero_area_triangles": 0,
+      "zero_area_sample_lines": [],
+      "errors_count": 0,
+      "errors": []
+    },
+    "SourceAssets/Architecture/Istana_Roof.obj": {
+      "counts": {
+        "v": 1368,
+        "vt": 1368,
+        "vn": 1368,
+        "faces": 684,
+        "triangles": 684
+      },
+      "bounds": [
+        [
+          -5110.0,
+          -1250.0,
+          1294.0
+        ],
+        [
+          5110.0,
+          1650.0,
+          2410.0
+        ]
+      ],
+      "materials": [
+        "slate"
+      ],
+      "zero_area_triangles": 0,
+      "zero_area_sample_lines": [],
+      "errors_count": 0,
+      "errors": []
+    },
+    "SourceAssets/Architecture/Istana_Structure.obj": {
+      "counts": {
+        "v": 8898,
+        "vt": 8898,
+        "vn": 8898,
+        "faces": 4444,
+        "triangles": 4444
+      },
+      "bounds": [
+        [
+          -5110.0,
+          -1950.5,
+          106.0
+        ],
+        [
+          5110.0,
+          1655.0,
+          2457.5
+        ]
+      ],
+      "materials": [
+        "plaster",
+        "stone"
+      ],
+      "zero_area_triangles": 0,
+      "zero_area_sample_lines": [],
+      "errors_count": 0,
+      "errors": []
+    },
+    "SourceAssets/Architecture/Istana_Terraces.obj": {
+      "counts": {
+        "v": 1344,
+        "vt": 1344,
+        "vn": 1344,
+        "faces": 668,
+        "triangles": 668
+      },
+      "bounds": [
+        [
+          -5150.0,
+          -2286.0,
+          0.0
+        ],
+        [
+          5150.0,
+          1800.0,
+          275.0
+        ]
+      ],
+      "materials": [
+        "plaster",
+        "stone"
+      ],
+      "zero_area_triangles": 0,
+      "zero_area_sample_lines": [],
+      "errors_count": 0,
+      "errors": []
+    },
+    "SourceAssets/Architecture/Istana_Windows_Centre.obj": {
+      "counts": {
+        "v": 38960,
+        "vt": 38960,
+        "vn": 38960,
+        "faces": 19456,
+        "triangles": 19456
+      },
+      "bounds": [
+        [
+          -1057.5,
+          -1341.0,
+          127.0
+        ],
+        [
+          1057.5,
+          1697.0,
+          2165.0
+        ]
+      ],
+      "materials": [
+        "dark_wood",
+        "glass",
+        "metal",
+        "plaster"
+      ],
+      "zero_area_triangles": 0,
+      "zero_area_sample_lines": [],
+      "errors_count": 0,
+      "errors": []
+    },
+    "SourceAssets/Architecture/Istana_Windows_East.obj": {
+      "counts": {
+        "v": 46640,
+        "vt": 46640,
+        "vn": 46640,
+        "faces": 23240,
+        "triangles": 23240
+      },
+      "bounds": [
+        [
+          1221.8571,
+          -1094.0,
+          143.0
+        ],
+        [
+          5151.5,
+          1492.0,
+          1175.0
+        ]
+      ],
+      "materials": [
+        "dark_wood",
+        "glass",
+        "metal",
+        "plaster"
+      ],
+      "zero_area_triangles": 0,
+      "zero_area_sample_lines": [],
+      "errors_count": 0,
+      "errors": []
+    },
+    "SourceAssets/Architecture/Istana_Windows_West.obj": {
+      "counts": {
+        "v": 46640,
+        "vt": 46640,
+        "vn": 46640,
+        "faces": 23240,
+        "triangles": 23240
+      },
+      "bounds": [
+        [
+          -5151.5,
+          -1094.0,
+          143.0
+        ],
+        [
+          -1221.8571,
+          1492.0,
+          1175.0
+        ]
+      ],
+      "materials": [
+        "dark_wood",
+        "glass",
+        "metal",
+        "plaster"
+      ],
+      "zero_area_triangles": 0,
+      "zero_area_sample_lines": [],
+      "errors_count": 0,
+      "errors": []
+    },
+    "SourceAssets/Environment/SM_Env_ContextGlass_01.obj": {
+      "counts": {
+        "v": 100000,
+        "vt": 100000,
+        "vn": 25000,
+        "faces": 25000,
+        "triangles": 50000
+      },
+      "bounds": [
+        [
+          -100469.4739,
+          -101539.2705,
+          -2220.0
+        ],
+        [
+          104135.1402,
+          97790.8579,
+          7040.0
+        ]
+      ],
+      "materials": [
+        "UrbanGlass",
+        "UrbanGlassDark"
+      ],
+      "zero_area_triangles": 0,
+      "zero_area_sample_lines": [],
+      "errors_count": 0,
+      "errors": []
+    },
+    "SourceAssets/Environment/SM_Env_ContextGlass_02.obj": {
+      "counts": {
+        "v": 100000,
+        "vt": 100000,
+        "vn": 25000,
+        "faces": 25000,
+        "triangles": 50000
+      },
+      "bounds": [
+        [
+          -102608.9165,
+          -96115.2004,
+          -2220.0
+        ],
+        [
+          98544.7828,
+          79489.6743,
+          5700.0
+        ]
+      ],
+      "materials": [
+        "UrbanGlass",
+        "UrbanGlassDark"
+      ],
+      "zero_area_triangles": 0,
+      "zero_area_sample_lines": [],
+      "errors_count": 0,
+      "errors": []
+    },
+    "SourceAssets/Environment/SM_Env_ContextGlass_03.obj": {
+      "counts": {
+        "v": 100000,
+        "vt": 100000,
+        "vn": 25000,
+        "faces": 25000,
+        "triangles": 50000
+      },
+      "bounds": [
+        [
+          -97861.1634,
+          -88601.5849,
+          -2220.0
+        ],
+        [
+          100782.3694,
+          97601.5364,
+          9720.0
+        ]
+      ],
+      "materials": [
+        "UrbanGlass",
+        "UrbanGlassDark"
+      ],
+      "zero_area_triangles": 0,
+      "zero_area_sample_lines": [],
+      "errors_count": 0,
+      "errors": []
+    },
+    "SourceAssets/Environment/SM_Env_ContextGlass_04.obj": {
+      "counts": {
+        "v": 100000,
+        "vt": 100000,
+        "vn": 25000,
+        "faces": 25000,
+        "triangles": 50000
+      },
+      "bounds": [
+        [
+          -89046.9149,
+          -36189.0798,
+          -2220.0
+        ],
+        [
+          66643.7728,
+          102434.4065,
+          7710.0
+        ]
+      ],
+      "materials": [
+        "UrbanGlass",
+        "UrbanGlassDark"
+      ],
+      "zero_area_triangles": 0,
+      "zero_area_sample_lines": [],
+      "errors_count": 0,
+      "errors": []
+    },
+    "SourceAssets/Environment/SM_Env_ContextGlass_05.obj": {
+      "counts": {
+        "v": 100000,
+        "vt": 100000,
+        "vn": 25000,
+        "faces": 25000,
+        "triangles": 50000
+      },
+      "bounds": [
+        [
+          -92436.709,
+          -100241.013,
+          -2220.0
+        ],
+        [
+          94687.9536,
+          97155.4546,
+          8651.25
+        ]
+      ],
+      "materials": [
+        "UrbanGlass",
+        "UrbanGlassDark"
+      ],
+      "zero_area_triangles": 0,
+      "zero_area_sample_lines": [],
+      "errors_count": 0,
+      "errors": []
+    },
+    "SourceAssets/Environment/SM_Env_ContextGlass_06.obj": {
+      "counts": {
+        "v": 96600,
+        "vt": 96600,
+        "vn": 24150,
+        "faces": 24150,
+        "triangles": 48300
+      },
+      "bounds": [
+        [
+          -100850.3845,
+          -97926.9558,
+          -2220.0
+        ],
+        [
+          99516.4934,
+          94050.4376,
+          8045.0
+        ]
+      ],
+      "materials": [
+        "UrbanGlass",
+        "UrbanGlassDark"
+      ],
+      "zero_area_triangles": 0,
+      "zero_area_sample_lines": [],
+      "errors_count": 0,
+      "errors": []
+    },
+    "SourceAssets/Environment/SM_Env_ContextRoofs_01.obj": {
+      "counts": {
+        "v": 35583,
+        "vt": 35583,
+        "vn": 11011,
+        "faces": 11011,
+        "triangles": 13561
+      },
+      "bounds": [
+        [
+          -102611.5955,
+          -101561.3731,
+          -1950.0
+        ],
+        [
+          104201.4728,
+          102602.3319,
+          9910.0
+        ]
+      ],
+      "materials": [
+        "UrbanRoof"
+      ],
+      "zero_area_triangles": 0,
+      "zero_area_sample_lines": [],
+      "errors_count": 0,
+      "errors": []
+    },
+    "SourceAssets/Environment/SM_Env_ContextTrim_01.obj": {
+      "counts": {
+        "v": 100000,
+        "vt": 100000,
+        "vn": 25000,
+        "faces": 25000,
+        "triangles": 50000
+      },
+      "bounds": [
+        [
+          -102623.5848,
+          -101573.1724,
+          -2275.0
+        ],
+        [
+          104212.01,
+          97823.8555,
+          7086.0
+        ]
+      ],
+      "materials": [
+        "Trim"
+      ],
+      "zero_area_triangles": 0,
+      "zero_area_sample_lines": [],
+      "errors_count": 0,
+      "errors": []
+    },
+    "SourceAssets/Environment/SM_Env_ContextTrim_02.obj": {
+      "counts": {
+        "v": 100000,
+        "vt": 100000,
+        "vn": 25000,
+        "faces": 25000,
+        "triangles": 50000
+      },
+      "bounds": [
+        [
+          -97937.5372,
+          -88665.4519,
+          -2275.0
+        ],
+        [
+          100843.4592,
+          97691.3078,
+          9766.0
+        ]
+      ],
+      "materials": [
+        "Trim"
+      ],
+      "zero_area_triangles": 0,
+      "zero_area_sample_lines": [],
+      "errors_count": 0,
+      "errors": []
+    },
+    "SourceAssets/Environment/SM_Env_ContextTrim_03.obj": {
+      "counts": {
+        "v": 100000,
+        "vt": 100000,
+        "vn": 25000,
+        "faces": 25000,
+        "triangles": 50000
+      },
+      "bounds": [
+        [
+          -92504.8899,
+          -100310.1833,
+          -2275.0
+        ],
+        [
+          92323.1784,
+          102612.7129,
+          8706.0
+        ]
+      ],
+      "materials": [
+        "Trim"
+      ],
+      "zero_area_triangles": 0,
+      "zero_area_sample_lines": [],
+      "errors_count": 0,
+      "errors": []
+    },
+    "SourceAssets/Environment/SM_Env_ContextTrim_04.obj": {
+      "counts": {
+        "v": 90024,
+        "vt": 90024,
+        "vn": 22506,
+        "faces": 22506,
+        "triangles": 45012
+      },
+      "bounds": [
+        [
+          -100871.8243,
+          -98056.1433,
+          -2275.0
+        ],
+        [
+          99705.1029,
+          94111.6899,
+          7756.0
+        ]
+      ],
+      "materials": [
+        "Trim"
+      ],
+      "zero_area_triangles": 0,
+      "zero_area_sample_lines": [],
+      "errors_count": 0,
+      "errors": []
+    },
+    "SourceAssets/Environment/SM_Env_ContextWalls_01.obj": {
+      "counts": {
+        "v": 45148,
+        "vt": 45148,
+        "vn": 11287,
+        "faces": 11287,
+        "triangles": 22574
+      },
+      "bounds": [
+        [
+          -102611.5955,
+          -101561.3731,
+          -2340.0
+        ],
+        [
+          104201.4728,
+          102602.3319,
+          9760.0
+        ]
+      ],
+      "materials": [
+        "UrbanBrick",
+        "UrbanCool",
+        "UrbanIvory",
+        "UrbanWarm"
+      ],
+      "zero_area_triangles": 0,
+      "zero_area_sample_lines": [],
+      "errors_count": 0,
+      "errors": []
+    },
+    "SourceAssets/Environment/SM_Env_Horizon_01.obj": {
+      "counts": {
+        "v": 1024,
+        "vt": 1024,
+        "vn": 256,
+        "faces": 256,
+        "triangles": 512
+      },
+      "bounds": [
+        [
+          -500000.0,
+          -500000.0,
+          -2300.0
+        ],
+        [
+          500000.0,
+          500000.0,
+          -2300.0
+        ]
+      ],
+      "materials": [
+        "Lawn"
+      ],
+      "zero_area_triangles": 0,
+      "zero_area_sample_lines": [],
+      "errors_count": 0,
+      "errors": []
+    },
+    "SourceAssets/Environment/SM_Env_LandscapeDetails_01.obj": {
+      "counts": {
+        "v": 9316,
+        "vt": 9316,
+        "vn": 2614,
+        "faces": 2614,
+        "triangles": 4088
+      },
+      "bounds": [
+        [
+          -8940.0,
+          -16840.0,
+          -103.2664
+        ],
+        [
+          8940.0,
+          -2115.0,
+          371.0
+        ]
+      ],
+      "materials": [
+        "FountainStone",
+        "Hedge",
+        "LampGlow",
+        "MetalDark",
+        "Trim",
+        "UrbanWarm"
+      ],
+      "zero_area_triangles": 0,
+      "zero_area_sample_lines": [],
+      "errors_count": 0,
+      "errors": []
+    },
+    "SourceAssets/Environment/SM_Env_Paving_01.obj": {
+      "counts": {
+        "v": 37408,
+        "vt": 37408,
+        "vn": 9352,
+        "faces": 9352,
+        "triangles": 18704
+      },
+      "bounds": [
+        [
+          -104830.7157,
+          -100546.137,
+          -2283.0
+        ],
+        [
+          106779.0733,
+          105254.6122,
+          14.0
+        ]
+      ],
+      "materials": [
+        "StonePaving"
+      ],
+      "zero_area_triangles": 0,
+      "zero_area_sample_lines": [],
+      "errors_count": 0,
+      "errors": []
+    },
+    "SourceAssets/Environment/SM_Env_RoadMarkings_01.obj": {
+      "counts": {
+        "v": 4460,
+        "vt": 4460,
+        "vn": 1115,
+        "faces": 1115,
+        "triangles": 2230
+      },
+      "bounds": [
+        [
+          -99846.8368,
+          -99976.4845,
+          -2294.5
+        ],
+        [
+          103637.1018,
+          104630.7327,
+          -693.4274
+        ]
+      ],
+      "materials": [
+        "RoadMarking"
+      ],
+      "zero_area_triangles": 0,
+      "zero_area_sample_lines": [],
+      "errors_count": 0,
+      "errors": []
+    },
+    "SourceAssets/Environment/SM_Env_Roads_01.obj": {
+      "counts": {
+        "v": 18596,
+        "vt": 18596,
+        "vn": 4649,
+        "faces": 4649,
+        "triangles": 9298
+      },
+      "bounds": [
+        [
+          -104798.2067,
+          -100494.9257,
+          -2296.0
+        ],
+        [
+          106731.252,
+          105087.9975,
+          5.1459
+        ]
+      ],
+      "materials": [
+        "Asphalt"
+      ],
+      "zero_area_triangles": 0,
+      "zero_area_sample_lines": [],
+      "errors_count": 0,
+      "errors": []
+    },
+    "SourceAssets/Environment/SM_Env_Terrain_01.obj": {
+      "counts": {
+        "v": 72448,
+        "vt": 72448,
+        "vn": 18176,
+        "faces": 18176,
+        "triangles": 36096
+      },
+      "bounds": [
+        [
+          -110000.0,
+          -110000.0,
+          -7000.0
+        ],
+        [
+          110000.0,
+          110000.0,
+          0.0
+        ]
+      ],
+      "materials": [
+        "Lawn"
+      ],
+      "zero_area_triangles": 0,
+      "zero_area_sample_lines": [],
+      "errors_count": 0,
+      "errors": []
+    },
+    "SourceAssets/Environment/SM_Env_Water_01.obj": {
+      "counts": {
+        "v": 960,
+        "vt": 960,
+        "vn": 320,
+        "faces": 320,
+        "triangles": 320
+      },
+      "bounds": [
+        [
+          -655.0,
+          -11155.0,
+          38.0
+        ],
+        [
+          655.0,
+          -9845.0,
+          181.0
+        ]
+      ],
+      "materials": [
+        "Water"
+      ],
+      "zero_area_triangles": 0,
+      "zero_area_sample_lines": [],
+      "errors_count": 0,
+      "errors": []
+    }
+  },
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 383,
+      "sha256": "5285d61f1886a7fe0e31d30ad7a8f1ee6f4e88e43525118157e2a5ecb270c9f9"
+    },
+    {
+      "path": ".gitignore",
+      "bytes": 115,
+      "sha256": "a9da67c1969d6eec49f7e799599575efb3722f7b9a3d2d2ace8c73c07ab4374e"
+    },
+    {
+      "path": "END_USER_TERMS.md",
+      "bytes": 1072,
+      "sha256": "75a373e3752f7893d80aa3100645fb3c5015efec73906d8d4563fc2bd1fd0d77"
+    },
+    {
+      "path": "IstanaOpen.uproject",
+      "bytes": 1282,
+      "sha256": "cb2a9e17a446e7c410c075f72083086c1557456a7dd3349eac661cd5aca7fc83"
+    },
+    {
+      "path": "LICENSE",
+      "bytes": 1628,
+      "sha256": "9247c685dbeb2258b3051727395db30b79ecb8ea2cfeb703b1e4d2a33deb7b2f"
+    },
+    {
+      "path": "README.md",
+      "bytes": 7704,
+      "sha256": "9f01b988d0e4b221d767142574a560657fce698a9854f2dc6972664b4fa05d30"
+    },
+    {
+      "path": "Config/DefaultEngine.ini",
+      "bytes": 1209,
+      "sha256": "95aecb32cbbdc039cd18506774dd4ffd9a122e8fedb740c801c6631a9718638c"
+    },
+    {
+      "path": "Config/DefaultGame.ini",
+      "bytes": 603,
+      "sha256": "4a5fdcb4399344c0ab5f77e9c9d7f6fdbdf1771e1fd9fd4d7e5506a2e62f5317"
+    },
+    {
+      "path": "Config/DefaultGameUserSettings.ini",
+      "bytes": 520,
+      "sha256": "c67929df72baf95f52f38684c017c2070cab5d532a4b76a26ea8506aeaada86a"
+    },
+    {
+      "path": "Content/Maps/Istana.umap",
+      "bytes": 510477,
+      "sha256": "d2f356ea8a0f8b2813f4a3fe781b5de248f6d8fb98ccb0ee3b7d5773f7927346"
+    },
+    {
+      "path": "Content/Open/Architecture/Istana_Balustrades.uasset",
+      "bytes": 462220,
+      "sha256": "9d4eb3e30774cf7c24299b4d9e738ebc00b9c46ac64623f20cadee52ea95b656"
+    },
+    {
+      "path": "Content/Open/Architecture/Istana_Colonnades.uasset",
+      "bytes": 522464,
+      "sha256": "481d8063e04f4bef0a77f2a49e4e1c78d1c6bcfad52c3db0dd5d803f96bf3c28"
+    },
+    {
+      "path": "Content/Open/Architecture/Istana_Cornices.uasset",
+      "bytes": 221491,
+      "sha256": "58ba11e96decdbf6aa8d3acaf8e51b676d79903367a18877a7adb18b77d5dbde"
+    },
+    {
+      "path": "Content/Open/Architecture/Istana_Roof.uasset",
+      "bytes": 26793,
+      "sha256": "c5164850dd1e8d2beb4872e844a23bbfa3c050abc50d0c9ef709a34f2f1571a8"
+    },
+    {
+      "path": "Content/Open/Architecture/Istana_Structure.uasset",
+      "bytes": 83122,
+      "sha256": "e9aa6f8b05384e12d47e53c170b8f5b0e8a28393f5245197cd0eeed696b98134"
+    },
+    {
+      "path": "Content/Open/Architecture/Istana_Terraces.uasset",
+      "bytes": 28181,
+      "sha256": "e84ddfcdf626f08fd6237cd298bc759001f0d8294070217e5cd26e6fd06b2caa"
+    },
+    {
+      "path": "Content/Open/Architecture/Istana_Windows_Centre.uasset",
+      "bytes": 287436,
+      "sha256": "f781927192cea1e830fe31d8c4efe014507a1dc3b53107cebe21a0a808f4f540"
+    },
+    {
+      "path": "Content/Open/Architecture/Istana_Windows_East.uasset",
+      "bytes": 259444,
+      "sha256": "cf137048df3e79b9896f1fbacb8767e442ff309a2c0026d372dd4453db089f03"
+    },
+    {
+      "path": "Content/Open/Architecture/Istana_Windows_West.uasset",
+      "bytes": 260147,
+      "sha256": "3080982086eff7c72b10f8d9fbe21e55d762a06421033da77915bd7937b1f803"
+    },
+    {
+      "path": "Content/Open/Environment/SM_Env_ContextGlass_01.uasset",
+      "bytes": 761141,
+      "sha256": "7617681cc51825c0db6fe30c0983693f3a1e5be7a1fdd0fd31af7fe09ecc8df1"
+    },
+    {
+      "path": "Content/Open/Environment/SM_Env_ContextGlass_02.uasset",
+      "bytes": 797012,
+      "sha256": "a581afb5bc78b05fab8246bcc8ce99fa9f9e31870e48bb78390fc8b0dd13193b"
+    },
+    {
+      "path": "Content/Open/Environment/SM_Env_ContextGlass_03.uasset",
+      "bytes": 802081,
+      "sha256": "2784c7ab47e09adec25b2f6ac901e9b9f0fcdd735b5e2d04f7224171a68764b9"
+    },
+    {
+      "path": "Content/Open/Environment/SM_Env_ContextGlass_04.uasset",
+      "bytes": 809807,
+      "sha256": "bb3fd9acb2ee3f450e707686fa0023962c34fa9810591550c92e3aafb0745842"
+    },
+    {
+      "path": "Content/Open/Environment/SM_Env_ContextGlass_05.uasset",
+      "bytes": 772912,
+      "sha256": "d2402e0ece8fb91db3ad771915f8068bb0bd7f6343c269bdb1baaa8361f3a992"
+    },
+    {
+      "path": "Content/Open/Environment/SM_Env_ContextGlass_06.uasset",
+      "bytes": 751791,
+      "sha256": "d9cc2d82bc96fe9a498dfc419da29e21792a0effb12695fd819767577ec40f7d"
+    },
+    {
+      "path": "Content/Open/Environment/SM_Env_ContextRoofs_01.uasset",
+      "bytes": 432198,
+      "sha256": "6b12c44619c7ba75f273efb11141ab443bc1df2a149a5d111509ac897fd28926"
+    },
+    {
+      "path": "Content/Open/Environment/SM_Env_ContextTrim_01.uasset",
+      "bytes": 902774,
+      "sha256": "609d3ef09f2ce5b0b03ffe747af32e66e94f9339952586ae32f695a85aa16fcb"
+    },
+    {
+      "path": "Content/Open/Environment/SM_Env_ContextTrim_02.uasset",
+      "bytes": 917808,
+      "sha256": "a7ae33687de338a055ae6dfdff690e1007bd9993890167f70ae6686c91354a60"
+    },
+    {
+      "path": "Content/Open/Environment/SM_Env_ContextTrim_03.uasset",
+      "bytes": 853821,
+      "sha256": "cac6a9d8fe8bdd211eedd1ddbeb77b90d065071615cac1ddb718a1ef487b3afc"
+    },
+    {
+      "path": "Content/Open/Environment/SM_Env_ContextTrim_04.uasset",
+      "bytes": 757626,
+      "sha256": "350598f8afba4bc28b05ba8aa27856e6c4c26b9d612e28cf37c147d9a85fe8e2"
+    },
+    {
+      "path": "Content/Open/Environment/SM_Env_ContextWalls_01.uasset",
+      "bytes": 585295,
+      "sha256": "bd6e3b1f4ddde50e9cd623d202ca6356321d03d428ebc7240c7cfd048ae25105"
+    },
+    {
+      "path": "Content/Open/Environment/SM_Env_Horizon_01.uasset",
+      "bytes": 30961,
+      "sha256": "003977dadf3588486d66ee91c5139634d6b85869f7d1c1ff6f05c7cb1d7f2e30"
+    },
+    {
+      "path": "Content/Open/Environment/SM_Env_LandscapeDetails_01.uasset",
+      "bytes": 114599,
+      "sha256": "e3d1ec1e91708af0b0053d0817a1a06e5be41f996b5970fb299cf10e18098b75"
+    },
+    {
+      "path": "Content/Open/Environment/SM_Env_Paving_01.uasset",
+      "bytes": 795439,
+      "sha256": "a40243dc616bffaa0d8f0ef7a2a6e6e66aee84f9f3cbe1183d9188c5f7d3ae3e"
+    },
+    {
+      "path": "Content/Open/Environment/SM_Env_RoadMarkings_01.uasset",
+      "bytes": 127750,
+      "sha256": "9f9e1fc9f9597cf3cf531bf8fd8733711af46d9686ecbeb29138e06b0351d295"
+    },
+    {
+      "path": "Content/Open/Environment/SM_Env_Roads_01.uasset",
+      "bytes": 413357,
+      "sha256": "e1876ddc260651b59fff795d1c344378f311d25011d9b980d71129243fb2f2ff"
+    },
+    {
+      "path": "Content/Open/Environment/SM_Env_Terrain_01.uasset",
+      "bytes": 755837,
+      "sha256": "99e61578b4dff380a2119a7d69619cac7be96c6265174bad147c4df9d12940b4"
+    },
+    {
+      "path": "Content/Open/Environment/SM_Env_Water_01.uasset",
+      "bytes": 21567,
+      "sha256": "6c1e712628b15e90202f483f28b64696da1e9c3e347f2a135e85bdc74e6b7f32"
+    },
+    {
+      "path": "Content/Open/Materials/M_asphalt.uasset",
+      "bytes": 5483,
+      "sha256": "0aa1388ad9a4902ded93085f1c1c044fb8cfe8acf650701de604256553d63289"
+    },
+    {
+      "path": "Content/Open/Materials/M_asphalt_scan.uasset",
+      "bytes": 12082,
+      "sha256": "4bd38b5ed67b7e8e2e24144b11a43651e2874df6803dea0bc8dd3885ab00ad4f"
+    },
+    {
+      "path": "Content/Open/Materials/M_charcoal_roof_slate.uasset",
+      "bytes": 11596,
+      "sha256": "9a97a69b04b12f51876a968eb92290431ff325b772971df30944e7be03db6e2e"
+    },
+    {
+      "path": "Content/Open/Materials/M_concrete.uasset",
+      "bytes": 5488,
+      "sha256": "b3ba282ea124023f9a08214927ccea3d0fcef6a41da15500ec409d7a038e0c12"
+    },
+    {
+      "path": "Content/Open/Materials/M_dark_wood.uasset",
+      "bytes": 6355,
+      "sha256": "56cb99072b4c062ec453a8d94454b6567928d3814083693ae5a9fc7700588f3b"
+    },
+    {
+      "path": "Content/Open/Materials/M_glass.uasset",
+      "bytes": 5502,
+      "sha256": "435d591dfdbffca8bc0b158b19a1eb267da1ef254e834b8f3958744986308601"
+    },
+    {
+      "path": "Content/Open/Materials/M_gold.uasset",
+      "bytes": 5497,
+      "sha256": "dee94528fa06429be181f7bb1ec80a3effb1fd08f6ce2b1400086cd8046f6b6c"
+    },
+    {
+      "path": "Content/Open/Materials/M_grass.uasset",
+      "bytes": 8052,
+      "sha256": "62c0ccd0bfca08c80d0e147bf2797b3b789375f4478fa5c8a54a11bf78fbc01d"
+    },
+    {
+      "path": "Content/Open/Materials/M_grass_medium_01.uasset",
+      "bytes": 8722,
+      "sha256": "25fe207a06ba578dc39fd485d2a2d1bcb446fb56d1767f8df3a22b0070d6dca1"
+    },
+    {
+      "path": "Content/Open/Materials/M_hedge.uasset",
+      "bytes": 5473,
+      "sha256": "c2060fd870e1bd13f6481216f63aefd54ec2cc858fe73d5f43728b49f9fe6804"
+    },
+    {
+      "path": "Content/Open/Materials/M_island_tree_02.uasset",
+      "bytes": 6642,
+      "sha256": "4a05f108270d6b0c3f45ef3ea36edff07808642aed65fe5a5ca4090b97a11022"
+    },
+    {
+      "path": "Content/Open/Materials/M_island_tree_02_branches.uasset",
+      "bytes": 6741,
+      "sha256": "ead407612b579d08f52bc54b67cfd32fd628306058fcb09eb4235da3f7acf0d2"
+    },
+    {
+      "path": "Content/Open/Materials/M_island_tree_02_leaves.uasset",
+      "bytes": 8745,
+      "sha256": "fc0bed7c3b15f8c26b69502ab45eed5d7e86971f811f57c89af7194f73026f19"
+    },
+    {
+      "path": "Content/Open/Materials/M_metal.uasset",
+      "bytes": 5502,
+      "sha256": "3164ceaba9d8c7d5cae22a9c5d8dcc9e0f66611ebbaaacb619515f2915792b0e"
+    },
+    {
+      "path": "Content/Open/Materials/M_pachira_aquatica_01_bark.uasset",
+      "bytes": 6816,
+      "sha256": "d500131a89fa0597ac8382f2050b811733ce1e020616c898361df2ebfca951c1"
+    },
+    {
+      "path": "Content/Open/Materials/M_pachira_aquatica_01_leaves.uasset",
+      "bytes": 8876,
+      "sha256": "5245dfbfc34b76bfac4f8314fb4f99b2650db9c52acd4a4e8d38dcf0e73eb6d3"
+    },
+    {
+      "path": "Content/Open/Materials/M_painted_lime_plaster.uasset",
+      "bytes": 11693,
+      "sha256": "3b9c2b92f011eb0ee76cd9fbb5621aabc1bbe8b238e5b697a279347391a08c40"
+    },
+    {
+      "path": "Content/Open/Materials/M_pale_architectural_stone.uasset",
+      "bytes": 12135,
+      "sha256": "dad4ea50b1c1658d4d29d1e10ffb97d782e3b113fa34274a7e26f1801425437a"
+    },
+    {
+      "path": "Content/Open/Materials/M_paving.uasset",
+      "bytes": 5478,
+      "sha256": "f90f5e82effc9052877ee83b1f806ed96bb75abc3b1efba593c06e8c2103cc5e"
+    },
+    {
+      "path": "Content/Open/Materials/M_paving_scan.uasset",
+      "bytes": 12076,
+      "sha256": "d4abc05446b8d6af991f9dea32b8d12a35f4226f37c1b7fc66a068706423d431"
+    },
+    {
+      "path": "Content/Open/Materials/M_plaster.uasset",
+      "bytes": 6655,
+      "sha256": "d22c1d962953452aa80b665f6f41b5a827a68b5b07f53fe819ae201a209251b2"
+    },
+    {
+      "path": "Content/Open/Materials/M_shrub_04.uasset",
+      "bytes": 8624,
+      "sha256": "a67a534f272931e24554da6c41f4710eba82a01bc8668479237fba55ceebc86b"
+    },
+    {
+      "path": "Content/Open/Materials/M_slate.uasset",
+      "bytes": 6633,
+      "sha256": "359cd3b8156a367923ee52b00c827e65558ffe33dde52a234fdb5ad15ce5bb4e"
+    },
+    {
+      "path": "Content/Open/Materials/M_soil.uasset",
+      "bytes": 5468,
+      "sha256": "20303a2293df4e48014213f17ca69a5ae9e2162b29875f8914115ae5876c1cca"
+    },
+    {
+      "path": "Content/Open/Materials/M_stone.uasset",
+      "bytes": 6591,
+      "sha256": "686fec970410f97a494ad6cbb9150b0f926eb30a31bd96aa95e610def54336e2"
+    },
+    {
+      "path": "Content/Open/Materials/M_tree_small_02_branches.uasset",
+      "bytes": 6780,
+      "sha256": "48d4b407eb5960067bf0db915d8e8e891afe483251614fa848dd81a37257c6d0"
+    },
+    {
+      "path": "Content/Open/Materials/M_tree_small_02_leaves.uasset",
+      "bytes": 8792,
+      "sha256": "7ffff7a64106670b1d6167792d0145c0edc8aee3eeb74cb01995ed80854fee47"
+    },
+    {
+      "path": "Content/Open/Materials/M_tree_small_02_trunk.uasset",
+      "bytes": 6720,
+      "sha256": "747414c9167bd561f5026b5a5f9d2087ee21744dd55a25fec933d9e3cc7f7e03"
+    },
+    {
+      "path": "Content/Open/Materials/M_urbanbrick.uasset",
+      "bytes": 5498,
+      "sha256": "07503b3af5b821eb7fcb86b9729abe0f53286a14d06412d243d77be30f38016c"
+    },
+    {
+      "path": "Content/Open/Materials/M_urbancool.uasset",
+      "bytes": 5493,
+      "sha256": "c3844e7307e33ad4806a8a034f894698e574b1847cd298d20dfb4868f4e37d9c"
+    },
+    {
+      "path": "Content/Open/Materials/M_urbanglassdark.uasset",
+      "bytes": 5547,
+      "sha256": "149c9810dd5a3f88bc408e8a68eb4a87c54e8284b1f89555447d0366db543521"
+    },
+    {
+      "path": "Content/Open/Materials/M_urbanivory.uasset",
+      "bytes": 5498,
+      "sha256": "75fc0d5fce7c5bef0d482cd6df2abd8e2100edca8f94316d06109b07134f449c"
+    },
+    {
+      "path": "Content/Open/Materials/M_urbanroof.uasset",
+      "bytes": 5493,
+      "sha256": "573babdf1094f39ec2964d0b62d8d5834fdbc2b18c25cbc25747ea85f9f6a5ce"
+    },
+    {
+      "path": "Content/Open/Materials/M_urbanwarm.uasset",
+      "bytes": 5493,
+      "sha256": "f662d1034cbe61e4fc889a9a026967c23a3309aee78a2f34609e311bf2ab84a7"
+    },
+    {
+      "path": "Content/Open/Materials/M_water.uasset",
+      "bytes": 5502,
+      "sha256": "1f79d0932c32cd9458c16e6cf785342f0ec63371bbcd8e59162c5b3ccbefb2b5"
+    },
+    {
+      "path": "Content/Open/Materials/M_white.uasset",
+      "bytes": 5473,
+      "sha256": "3714a69728fa47f345ef1a1126f64df529fefe0e8e4c83dea38aa60a6d7a5360"
+    },
+    {
+      "path": "Content/Open/Nature/grass_medium_01/grass_medium_01_2k_grass_medium_01_large_a_LOD0.uasset",
+      "bytes": 263362,
+      "sha256": "2ac7294f061ebb8b77727a6fe61d44c0014942131c9783fd3b671b4b75da51a4"
+    },
+    {
+      "path": "Content/Open/Nature/grass_medium_01/grass_medium_01_2k_grass_medium_01_large_b_LOD0.uasset",
+      "bytes": 198781,
+      "sha256": "cd90abf46565f2587a9a22e80297c0bacf26467b426c2411e98d0c6aa6de7fa2"
+    },
+    {
+      "path": "Content/Open/Nature/grass_medium_01/grass_medium_01_2k_grass_medium_01_large_c_LOD0.uasset",
+      "bytes": 247956,
+      "sha256": "17fc265400051094a4373759f66690b57bfaa20c523fedc6bff18d9804f85c60"
+    },
+    {
+      "path": "Content/Open/Nature/grass_medium_01/grass_medium_01_2k_grass_medium_01_mid_a_LOD0.uasset",
+      "bytes": 109076,
+      "sha256": "f35bb98c615695710d8b26b2738f2b817ffe647cbae5fcbd27420d568669c1cb"
+    },
+    {
+      "path": "Content/Open/Nature/grass_medium_01/grass_medium_01_2k_grass_medium_01_mid_b_LOD0.uasset",
+      "bytes": 64831,
+      "sha256": "35ef3565ce40efca03c5f2b0a2ee4b18537ea3df89a4bddc140ddfe967143f32"
+    },
+    {
+      "path": "Content/Open/Nature/grass_medium_01/grass_medium_01_2k_grass_medium_01_mid_c_LOD0.uasset",
+      "bytes": 77294,
+      "sha256": "84d6708ac8501d1354810e0c33290d6f8e020251ddfecfeaa816a7aad72aedd6"
+    },
+    {
+      "path": "Content/Open/Nature/grass_medium_01/grass_medium_01_2k_grass_medium_01_small_a_LOD0.uasset",
+      "bytes": 54155,
+      "sha256": "9e27e3ad73ca04cef382d13dbbe1d0b41c3ea6134312e07bf8933905f757dccd"
+    },
+    {
+      "path": "Content/Open/Nature/grass_medium_01/grass_medium_01_2k_grass_medium_01_small_b_LOD0.uasset",
+      "bytes": 44932,
+      "sha256": "7f164274461098c759a645ed3e0172a9def1966a2f9ec4123c7b643314f2d4a8"
+    },
+    {
+      "path": "Content/Open/Nature/grass_medium_01/grass_medium_01_2k_grass_medium_01_tall_a_LOD0.uasset",
+      "bytes": 28493,
+      "sha256": "1f2fd2646977a7767d11448d82ffb14ed6b7d4c1be977e6c8a9b0fb8b96c77c9"
+    },
+    {
+      "path": "Content/Open/Nature/grass_medium_01/grass_medium_01_2k_grass_medium_01_tall_b_LOD0.uasset",
+      "bytes": 29621,
+      "sha256": "6311414f32409b5c51db530f82ad395610f042e6e8e01be32888ffea555467bd"
+    },
+    {
+      "path": "Content/Open/Nature/grass_medium_01/grass_medium_01_2k_grass_medium_01_tall_c_LOD0.uasset",
+      "bytes": 31107,
+      "sha256": "7edbe5e88ccdc2790aef1911f54dab6f5ee5dee7c2d0385c7703329c68522a2e"
+    },
+    {
+      "path": "Content/Open/Nature/grass_medium_01/grass_medium_01_2k_grass_medium_01_tiny_a_LOD0.uasset",
+      "bytes": 18971,
+      "sha256": "7b63438cdc3040891d5c5e79b4f3e49aef93946a8280abde71beb2025f3e79ef"
+    },
+    {
+      "path": "Content/Open/Nature/grass_medium_01/grass_medium_01_2k_grass_medium_01_tiny_b_LOD0.uasset",
+      "bytes": 16205,
+      "sha256": "fad1b34f0b820463021a7b59c4becf54b4b144555a1e5ea6ad7387ef434366da"
+    },
+    {
+      "path": "Content/Open/Nature/grass_medium_01/grass_medium_01_2k_grass_medium_01_tiny_c_LOD0.uasset",
+      "bytes": 16874,
+      "sha256": "aebe53bc41a2625262446e9cfd4463d7808b260373fdb226ec6a5a16f5b13d0d"
+    },
+    {
+      "path": "Content/Open/Nature/grass_medium_01/grass_medium_01_2k_grass_medium_01_tiny_d_LOD0.uasset",
+      "bytes": 16409,
+      "sha256": "fedeea0a7edd010a9712e64f6d48bce55604dc8ef1e359d3219c101fe63738d0"
+    },
+    {
+      "path": "Content/Open/Nature/grass_medium_01/grass_medium_01_2k_grass_medium_01_tiny_e_LOD0.uasset",
+      "bytes": 17822,
+      "sha256": "2dfa227b1a689cadfa8da28c26473f9ef2102db87c8a9f1ee6950d82c25af86a"
+    },
+    {
+      "path": "Content/Open/Nature/grass_medium_01/grass_medium_01_2k_grass_medium_01_tiny_f_LOD0.uasset",
+      "bytes": 17527,
+      "sha256": "ed73811bef27bb4b9fa01690202ab4095695b3224b109deeb649390e815e0f18"
+    },
+    {
+      "path": "Content/Open/Nature/island_tree_02/island_tree_02_2k.uasset",
+      "bytes": 32833766,
+      "sha256": "39391d113983391024522058d42693c2df98707cea14322a505433845cbf47e8"
+    },
+    {
+      "path": "Content/Open/Nature/pachira_aquatica_01/pachira_aquatica_01_2k_pachira_aquatica_01_bark_a.uasset",
+      "bytes": 496757,
+      "sha256": "4a5830c18207fbd4475a96721f2d39b033299bd3a3ba2b20ba99b511e9382d4b"
+    },
+    {
+      "path": "Content/Open/Nature/pachira_aquatica_01/pachira_aquatica_01_2k_pachira_aquatica_01_bark_b.uasset",
+      "bytes": 38075,
+      "sha256": "d9a20da3dc2732bbd50af4135a90f83cba1299b43414d2db40845ad8dbe67986"
+    },
+    {
+      "path": "Content/Open/Nature/pachira_aquatica_01/pachira_aquatica_01_2k_pachira_aquatica_01_bark_c.uasset",
+      "bytes": 161524,
+      "sha256": "55ae90e0a801e9d4b5dd9ce20d40d3845440738ec7d3e79149596c271271df0a"
+    },
+    {
+      "path": "Content/Open/Nature/pachira_aquatica_01/pachira_aquatica_01_2k_pachira_aquatica_01_bark_d.uasset",
+      "bytes": 173867,
+      "sha256": "ed48128d61e2787a1c08690657249700beeb7f3ae78553b2019b95fd8729bc60"
+    },
+    {
+      "path": "Content/Open/Nature/pachira_aquatica_01/pachira_aquatica_01_2k_pachira_aquatica_01_leaves_a.uasset",
+      "bytes": 338456,
+      "sha256": "a722af4c0fca65c85faff84ee1864bec4d4f7162616e881f00552c16da0250fe"
+    },
+    {
+      "path": "Content/Open/Nature/pachira_aquatica_01/pachira_aquatica_01_2k_pachira_aquatica_01_leaves_b.uasset",
+      "bytes": 175294,
+      "sha256": "5ecf8a5977a93b5db63d44ae256b841f40787c899c61e1a4288486c576b06688"
+    },
+    {
+      "path": "Content/Open/Nature/pachira_aquatica_01/pachira_aquatica_01_2k_pachira_aquatica_01_leaves_c.uasset",
+      "bytes": 545826,
+      "sha256": "8ec476a9104e74e51aa203fcfbe8cf80b3f07f909e43e608337be6948f8204e6"
+    },
+    {
+      "path": "Content/Open/Nature/pachira_aquatica_01/pachira_aquatica_01_2k_pachira_aquatica_01_leaves_d.uasset",
+      "bytes": 795532,
+      "sha256": "ab2d282da88c48f624a54fd7f5d92e733d437be411977cf5ffee036c49bca121"
+    },
+    {
+      "path": "Content/Open/Nature/shrub_04/shrub_04_2k_shrub_04_a_LOD0.uasset",
+      "bytes": 154526,
+      "sha256": "bee877fa9652343d8d2a84bd5c5c70e081696bfe1010261705a6ba8c8c5cd0ce"
+    },
+    {
+      "path": "Content/Open/Nature/shrub_04/shrub_04_2k_shrub_04_b_LOD0.uasset",
+      "bytes": 222366,
+      "sha256": "8eeb0b5e8b2fd38aa8ff525b99c8627437cc4d21b9b2054fb1509717338476e0"
+    },
+    {
+      "path": "Content/Open/Nature/shrub_04/shrub_04_2k_shrub_04_c_LOD0.uasset",
+      "bytes": 232460,
+      "sha256": "3d16df33ca5d418f0b704707bfb09789632eca36e9ce714cbc6c7e787090c760"
+    },
+    {
+      "path": "Content/Open/Nature/shrub_04/shrub_04_2k_shrub_04_d_LOD0.uasset",
+      "bytes": 368721,
+      "sha256": "2f610cad8115ac4fad2bb1f6ebf7819d7b6a26401ba7e4d637b469f4f9ac8ffd"
+    },
+    {
+      "path": "Content/Open/Nature/tree_small_02/tree_small_02_2k.uasset",
+      "bytes": 67345459,
+      "sha256": "efddc0d6b5e18c2d7e0f4ebbee1256b3a299600d628c2c1d47c72e90ef03fc97"
+    },
+    {
+      "path": "Content/Open/Textures/Grass001_2K-JPG_Color.uasset",
+      "bytes": 6963297,
+      "sha256": "caf1d0cc9efc77b5508460d5f8025ef2a764d06812c14c3dc8ba63537dd44e7a"
+    },
+    {
+      "path": "Content/Open/Textures/Grass001_2K-JPG_NormalDX.uasset",
+      "bytes": 9985423,
+      "sha256": "7c85036c32420dda8810a2a47ab16f60112b21391465ac59dee034923d50376b"
+    },
+    {
+      "path": "Content/Open/Textures/Grass001_2K-JPG_Roughness.uasset",
+      "bytes": 3296127,
+      "sha256": "14126c8446b1e733bf008695c84f18b2ce9430505a9f68450a6c947544c9b2f4"
+    },
+    {
+      "path": "Content/Open/Textures/PH_asphalt_02_Diffuse_4k.uasset",
+      "bytes": 11658634,
+      "sha256": "5a122d6221d85a0a33ecf93bda6add35a25a97139d30eb37d7fe713ef0cf9c0b"
+    },
+    {
+      "path": "Content/Open/Textures/PH_asphalt_02_NormalDX_4k.uasset",
+      "bytes": 17818422,
+      "sha256": "b8a66a08206e567984fe53bf3b989ac17a1d9eced6d7a6c864d6998b15144e15"
+    },
+    {
+      "path": "Content/Open/Textures/PH_asphalt_02_Roughness_4k.uasset",
+      "bytes": 8510888,
+      "sha256": "a45799dcd38946056c2a07d677d85a91d6069eb27692e203df94fe61f0074035"
+    },
+    {
+      "path": "Content/Open/Textures/PH_fine_grained_wood_NormalDX_4k.uasset",
+      "bytes": 2805360,
+      "sha256": "326c6a6fe282200c2d40aa15bd6cf505398409fdb113e9e9578145b4fb5bd49f"
+    },
+    {
+      "path": "Content/Open/Textures/PH_rock_01_Diffuse_4k.uasset",
+      "bytes": 11999519,
+      "sha256": "54b4d143314da534d30c47fde22b32c8edd4f4f7e40a507dddf41891f344d32e"
+    },
+    {
+      "path": "Content/Open/Textures/PH_rock_01_NormalDX_4k.uasset",
+      "bytes": 8722688,
+      "sha256": "f729a32d6a417614922ab7b43002384c81cf87030f3d1bf85a94f55d489a0bc3"
+    },
+    {
+      "path": "Content/Open/Textures/PH_rock_01_Roughness_4k.uasset",
+      "bytes": 6565243,
+      "sha256": "1997e87951bd97d5ec547fba1c7ee1d009a690a9c0b095ac4f1ab408c789fb63"
+    },
+    {
+      "path": "Content/Open/Textures/PH_roof_slates_03_Diffuse_4k.uasset",
+      "bytes": 5887217,
+      "sha256": "c4950a608dcae9ed58ff0e8f1b3f764fe728f475b760a36e3fd38662dc050d3d"
+    },
+    {
+      "path": "Content/Open/Textures/PH_roof_slates_03_NormalDX_4k.uasset",
+      "bytes": 8929378,
+      "sha256": "bd40d0c7393d86bb61ad7c7a6597eef6837b3a804c8d9bf2c940cb967cf95b26"
+    },
+    {
+      "path": "Content/Open/Textures/PH_roof_slates_03_Roughness_4k.uasset",
+      "bytes": 207139,
+      "sha256": "b97db28045331f58f22a572d5ff7e0379c190ad6730d38f4afa45415bd625cc3"
+    },
+    {
+      "path": "Content/Open/Textures/PH_white_plaster_02_Diffuse_4k.uasset",
+      "bytes": 10564159,
+      "sha256": "57f914430ceac5361413a3ff378eec21cc593eae2e29d9fa40fdbd9413e79a8a"
+    },
+    {
+      "path": "Content/Open/Textures/PH_white_plaster_02_NormalDX_4k.uasset",
+      "bytes": 13522985,
+      "sha256": "592580549b241ec964195465549684fc1a63ab489b4ea4c14dbd34d4e71f922c"
+    },
+    {
+      "path": "Content/Open/Textures/PH_white_plaster_02_Roughness_4k.uasset",
+      "bytes": 6653808,
+      "sha256": "5636d3d18bb401bb8d2f90a19e55e5ce175c0de7e3fe7b10a3170e9c8fe4f866"
+    },
+    {
+      "path": "Content/Open/Textures/grass_medium_01_alpha_2k.uasset",
+      "bytes": 1399630,
+      "sha256": "c45f56e3879a14eead4d4db7a03b7ace39677abbcfb96d86b9cc8821d621d6ee"
+    },
+    {
+      "path": "Content/Open/Textures/grass_medium_01_diff_2k.uasset",
+      "bytes": 1170745,
+      "sha256": "08209d1aa6da5e1a214772988200302eba20a5fc640f9c1263334028f5f4d0b4"
+    },
+    {
+      "path": "Content/Open/Textures/grass_medium_01_nor_gl_2k.uasset",
+      "bytes": 15045884,
+      "sha256": "2c151df19d5889f73ee97806de65738080d99f7abd585ddf5072c94cd0f92232"
+    },
+    {
+      "path": "Content/Open/Textures/grass_medium_01_rough_2k.uasset",
+      "bytes": 2191026,
+      "sha256": "2503e126bf750c891107a50d04b96c3d35e650a7fd24c3189dcd2805eb5b24fd"
+    },
+    {
+      "path": "Content/Open/Textures/island_tree_02_branches_diff_2k.uasset",
+      "bytes": 19773478,
+      "sha256": "db6e9dfe57600b588a5bc77ba18372a53ce74327e831b70e19ed901c892b5642"
+    },
+    {
+      "path": "Content/Open/Textures/island_tree_02_branches_nor_gl_2k.uasset",
+      "bytes": 22800621,
+      "sha256": "5ea3214c65e23a24d72ce23fdaab871984ded123c76f49e136b5eecaf3b0ee10"
+    },
+    {
+      "path": "Content/Open/Textures/island_tree_02_branches_rough_2k.uasset",
+      "bytes": 3880235,
+      "sha256": "6837ba886067de15cb041138ebc1aadea2596c5342e470f3dec7a69ec8962391"
+    },
+    {
+      "path": "Content/Open/Textures/island_tree_02_diff_2k.uasset",
+      "bytes": 2694639,
+      "sha256": "7490104523a17d30b0ec63995c5cdaa0a5e8936859ca367f88b2a030edb9c5c9"
+    },
+    {
+      "path": "Content/Open/Textures/island_tree_02_leaves_alpha_2k.uasset",
+      "bytes": 142550,
+      "sha256": "03fb5fd8cd900d10556cc6cb6350e4ea9ad52c2072d46906c693c42825d4a5fa"
+    },
+    {
+      "path": "Content/Open/Textures/island_tree_02_leaves_diff_2k.uasset",
+      "bytes": 5809741,
+      "sha256": "79eaebdf317a711a2667c24b9bbdab2a24d4af58d333ca21002af759be76ca74"
+    },
+    {
+      "path": "Content/Open/Textures/island_tree_02_leaves_nor_gl_2k.uasset",
+      "bytes": 9962259,
+      "sha256": "499eaf7bbfa28bb5a23a855bb1d6c5063b48f3795428565a72f6ead472a2c19c"
+    },
+    {
+      "path": "Content/Open/Textures/island_tree_02_leaves_rough_2k.uasset",
+      "bytes": 2734215,
+      "sha256": "b2a5c2b36e520e274dfd04846a45b6d1ef81855e578186620d3db811999d6180"
+    },
+    {
+      "path": "Content/Open/Textures/island_tree_02_nor_gl_2k.uasset",
+      "bytes": 17290397,
+      "sha256": "479747c78beafcd2faf91993345c91dcce03b063ce0b046d594c8caf03f7bec6"
+    },
+    {
+      "path": "Content/Open/Textures/island_tree_02_rough_2k.uasset",
+      "bytes": 3641729,
+      "sha256": "c6308736688ca884ac11e2ccc9647d6ab095032a54b492b66486403c4d4aac68"
+    },
+    {
+      "path": "Content/Open/Textures/pachira_aquatica_01_bark_diff_2k.uasset",
+      "bytes": 12323895,
+      "sha256": "eaf2eec934c6e2318b99168aace0d9ab28c01a0f238dc72824238345844a2c0d"
+    },
+    {
+      "path": "Content/Open/Textures/pachira_aquatica_01_bark_nor_gl_2k.uasset",
+      "bytes": 12461683,
+      "sha256": "9fc3bbfacc985cf607175789d08665739a96b60ea647171f860458609316b27b"
+    },
+    {
+      "path": "Content/Open/Textures/pachira_aquatica_01_bark_rough_2k.uasset",
+      "bytes": 3396017,
+      "sha256": "1612744bc944faa1e4a7d04afc0e662db0e977516efed4c478ba27ace5959aa8"
+    },
+    {
+      "path": "Content/Open/Textures/pachira_aquatica_01_leaves_alpha_2k.uasset",
+      "bytes": 158950,
+      "sha256": "ee635528653f5c1e71aaa0a84d5016b24f9471143562b8fd7839a694203f8d1b"
+    },
+    {
+      "path": "Content/Open/Textures/pachira_aquatica_01_leaves_diff_2k.uasset",
+      "bytes": 8227868,
+      "sha256": "78e9e0ce9934b9cb17ed31b2a5cd060d8afc7217e27eaa035fc327d2a6675864"
+    },
+    {
+      "path": "Content/Open/Textures/pachira_aquatica_01_leaves_nor_gl_2k.uasset",
+      "bytes": 10251168,
+      "sha256": "4dfd9bbc19899a62d4559f50788af167cc163794a230787073f183c4311e0b1d"
+    },
+    {
+      "path": "Content/Open/Textures/pachira_aquatica_01_leaves_rough_2k.uasset",
+      "bytes": 2063013,
+      "sha256": "32846ea6bcb51c2ae61fcbb9eb0ecb9f6bbe2d66812249fd79ee2b665668057c"
+    },
+    {
+      "path": "Content/Open/Textures/shrub_04_alpha_2k.uasset",
+      "bytes": 84397,
+      "sha256": "836354e2ad50b7639d5b290cc789b5204fc811df42838c6501ee1c0bc689bde1"
+    },
+    {
+      "path": "Content/Open/Textures/shrub_04_diff_2k.uasset",
+      "bytes": 1206472,
+      "sha256": "4b3fa345a271bf18489017289b79e5bdd54f9f9906b2aa70901ed04080bda81f"
+    },
+    {
+      "path": "Content/Open/Textures/shrub_04_nor_gl_2k.uasset",
+      "bytes": 8714615,
+      "sha256": "1a9c0d503dbe74fad01c2b6853a18262b705ea1545ed6fe8741915a377f1db2a"
+    },
+    {
+      "path": "Content/Open/Textures/shrub_04_rough_2k.uasset",
+      "bytes": 1987932,
+      "sha256": "d694c6a2ce47a5cc2c51094abef2c050cea9041ff927a1bbdf8bd3dff84f094e"
+    },
+    {
+      "path": "Content/Open/Textures/tree_small_02_branch_diff_2k.uasset",
+      "bytes": 3060982,
+      "sha256": "6fb112f580a3e7f8dea183621bf2a372f4911ae1c4bc22c95ced47e6deb059b8"
+    },
+    {
+      "path": "Content/Open/Textures/tree_small_02_branch_nor_gl_2k.uasset",
+      "bytes": 13793435,
+      "sha256": "d2ee4701dbe1c7dedfb93bc5a56ae5f5424029ec50954a28dcd76764bc0bcd90"
+    },
+    {
+      "path": "Content/Open/Textures/tree_small_02_branch_rough_2k.uasset",
+      "bytes": 907869,
+      "sha256": "d528cee77828106e0daedd480d5dad2683de9d8a8276fddad974815f65a39862"
+    },
+    {
+      "path": "Content/Open/Textures/tree_small_02_diff_2k.uasset",
+      "bytes": 3174812,
+      "sha256": "d31c30db2183104eeb73d4d6707fda7f6a494ef478262d4129078b90af801f32"
+    },
+    {
+      "path": "Content/Open/Textures/tree_small_02_leaves_alpha_2k.uasset",
+      "bytes": 542070,
+      "sha256": "dbfbba2fd11a02eda6ab88f6a15941e2567374522025ea266fb1392cdfacbb8e"
+    },
+    {
+      "path": "Content/Open/Textures/tree_small_02_leaves_diff_2k.uasset",
+      "bytes": 6386230,
+      "sha256": "10fd4bb90a44cab926969ccb97bfd58007f0588eec4a663ec2a71a88c5efe67f"
+    },
+    {
+      "path": "Content/Open/Textures/tree_small_02_leaves_nor_gl_2k.uasset",
+      "bytes": 19927913,
+      "sha256": "e834c3a5b37842e91a09bbe30233a469d9f5e8b66fc91f9bfa71e09aee1a91c2"
+    },
+    {
+      "path": "Content/Open/Textures/tree_small_02_leaves_rough_2k.uasset",
+      "bytes": 2455243,
+      "sha256": "2fc3f501240da651d40ad607cdfadf35258cba99fb877affbe61bfcb894fb1b3"
+    },
+    {
+      "path": "Content/Open/Textures/tree_small_02_nor_gl_2k.uasset",
+      "bytes": 17200074,
+      "sha256": "71f22a8fff30a5f28d6f942f0929f7a647d619412b60394a49e70cca32d6a96d"
+    },
+    {
+      "path": "Content/Open/Textures/tree_small_02_rough_2k.uasset",
+      "bytes": 4224694,
+      "sha256": "2f3935138b33e629e784cc7881c93473bdc3835022a076cb272bea27bf2d7912"
+    },
+    {
+      "path": "Docs/LICENSING.md",
+      "bytes": 5541,
+      "sha256": "5e330a8cf34a985a433d56b730f9edfec56b1b93b4e8d7a2d2f1dbeb7cfc6ea7"
+    },
+    {
+      "path": "Docs/VALIDATION.md",
+      "bytes": 5226,
+      "sha256": "0ceedfbfce22c7561beedbd0c2d5f710e93d02d23cae6e9eba65005b33f88184"
+    },
+    {
+      "path": "Docs/Evidence/README.md",
+      "bytes": 707,
+      "sha256": "57f77723ef85d0fb9be9e1a09b1f03225e71b3cbd438a17c25d01704b054a564"
+    },
+    {
+      "path": "Docs/Evidence/packaged-aerial-high.json",
+      "bytes": 761,
+      "sha256": "8c1ffba889594485b9e375f7679778c89f95938deb80b6da4f45c70829ad3b6f"
+    },
+    {
+      "path": "Docs/Evidence/packaged-aerial-high.png",
+      "bytes": 2906808,
+      "sha256": "74a026fe47e753665cf73fe10eac0e3cfad576a9ad44c14859e5686248b4cd56"
+    },
+    {
+      "path": "Docs/Evidence/packaged-dx11.json",
+      "bytes": 749,
+      "sha256": "212d94f4fba08ebdac9e2cd5fe1ac9252d3dde4d8fb9a30067daf4bf4b4c9556"
+    },
+    {
+      "path": "Docs/Evidence/packaged-dx11.png",
+      "bytes": 2111968,
+      "sha256": "e32673b3706751402e0d5169dd96ba6f206198f6c97543af22f20b28c1fe4496"
+    },
+    {
+      "path": "Docs/Evidence/packaged-medium.json",
+      "bytes": 755,
+      "sha256": "9358de21f18a7008485200dac7c8732705149dcd77417c45f5f687381dda05c0"
+    },
+    {
+      "path": "Docs/Evidence/packaged-medium.png",
+      "bytes": 2280325,
+      "sha256": "ae5bb88dcaad2df09215334024f4b311812f141229f6a54491f8da1ed5b03493"
+    },
+    {
+      "path": "Source/IstanaOpen.Target.cs",
+      "bytes": 379,
+      "sha256": "b8b86f23aa9ad342ca98daf61e63029184456fdbc03ba6ea32b1629eea4a6b6e"
+    },
+    {
+      "path": "Source/IstanaOpenEditor.Target.cs",
+      "bytes": 393,
+      "sha256": "e160710fc8726d4e947c17d040702f18deec737a16d1dc2197c17c8568e984f4"
+    },
+    {
+      "path": "Source/IstanaOpen/IstanaGameMode.cpp",
+      "bytes": 18812,
+      "sha256": "c2d8abf5dad8e382f6bb0143259bd9f8ad3e9d15f1ede8bdd66623ba74e581d4"
+    },
+    {
+      "path": "Source/IstanaOpen/IstanaGameMode.h",
+      "bytes": 3321,
+      "sha256": "c7e5cf4dfbb90bbb599df12026011c64aeee8754d549757a1928c71b671fce74"
+    },
+    {
+      "path": "Source/IstanaOpen/IstanaOpen.Build.cs",
+      "bytes": 374,
+      "sha256": "43c54084c6433de52b5636c134f919850ff4a8c215b24e259df2218a15202557"
+    },
+    {
+      "path": "Source/IstanaOpen/IstanaOpen.cpp",
+      "bytes": 117,
+      "sha256": "cfb94aa058000f13571de16b582211bbf0ff183bd7ee259261d0e77915a24eb1"
+    },
+    {
+      "path": "SourceAssets/manifest.json",
+      "bytes": 24259,
+      "sha256": "284fc87ab9e7d7a5ea66a89f0755dc21b026e55a82eb94b4e6b3c66af2954b87"
+    },
+    {
+      "path": "SourceAssets/Architecture/Istana.mtl",
+      "bytes": 656,
+      "sha256": "66c05a64df93176e66e75f3b2996f7e5bce0be7e30a4afba7090f2bfdc437454"
+    },
+    {
+      "path": "SourceAssets/Architecture/Istana_Balustrades.obj",
+      "bytes": 9150131,
+      "sha256": "df556f3729c51f0bbbfdaf87ed2338d18ed21f08d2d3732d0ae7457d78c630f0"
+    },
+    {
+      "path": "SourceAssets/Architecture/Istana_Colonnades.obj",
+      "bytes": 8184698,
+      "sha256": "cb2fbe17486eeca92c96cc285d8b5747395cceaf593affd3b1b7b825172b8b9c"
+    },
+    {
+      "path": "SourceAssets/Architecture/Istana_Cornices.obj",
+      "bytes": 2808065,
+      "sha256": "eea363af5da616610399485bc3a4aafad98707932c5dee5bcb6d707bc73f26d6"
+    },
+    {
+      "path": "SourceAssets/Architecture/Istana_Roof.obj",
+      "bytes": 140330,
+      "sha256": "f95ee5491843bb1b842ef992f857e5c8dd0ddf719729baf58f07486a8df75ad2"
+    },
+    {
+      "path": "SourceAssets/Architecture/Istana_Structure.obj",
+      "bytes": 953313,
+      "sha256": "a77d84c1d598448e358baf667711142d1f55d2dd374f2d616a3418b31a52d953"
+    },
+    {
+      "path": "SourceAssets/Architecture/Istana_Terraces.obj",
+      "bytes": 139834,
+      "sha256": "38b7d47ca2749130f6357cb4bb65de67336fe8145768cf3442e4e2cee80b07ec"
+    },
+    {
+      "path": "SourceAssets/Architecture/Istana_Windows_Centre.obj",
+      "bytes": 4274400,
+      "sha256": "ed47529a0cc9c58c4c5515d864833beae97ff3b3b58c9ceaf328600180062a74"
+    },
+    {
+      "path": "SourceAssets/Architecture/Istana_Windows_East.obj",
+      "bytes": 5138239,
+      "sha256": "17cd0667397387491de35de3c8c80278820448a207af066bb6de51f0edfd2a0a"
+    },
+    {
+      "path": "SourceAssets/Architecture/Istana_Windows_West.obj",
+      "bytes": 5221039,
+      "sha256": "c9d6858969367fe08630e1a43aa20f1c71e52ba35ea635d76b333d5f68db6cf0"
+    },
+    {
+      "path": "SourceAssets/Architecture/README.md",
+      "bytes": 1073,
+      "sha256": "e45a0f59d2e72e7e7d9553a6b5e754be74d871d7d0d50365de67d3fc56eb1357"
+    },
+    {
+      "path": "SourceAssets/Architecture/architecture_manifest.json",
+      "bytes": 9085,
+      "sha256": "eab69594bd7d7c24326cbd6986bb4baa0f2c7c75d42cd46f282a673029718dfc"
+    },
+    {
+      "path": "SourceAssets/Environment/README.md",
+      "bytes": 1539,
+      "sha256": "5c9c55e1b35444bc8f0c17cdab15e215e0c4331232f9a382b2e38d6bf5fdc4d7"
+    },
+    {
+      "path": "SourceAssets/Environment/SM_Env_ContextGlass_01.obj",
+      "bytes": 8339409,
+      "sha256": "598ed802cd3dcf553046adca2e2812b0313efe1f76ee9ff214d1b19c68442aae"
+    },
+    {
+      "path": "SourceAssets/Environment/SM_Env_ContextGlass_02.obj",
+      "bytes": 8384059,
+      "sha256": "c26d7bcab1b96d40e5b1bcf2ed4f2285c3e831e9400f5503c80070061ee22031"
+    },
+    {
+      "path": "SourceAssets/Environment/SM_Env_ContextGlass_03.obj",
+      "bytes": 8266744,
+      "sha256": "3b2282cfc293163242057c9f7ecde40d7ad149877725a2f089445c474711c367"
+    },
+    {
+      "path": "SourceAssets/Environment/SM_Env_ContextGlass_04.obj",
+      "bytes": 8220643,
+      "sha256": "f4edec23c3267ff639c0f3897a52ce6d3a8b1becc629c737e041a905e1510d3e"
+    },
+    {
+      "path": "SourceAssets/Environment/SM_Env_ContextGlass_05.obj",
+      "bytes": 8311213,
+      "sha256": "873159f2a044de33f52854b7daf6a77394c75b9f7bd80de5eca51dd351d9692e"
+    },
+    {
+      "path": "SourceAssets/Environment/SM_Env_ContextGlass_06.obj",
+      "bytes": 8066799,
+      "sha256": "a4eed0206382ae0239ba927d38ed1c3b1a874c2eb550f9301db2f04d76d9cc08"
+    },
+    {
+      "path": "SourceAssets/Environment/SM_Env_ContextRoofs_01.obj",
+      "bytes": 3025778,
+      "sha256": "4f83110af650a6378bf672b544d97785e2132445b7ad8a60bd9bd5a22ed4bb26"
+    },
+    {
+      "path": "SourceAssets/Environment/SM_Env_ContextTrim_01.obj",
+      "bytes": 8461118,
+      "sha256": "7a6f5e9307d402592142122fa3ddb6e50359898d2c2b3ca6608f05c87a34e085"
+    },
+    {
+      "path": "SourceAssets/Environment/SM_Env_ContextTrim_02.obj",
+      "bytes": 8344862,
+      "sha256": "63d846aa855d36dae34d29813a2a2771a77749984e3426ebaf52efcccc6d2301"
+    },
+    {
+      "path": "SourceAssets/Environment/SM_Env_ContextTrim_03.obj",
+      "bytes": 8325332,
+      "sha256": "b1551b416f115bf860005a08aa0e125dc2f93f5d7c2feb38f0e161993b5bddaa"
+    },
+    {
+      "path": "SourceAssets/Environment/SM_Env_ContextTrim_04.obj",
+      "bytes": 7539163,
+      "sha256": "1c6a6b0ae9c006b99b7271a0ff2455c5a990590725ffbac58ab219e7024c15f4"
+    },
+    {
+      "path": "SourceAssets/Environment/SM_Env_ContextWalls_01.obj",
+      "bytes": 3757626,
+      "sha256": "475c61b7781fbad63d7a7176c8a3a7335727b0676eb2f46cd4348b74f1e105cb"
+    },
+    {
+      "path": "SourceAssets/Environment/SM_Env_Horizon_01.obj",
+      "bytes": 83374,
+      "sha256": "3d79a8a118f75945f1989b20bd2cdff42af0fcab21211f33426a530f697624f3"
+    },
+    {
+      "path": "SourceAssets/Environment/SM_Env_LandscapeDetails_01.obj",
+      "bytes": 723355,
+      "sha256": "a61c5ef686387be00ec23c222955b5cf6d2f63a474486f7f987384cb0ccd6937"
+    },
+    {
+      "path": "SourceAssets/Environment/SM_Env_Paving_01.obj",
+      "bytes": 3128169,
+      "sha256": "eb12aa004ad588548a1170146142f1ed6023a908bd1d4ed51b8677adbb3a07c7"
+    },
+    {
+      "path": "SourceAssets/Environment/SM_Env_RoadMarkings_01.obj",
+      "bytes": 360812,
+      "sha256": "931cc3f8c2058a9033d492f9a8d8341e0418d33bf614611ea7c8203c06185d1f"
+    },
+    {
+      "path": "SourceAssets/Environment/SM_Env_Roads_01.obj",
+      "bytes": 1541326,
+      "sha256": "b16c5c9ac65a8ede0eb65d6cdb98accbcd145a0232de61f4df4e6b3771c1444c"
+    },
+    {
+      "path": "SourceAssets/Environment/SM_Env_Terrain_01.obj",
+      "bytes": 5986943,
+      "sha256": "cf08202750a16f77df32cf448fcac0b88eff97272b9323c6015675b91ef21db9"
+    },
+    {
+      "path": "SourceAssets/Environment/SM_Env_Water_01.obj",
+      "bytes": 72518,
+      "sha256": "8cecc07a28162137e6982a8e9318b984a6480ea550533fa729774a254dd7ecf9"
+    },
+    {
+      "path": "SourceAssets/Environment/context_provenance.json",
+      "bytes": 669029,
+      "sha256": "ab942f186b51f39535dd990199d32841ad391af59704bfb8adced36f553db6b0"
+    },
+    {
+      "path": "SourceAssets/Environment/environment.mtl",
+      "bytes": 1522,
+      "sha256": "b6fc6c84760c2afc1dc4fe894446cf1a7c2d3b6e6b0ee74fe28d2e6f2a51326d"
+    },
+    {
+      "path": "SourceAssets/Environment/scene.json",
+      "bytes": 568662,
+      "sha256": "8c1e94995ffd9c606eeb03e59e87fb9ad3dcbfa7e6aaa0008fa0e794827fe372"
+    },
+    {
+      "path": "SourceAssets/Geodata/osm_context.overpass.json",
+      "bytes": 2319447,
+      "sha256": "ded5ed0cf10400fe6f32f01b329b922bb9dd5f7ed1d8452bfa35d967667bdf8f"
+    },
+    {
+      "path": "SourceAssets/Nature/material_bindings.json",
+      "bytes": 1936,
+      "sha256": "3b5ca3447a83aa864d053da167c7a4abfb43e696cb69e75638659f97c4bb06a0"
+    },
+    {
+      "path": "SourceAssets/Nature/grass_medium_01/grass_medium_01_2k.fbx",
+      "bytes": 1056796,
+      "sha256": "b3e83c69883501fb3af03c6829dbf69089896add52d16d596376badd54ad2419"
+    },
+    {
+      "path": "SourceAssets/Nature/grass_medium_01/textures/grass_medium_01_alpha_2k.png",
+      "bytes": 1580653,
+      "sha256": "4af2c3d5ebf167764ad3746f8c925dc4fbe28f0df023656599123cb593b793dd"
+    },
+    {
+      "path": "SourceAssets/Nature/grass_medium_01/textures/grass_medium_01_diff_2k.jpg",
+      "bytes": 1166527,
+      "sha256": "f768aa68daf14f37a92dd96621628a5252b169f4d94b4d1cc830d62cd3ac9e68"
+    },
+    {
+      "path": "SourceAssets/Nature/grass_medium_01/textures/grass_medium_01_nor_gl_2k.exr",
+      "bytes": 7389519,
+      "sha256": "37488442da10568ce47a24096df77ab82f35b2ccf294ca1c960b7506c95d47f1"
+    },
+    {
+      "path": "SourceAssets/Nature/grass_medium_01/textures/grass_medium_01_rough_2k.exr",
+      "bytes": 2627410,
+      "sha256": "f71e4e0c66f7ab0e53ea4352824b86ab074471eba1864c8a7b81fa8fca785470"
+    },
+    {
+      "path": "SourceAssets/Nature/island_tree_02/island_tree_02_2k.fbx",
+      "bytes": 32258924,
+      "sha256": "b80ee7416b5ca9bcadd0ef21f105a42619b9a48c861681b58e8b59a368d673b9"
+    },
+    {
+      "path": "SourceAssets/Nature/island_tree_02/textures/island_tree_02_branches_diff_2k.png",
+      "bytes": 19963299,
+      "sha256": "fcfaaa1262cb8f31327ca084e6f8d69cda0b6af0d1f065a68c5a47b906ec02ff"
+    },
+    {
+      "path": "SourceAssets/Nature/island_tree_02/textures/island_tree_02_branches_nor_gl_2k.png",
+      "bytes": 20594936,
+      "sha256": "2ee3ff83fdf8f01cd9d26d5c4665b866bf69f2557e02582577f23d6d007f9c78"
+    },
+    {
+      "path": "SourceAssets/Nature/island_tree_02/textures/island_tree_02_branches_rough_2k.png",
+      "bytes": 4730461,
+      "sha256": "e6d3c688b07dea15344672516433d7ba681727f5149c8be446dc1a5bbed9afdc"
+    },
+    {
+      "path": "SourceAssets/Nature/island_tree_02/textures/island_tree_02_diff_2k.jpg",
+      "bytes": 2684467,
+      "sha256": "2ca2706adc5bde6bc46fa4a4680041a1797cf6684a31629259559935a97e0057"
+    },
+    {
+      "path": "SourceAssets/Nature/island_tree_02/textures/island_tree_02_leaves_alpha_2k.png",
+      "bytes": 139077,
+      "sha256": "30c36ae0d9023400035f0af9d336ed5f73a84bf8a88c8e2bec8faa07d725992b"
+    },
+    {
+      "path": "SourceAssets/Nature/island_tree_02/textures/island_tree_02_leaves_diff_2k.png",
+      "bytes": 6428036,
+      "sha256": "fca98db31845a92e6374fccd032d40d6134e2c80fdca8038b063897c8e8f0035"
+    },
+    {
+      "path": "SourceAssets/Nature/island_tree_02/textures/island_tree_02_leaves_nor_gl_2k.png",
+      "bytes": 10109651,
+      "sha256": "2d152d8530e707056fce44303de71cf63503f5d95b80d0820dc7625c99d8d2d9"
+    },
+    {
+      "path": "SourceAssets/Nature/island_tree_02/textures/island_tree_02_leaves_rough_2k.png",
+      "bytes": 2723975,
+      "sha256": "eccee8f209c8dd869b478a209ec0b44a3de6bae11c9594700f7e201771a9eac2"
+    },
+    {
+      "path": "SourceAssets/Nature/island_tree_02/textures/island_tree_02_nor_gl_2k.exr",
+      "bytes": 8745504,
+      "sha256": "05a12d271c5eb1f732f80490a3091dc6ccf4f1e2662c1409ad9a84b3cd0faec7"
+    },
+    {
+      "path": "SourceAssets/Nature/island_tree_02/textures/island_tree_02_rough_2k.exr",
+      "bytes": 3207462,
+      "sha256": "85ae31cb29eb65e517572a7f736f516fbdb0b3b74b35fb147e5e9ef5e56a0290"
+    },
+    {
+      "path": "SourceAssets/Nature/pachira_aquatica_01/pachira_aquatica_01_2k.fbx",
+      "bytes": 2481564,
+      "sha256": "d30ce1ae236e148f531ac902a7383c347dc3f4712f0df4e62ce60386528b7b4a"
+    },
+    {
+      "path": "SourceAssets/Nature/pachira_aquatica_01/textures/pachira_aquatica_01_bark_diff_2k.png",
+      "bytes": 11564938,
+      "sha256": "f770f32f92805064dc9364d1b02075b6bef8f96b407924c32334f073a763a26c"
+    },
+    {
+      "path": "SourceAssets/Nature/pachira_aquatica_01/textures/pachira_aquatica_01_bark_nor_gl_2k.png",
+      "bytes": 11940638,
+      "sha256": "6cebb2532694fd90b29cc15f13ff7abd1db9cf9c725c279d002b8c4a509d9c8a"
+    },
+    {
+      "path": "SourceAssets/Nature/pachira_aquatica_01/textures/pachira_aquatica_01_bark_rough_2k.png",
+      "bytes": 3486282,
+      "sha256": "0c8b27f3a735d74c02ab46465f3929f9b2685126fcd18c62b34797fa120696f0"
+    },
+    {
+      "path": "SourceAssets/Nature/pachira_aquatica_01/textures/pachira_aquatica_01_leaves_alpha_2k.png",
+      "bytes": 162415,
+      "sha256": "579a63e9b680d0660ba996c0279f79e7f86f14060da22a4846f49b476fee74b3"
+    },
+    {
+      "path": "SourceAssets/Nature/pachira_aquatica_01/textures/pachira_aquatica_01_leaves_diff_2k.png",
+      "bytes": 8481246,
+      "sha256": "b89558599dde104318929621f6b31f894b1375e97f503038cb8a33eb2c4d05fb"
+    },
+    {
+      "path": "SourceAssets/Nature/pachira_aquatica_01/textures/pachira_aquatica_01_leaves_nor_gl_2k.png",
+      "bytes": 11274169,
+      "sha256": "c06529abfd5d9850fa945ce3a807007736130d8b568fe3c44a54567d97f4d380"
+    },
+    {
+      "path": "SourceAssets/Nature/pachira_aquatica_01/textures/pachira_aquatica_01_leaves_rough_2k.png",
+      "bytes": 2251537,
+      "sha256": "102fefbfa7b73a65c40f36170ab004dd87565cd598b39fe89c3b11c7c3b60a06"
+    },
+    {
+      "path": "SourceAssets/Nature/shrub_04/shrub_04_2k.fbx",
+      "bytes": 852556,
+      "sha256": "bb07591834364e3de8898c4dee76b77ca5c45916d497f2e1fa146a5f9ce22d1b"
+    },
+    {
+      "path": "SourceAssets/Nature/shrub_04/textures/shrub_04_alpha_2k.png",
+      "bytes": 91048,
+      "sha256": "6c30e2ffb781b3d54b246a2b1f9bf128e0c814fa9314b8d842e253f4914ac4de"
+    },
+    {
+      "path": "SourceAssets/Nature/shrub_04/textures/shrub_04_diff_2k.jpg",
+      "bytes": 1202317,
+      "sha256": "a45e95f3c78c31a1d411c58232089bd472bb31ebe146ba4237c3f1a930f49fc9"
+    },
+    {
+      "path": "SourceAssets/Nature/shrub_04/textures/shrub_04_mask_2k.png",
+      "bytes": 19483,
+      "sha256": "1dab74521b98685653257259897d0ea2062a2f9f34f493b23300537d5ccced64"
+    },
+    {
+      "path": "SourceAssets/Nature/shrub_04/textures/shrub_04_nor_gl_2k.exr",
+      "bytes": 2998775,
+      "sha256": "84234b8e698a4f355877722c755adaa4d53f37b5f7be81d2bd2d8d38fa657adb"
+    },
+    {
+      "path": "SourceAssets/Nature/shrub_04/textures/shrub_04_rough_2k.exr",
+      "bytes": 841015,
+      "sha256": "7926caa1d9b61ac8ac9ad4a6561684f9ddb29b081f2dcd7b0bd3defb106b481a"
+    },
+    {
+      "path": "SourceAssets/Nature/tree_small_02/tree_small_02_2k.fbx",
+      "bytes": 75487180,
+      "sha256": "14d6d0754b79a442254795663c4e5ffa1f679e54562f48b21ab0bbc78858724d"
+    },
+    {
+      "path": "SourceAssets/Nature/tree_small_02/textures/tree_small_02_branch_diff_2k.png",
+      "bytes": 2714537,
+      "sha256": "553d0cdbc12b63be3bd85756713f95bec5cdf8cc57dae74d3f19d8df13ac126c"
+    },
+    {
+      "path": "SourceAssets/Nature/tree_small_02/textures/tree_small_02_branch_nor_gl_2k.png",
+      "bytes": 15596069,
+      "sha256": "a8aa5f945a5977d82111f1f397a525acb8103d108d86bf09087be4d7d1f976d6"
+    },
+    {
+      "path": "SourceAssets/Nature/tree_small_02/textures/tree_small_02_branch_rough_2k.png",
+      "bytes": 835917,
+      "sha256": "2acfc7ebd7269e65917d0535c463bcf4adf44627b3c34f528e2b1623cb2a5b9c"
+    },
+    {
+      "path": "SourceAssets/Nature/tree_small_02/textures/tree_small_02_diff_2k.jpg",
+      "bytes": 3170612,
+      "sha256": "4ab3210b6ec6bb1181145500bca71d1c1f81ead6baaa8600f5979c2cec50c6a4"
+    },
+    {
+      "path": "SourceAssets/Nature/tree_small_02/textures/tree_small_02_leaves_alpha_2k.png",
+      "bytes": 636661,
+      "sha256": "566484c7047ce67af5a4435c1e4da2b773578d73f83ae45dfad0fd442df7b9d5"
+    },
+    {
+      "path": "SourceAssets/Nature/tree_small_02/textures/tree_small_02_leaves_diff_2k.png",
+      "bytes": 7729923,
+      "sha256": "da46f05805bbc3b608051b66ee9e2b3705108de3c897ea998ab98e0360dc2b72"
+    },
+    {
+      "path": "SourceAssets/Nature/tree_small_02/textures/tree_small_02_leaves_nor_gl_2k.png",
+      "bytes": 18978122,
+      "sha256": "01c79158aa9287cc5db2d1c660a578de9d0a1a522877f9ca40c5be6b36bdc7bf"
+    },
+    {
+      "path": "SourceAssets/Nature/tree_small_02/textures/tree_small_02_leaves_rough_2k.png",
+      "bytes": 2953248,
+      "sha256": "5e7fee2eb56afa1265178bb2bf9267dba12c95149d9e2068adfc1ebf2d44d082"
+    },
+    {
+      "path": "SourceAssets/Nature/tree_small_02/textures/tree_small_02_nor_gl_2k.exr",
+      "bytes": 9058409,
+      "sha256": "2cba0db5ecc512414822d21f508a7d9df05716e28cec3e185c694ff6e36fd6ce"
+    },
+    {
+      "path": "SourceAssets/Nature/tree_small_02/textures/tree_small_02_rough_2k.exr",
+      "bytes": 3573742,
+      "sha256": "486cda88e05f1fa0d63a49122b016287d61683921cf60fa465dd0bd53114b092"
+    },
+    {
+      "path": "SourceAssets/Surfaces/Grass001_2K-JPG_Color.jpg",
+      "bytes": 6953345,
+      "sha256": "8a8bfcffd087134caad2a7def216f3dd2d307fbe02340ca47e3c5c71f49d50b4"
+    },
+    {
+      "path": "SourceAssets/Surfaces/Grass001_2K-JPG_NormalDX.jpg",
+      "bytes": 9975086,
+      "sha256": "26343d7d725a2d5e3f82d0c3fbc9319f517715df08297a4ee42c96dde88815c7"
+    },
+    {
+      "path": "SourceAssets/Surfaces/Grass001_2K-JPG_Roughness.jpg",
+      "bytes": 3286058,
+      "sha256": "2a2a3f9220a351f14858075d4c6ba1ff7fde8bedd7009c94cb432bc2b9a362e4"
+    },
+    {
+      "path": "SourceAssets/Surfaces/PH_asphalt_02_Diffuse_4k.jpg",
+      "bytes": 11654128,
+      "sha256": "d1601354507b6c4a46aa741b9134f9f23f738596a2bdcd20792e50ca554018e0"
+    },
+    {
+      "path": "SourceAssets/Surfaces/PH_asphalt_02_NormalDX_4k.jpg",
+      "bytes": 17813588,
+      "sha256": "710e8b2d5c7fd2fc0e6c8b5bdff7044cd1da249fa84590777904cb7b7bd21a08"
+    },
+    {
+      "path": "SourceAssets/Surfaces/PH_asphalt_02_Roughness_4k.jpg",
+      "bytes": 8506335,
+      "sha256": "62e0461c25fe1cb411abf8ef3afaf080e16bf96ef7fd2acd180e9867ce95aabd"
+    },
+    {
+      "path": "SourceAssets/Surfaces/PH_fine_grained_wood_Diffuse_4k.jpg",
+      "bytes": 4744081,
+      "sha256": "0c71b4505412216bbe7b2dc2b2bcfe414dfd319d13e48992cdaeb2961f44146f"
+    },
+    {
+      "path": "SourceAssets/Surfaces/PH_fine_grained_wood_NormalDX_4k.jpg",
+      "bytes": 2794854,
+      "sha256": "911a031e934bb7604b8eb28bcb94190286a8b998042e956c16274c328c3408f1"
+    },
+    {
+      "path": "SourceAssets/Surfaces/PH_fine_grained_wood_Roughness_4k.jpg",
+      "bytes": 3094322,
+      "sha256": "abd1d509d037c404168fbb23f6cf8ac9bf61bf7dd14b4e4e91a6a022f6d14f37"
+    },
+    {
+      "path": "SourceAssets/Surfaces/PH_rock_01_Diffuse_4k.jpg",
+      "bytes": 11989566,
+      "sha256": "8fcb8d2a6726b5fa16fac99cabdc85e9f6d0273a1297f35757c9f931349046f9"
+    },
+    {
+      "path": "SourceAssets/Surfaces/PH_rock_01_NormalDX_4k.jpg",
+      "bytes": 8712392,
+      "sha256": "b053a90e22befa7fd8ec08f4ac694aed262181e4832ca29db64c3dde31f66992"
+    },
+    {
+      "path": "SourceAssets/Surfaces/PH_rock_01_Roughness_4k.jpg",
+      "bytes": 6555215,
+      "sha256": "29eee2277d7c8be4baff6e1b2167e96aa49d0b0540b064dfc77dc88853143ef8"
+    },
+    {
+      "path": "SourceAssets/Surfaces/PH_roof_slates_03_Diffuse_4k.jpg",
+      "bytes": 5877117,
+      "sha256": "40f364964ab6ca99c45a8080f0458354d4977433fb72d0c08404951a492ae298"
+    },
+    {
+      "path": "SourceAssets/Surfaces/PH_roof_slates_03_NormalDX_4k.jpg",
+      "bytes": 8918935,
+      "sha256": "9f4ef0f03f746eba6a636cc28fd537266c2c7b02767de668324c39ef523d8578"
+    },
+    {
+      "path": "SourceAssets/Surfaces/PH_roof_slates_03_Roughness_4k.jpg",
+      "bytes": 196964,
+      "sha256": "74b6f43125ca14db3fc67a6893ce8f8c3ded7ce00ad8071d47fa3f05d51e2956"
+    },
+    {
+      "path": "SourceAssets/Surfaces/PH_white_plaster_02_Diffuse_4k.jpg",
+      "bytes": 10554018,
+      "sha256": "a0c48b2de0d4e4c5ad51cda7110dbeb31698fa41b87bce3b28caa608b6e64745"
+    },
+    {
+      "path": "SourceAssets/Surfaces/PH_white_plaster_02_NormalDX_4k.jpg",
+      "bytes": 13512501,
+      "sha256": "02991922cfb43e6e748385ff613b2bae2caf280b22dbf2481f38da73cacd82c8"
+    },
+    {
+      "path": "SourceAssets/Surfaces/PH_white_plaster_02_Roughness_4k.jpg",
+      "bytes": 6643592,
+      "sha256": "810fc5511cbf898fc803d307694d930d646be62c1dc4ba29071363baf0e04a4f"
+    },
+    {
+      "path": "ThirdParty/README.md",
+      "bytes": 1520,
+      "sha256": "1a943548c59bfc3e325b30a3e40dba1052d3c49b21df81808814d1ff416059b6"
+    },
+    {
+      "path": "Tools/archive_submission.py",
+      "bytes": 9815,
+      "sha256": "80e46353edb2b58df07f38e7739b858bfdbe491b04279b44be8b3a873200f060"
+    },
+    {
+      "path": "Tools/audit_submission.py",
+      "bytes": 14669,
+      "sha256": "6700345f69de90debeeb5459cadf95f022ee257b315185c77c54937b0a56370b"
+    },
+    {
+      "path": "Tools/build-common.ps1",
+      "bytes": 3984,
+      "sha256": "52e1369570bfc0346ac070fd914d76b54788e35f6f7be46edd80c491411a3b55"
+    },
+    {
+      "path": "Tools/build.ps1",
+      "bytes": 1353,
+      "sha256": "e586719ba3d71e83dd9c4b5a40fe818e44bb4548a018e464bb39114fa7ae754e"
+    },
+    {
+      "path": "Tools/build_scene.py",
+      "bytes": 20312,
+      "sha256": "b52a2b14ec40e3272a016a060da4b14585ffcafa3030769552bf356dfc925e62"
+    },
+    {
+      "path": "Tools/download_open_surfaces.py",
+      "bytes": 1512,
+      "sha256": "b71bb28fe9308d326ceda93bf305cc4d89e0ae64964c6ffd99206bc6980e2bc4"
+    },
+    {
+      "path": "Tools/generate_environment.py",
+      "bytes": 32265,
+      "sha256": "d7bb295f617a2553ae25252823e3daad2beb97956cdf3711b855d6e6d7a1cbb4"
+    },
+    {
+      "path": "Tools/generate_istana.py",
+      "bytes": 28943,
+      "sha256": "75c76ff3d10b88e1124927e2d1ce5568751e8befd428a996471b44b21209db78"
+    },
+    {
+      "path": "Tools/package.ps1",
+      "bytes": 10002,
+      "sha256": "01c8136241d3c176e2e575b558825f81071a6ec9081378d699b2e13ea6a66068"
+    },
+    {
+      "path": "Tools/prepare_assets.py",
+      "bytes": 2238,
+      "sha256": "0962ed1ec8825ee866c1b863dc688864f2ab2ec07dadd0c5d833a291b06145ab"
+    },
+    {
+      "path": "Tools/verify_release.py",
+      "bytes": 8303,
+      "sha256": "2ac7b01dba7469f162fe925a6a615440cb73a7b10e01b0a7f87defe0d720f178"
+    }
+  ]
+}

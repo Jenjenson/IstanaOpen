@@ -1,0 +1,401 @@
+{
+  "license": "CC0-1.0",
+  "units": "centimetres",
+  "up_axis": "Z",
+  "front_direction": "-Y",
+  "origin": "building centre at local ground level",
+  "unreal_import_uniform_scale": 1,
+  "uv_scale": "1 UV repeat per metre; projected by face normal",
+  "description": "Original public-exterior artistic reconstruction, not a surveyed or as-built model. No interiors, security infrastructure, official insignia, or downloaded assets.",
+  "reference_pages": [
+    "https://www.istana.gov.sg/visit-and-explore/buildings/",
+    "https://www.roots.gov.sg/places/places-landing/Places/national-monuments/the-istana-and-sri-temasek"
+  ],
+  "materials": {
+    "plaster": {
+      "color": [
+        0.87,
+        0.845,
+        0.77
+      ],
+      "roughness": 0.76,
+      "metallic": 0
+    },
+    "stone": {
+      "color": [
+        0.64,
+        0.6,
+        0.5
+      ],
+      "roughness": 0.9,
+      "metallic": 0
+    },
+    "slate": {
+      "color": [
+        0.085,
+        0.12,
+        0.145
+      ],
+      "roughness": 0.68,
+      "metallic": 0
+    },
+    "glass": {
+      "color": [
+        0.055,
+        0.105,
+        0.115
+      ],
+      "roughness": 0.12,
+      "metallic": 0.25
+    },
+    "dark_wood": {
+      "color": [
+        0.065,
+        0.079,
+        0.063
+      ],
+      "roughness": 0.65,
+      "metallic": 0
+    },
+    "metal": {
+      "color": [
+        0.105,
+        0.115,
+        0.1
+      ],
+      "roughness": 0.38,
+      "metallic": 0.8
+    }
+  },
+  "parts": [
+    {
+      "file": "Istana_Structure.obj",
+      "vertices": 8898,
+      "triangles": 4444,
+      "size_bytes": 953313,
+      "bounds_cm": [
+        [
+          -5110.0,
+          -1950.5,
+          106.0
+        ],
+        [
+          5110.0,
+          1655.0,
+          2457.5
+        ]
+      ],
+      "materials": [
+        "plaster",
+        "stone"
+      ],
+      "components_triangles": {
+        "wing_wall_mass": 24,
+        "verandah_floors_and_soffits": 72,
+        "arcade_spandrels": 4080,
+        "end_pavilion_walls": 24,
+        "end_pavilion_upper_floor": 24,
+        "end_pavilion_ceiling": 24,
+        "pediment_tympanums": 40,
+        "central_main_block": 12,
+        "portico_floor": 12,
+        "portico_gallery_floor": 12,
+        "portico_entablature": 12,
+        "third_stage_tower": 12,
+        "front_dormer_cheeks": 36,
+        "side_dormer_cheeks": 48,
+        "roof_lantern_base": 12
+      }
+    },
+    {
+      "file": "Istana_Colonnades.obj",
+      "vertices": 71592,
+      "triangles": 37726,
+      "size_bytes": 8184698,
+      "bounds_cm": [
+        [
+          -5081.5,
+          -1990.0,
+          118.0
+        ],
+        [
+          5081.5,
+          1138.5,
+          2835.0
+        ]
+      ],
+      "materials": [
+        "glass",
+        "metal",
+        "plaster"
+      ],
+      "components_triangles": {
+        "doric_arcade_piers": 192,
+        "doric_pier_bases": 192,
+        "doric_pier_capitals": 192,
+        "ionic_plinth": 288,
+        "ionic_columns": 11424,
+        "ionic_abacus": 288,
+        "capital_scrolls": 10032,
+        "upper_verandah_pilasters": 192,
+        "doric_plinth": 96,
+        "doric_columns": 3808,
+        "doric_abacus": 96,
+        "central_portico_piers": 48,
+        "portico_pier_plinths": 48,
+        "corinthian_plinth": 108,
+        "corinthian_columns": 4284,
+        "corinthian_abacus": 108,
+        "capital_acanthus": 4320,
+        "portico_corner_pilasters": 24,
+        "central_parapet_piers": 84,
+        "roof_urn_finials": 658,
+        "tower_corinthian_pilasters": 144,
+        "tower_pilaster_capitals": 144,
+        "roof_lantern_posts": 48,
+        "unflagged_rooftop_pole": 68,
+        "rainwater_downpipes": 216,
+        "downpipe_brackets": 288,
+        "lantern_brackets": 48,
+        "portico_lantern_glazing": 48,
+        "lantern_frames": 192,
+        "lantern_caps": 48
+      }
+    },
+    {
+      "file": "Istana_Cornices.obj",
+      "vertices": 25392,
+      "triangles": 12696,
+      "size_bytes": 2808065,
+      "bounds_cm": [
+        [
+          -5155.0,
+          -1975.0,
+          117.5
+        ],
+        [
+          5155.0,
+          1671.0,
+          2278.486
+        ]
+      ],
+      "materials": [
+        "plaster"
+      ],
+      "components_triangles": {
+        "cornices": 1920,
+        "dentil_mouldings": 5496,
+        "archivolts": 4080,
+        "arch_jambs": 408,
+        "arch_imposts": 408,
+        "keystones": 204,
+        "pediment_raking_cornice": 120,
+        "pediment_base_moulding": 60
+      }
+    },
+    {
+      "file": "Istana_Windows_West.obj",
+      "vertices": 46640,
+      "triangles": 23240,
+      "size_bytes": 5221039,
+      "bounds_cm": [
+        [
+          -5151.5,
+          -1094.0,
+          143.0
+        ],
+        [
+          -1221.857,
+          1492.0,
+          1175.0
+        ]
+      ],
+      "materials": [
+        "dark_wood",
+        "glass",
+        "metal",
+        "plaster"
+      ],
+      "components_triangles": {
+        "recessed_glazing": 600,
+        "window_reveals": 1200,
+        "window_joinery": 8400,
+        "individual_shutter_louvres": 10160,
+        "window_handles": 1200,
+        "window_hoods": 600,
+        "window_sills": 600,
+        "arched_fanlights": 480
+      }
+    },
+    {
+      "file": "Istana_Windows_Centre.obj",
+      "vertices": 38960,
+      "triangles": 19456,
+      "size_bytes": 4274400,
+      "bounds_cm": [
+        [
+          -1057.5,
+          -1341.0,
+          127.0
+        ],
+        [
+          1057.5,
+          1697.0,
+          2165.0
+        ]
+      ],
+      "materials": [
+        "dark_wood",
+        "glass",
+        "metal",
+        "plaster"
+      ],
+      "components_triangles": {
+        "recessed_glazing": 528,
+        "window_reveals": 1056,
+        "window_joinery": 7392,
+        "individual_shutter_louvres": 8224,
+        "window_handles": 1056,
+        "window_hoods": 528,
+        "window_sills": 528,
+        "arched_fanlights": 144
+      }
+    },
+    {
+      "file": "Istana_Windows_East.obj",
+      "vertices": 46640,
+      "triangles": 23240,
+      "size_bytes": 5138239,
+      "bounds_cm": [
+        [
+          1221.857,
+          -1094.0,
+          143.0
+        ],
+        [
+          5151.5,
+          1492.0,
+          1175.0
+        ]
+      ],
+      "materials": [
+        "dark_wood",
+        "glass",
+        "metal",
+        "plaster"
+      ],
+      "components_triangles": {
+        "recessed_glazing": 600,
+        "window_reveals": 1200,
+        "window_joinery": 8400,
+        "individual_shutter_louvres": 10160,
+        "window_handles": 1200,
+        "window_hoods": 600,
+        "window_sills": 600,
+        "arched_fanlights": 480
+      }
+    },
+    {
+      "file": "Istana_Roof.obj",
+      "vertices": 1368,
+      "triangles": 684,
+      "size_bytes": 140330,
+      "bounds_cm": [
+        [
+          -5110.0,
+          -1250.0,
+          1294.0
+        ],
+        [
+          5110.0,
+          1650.0,
+          2410.0
+        ]
+      ],
+      "materials": [
+        "slate"
+      ],
+      "components_triangles": {
+        "wing_hipped_roofs": 24,
+        "terminal_pavilion_roofs": 24,
+        "mansard_roof": 12,
+        "mansard_upper_slope": 12,
+        "mansard_slate_courses": 528,
+        "dormer_roofs": 36,
+        "side_dormer_caps": 48
+      }
+    },
+    {
+      "file": "Istana_Balustrades.obj",
+      "vertices": 80736,
+      "triangles": 41688,
+      "size_bytes": 9150131,
+      "bounds_cm": [
+        [
+          -4012.5,
+          -1929.5,
+          691.0
+        ],
+        [
+          4012.5,
+          327.5,
+          2543.5
+        ]
+      ],
+      "materials": [
+        "plaster",
+        "stone"
+      ],
+      "components_triangles": {
+        "turned_balusters": 40920,
+        "balustrade_lower_rail": 312,
+        "balustrade_coping": 312,
+        "pierced_appearance_parapet_panels": 72,
+        "parapet_recessed_panels": 72
+      }
+    },
+    {
+      "file": "Istana_Terraces.obj",
+      "vertices": 1344,
+      "triangles": 668,
+      "size_bytes": 139834,
+      "bounds_cm": [
+        [
+          -5150.0,
+          -2286.0,
+          0.0
+        ],
+        [
+          5150.0,
+          1800.0,
+          275.0
+        ]
+      ],
+      "materials": [
+        "plaster",
+        "stone"
+      ],
+      "components_triangles": {
+        "foundation_plinth": 12,
+        "plinth_upper_course": 12,
+        "front_terrace": 12,
+        "central_broad_stair": 84,
+        "stair_cheekwalls": 168,
+        "stair_newel_finials": 380
+      }
+    }
+  ],
+  "total_triangles": 163842,
+  "bounds_cm": [
+    [
+      -5155.0,
+      -2286.0,
+      0.0
+    ],
+    [
+      5155.0,
+      1800.0,
+      2835.0
+    ]
+  ]
+}

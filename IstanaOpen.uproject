@@ -1,0 +1,66 @@
+{
+  "FileVersion": 3,
+  "EngineAssociation": "5.5",
+  "Category": "Simulation",
+  "Description": "Offline public-exterior interpretation of Singapore's Istana and surrounding city.",
+  "Modules": [
+    {
+      "Name": "IstanaOpen",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    }
+  ],
+  "Plugins": [
+    {
+      "Name": "PythonScriptPlugin",
+      "Enabled": true,
+      "TargetAllowList": [
+        "Editor"
+      ]
+    },
+    {
+      "Name": "EditorScriptingUtilities",
+      "Enabled": true,
+      "TargetAllowList": [
+        "Editor"
+      ]
+    },
+    {
+      "Name": "Interchange",
+      "Enabled": false
+    },
+    {
+      "Name": "InterchangeEditor",
+      "Enabled": false
+    },
+    {
+      "Name": "InterchangeAssets",
+      "Enabled": false
+    },
+    {
+      "Name": "InterchangeTests",
+      "Enabled": false
+    },
+    {
+      "Name": "USDCore",
+      "Enabled": false
+    },
+    {
+      "Name": "GLTFExporter",
+      "Enabled": false
+    },
+    {
+      "Name": "Fab",
+      "Enabled": false
+    },
+    {
+      "Name": "CesiumForUnreal",
+      "Enabled": false
+    },
+    {
+      "Name": "AndroidFileServer",
+      "Enabled": false
+    }
+  ],
+  "DisableEnginePluginsByDefault": true
+}

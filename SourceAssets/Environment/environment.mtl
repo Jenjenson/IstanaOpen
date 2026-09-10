@@ -1,0 +1,125 @@
+newmtl Lawn
+Kd 0.1900 0.3000 0.1000
+Ks 0.12 0.12 0.12
+Ns 32
+d 1
+illum 2
+
+newmtl Asphalt
+Kd 0.1000 0.1100 0.1200
+Ks 0.12 0.12 0.12
+Ns 32
+d 1
+illum 2
+
+newmtl StonePaving
+Kd 0.5500 0.5200 0.4500
+Ks 0.12 0.12 0.12
+Ns 32
+d 1
+illum 2
+
+newmtl Concrete
+Kd 0.6000 0.6000 0.5700
+Ks 0.12 0.12 0.12
+Ns 32
+d 1
+illum 2
+
+newmtl UrbanIvory
+Kd 0.7600 0.7300 0.6500
+Ks 0.12 0.12 0.12
+Ns 32
+d 1
+illum 2
+
+newmtl UrbanWarm
+Kd 0.5600 0.4800 0.3900
+Ks 0.12 0.12 0.12
+Ns 32
+d 1
+illum 2
+
+newmtl UrbanCool
+Kd 0.4800 0.5300 0.5500
+Ks 0.12 0.12 0.12
+Ns 32
+d 1
+illum 2
+
+newmtl UrbanBrick
+Kd 0.4300 0.3100 0.2400
+Ks 0.12 0.12 0.12
+Ns 32
+d 1
+illum 2
+
+newmtl UrbanRoof
+Kd 0.2800 0.3000 0.2900
+Ks 0.12 0.12 0.12
+Ns 32
+d 1
+illum 2
+
+newmtl UrbanGlass
+Kd 0.1200 0.2400 0.2800
+Ks 0.12 0.12 0.12
+Ns 32
+d 1
+illum 2
+
+newmtl UrbanGlassDark
+Kd 0.0800 0.1400 0.1700
+Ks 0.12 0.12 0.12
+Ns 32
+d 1
+illum 2
+
+newmtl Trim
+Kd 0.8200 0.8000 0.7300
+Ks 0.12 0.12 0.12
+Ns 32
+d 1
+illum 2
+
+newmtl MetalDark
+Kd 0.0800 0.0900 0.0800
+Ks 0.12 0.12 0.12
+Ns 32
+d 1
+illum 2
+
+newmtl Water
+Kd 0.1200 0.2800 0.2600
+Ks 0.12 0.12 0.12
+Ns 32
+d 1
+illum 2
+
+newmtl FountainStone
+Kd 0.6600 0.6600 0.5900
+Ks 0.12 0.12 0.12
+Ns 32
+d 1
+illum 2
+
+newmtl Hedge
+Kd 0.1300 0.2500 0.0800
+Ks 0.12 0.12 0.12
+Ns 32
+d 1
+illum 2
+
+newmtl LampGlow
+Kd 1.0000 0.8300 0.5800
+Ks 0.12 0.12 0.12
+Ns 32
+d 1
+illum 2
+
+newmtl RoadMarking
+Kd 0.8600 0.8500 0.7200
+Ks 0.12 0.12 0.12
+Ns 32
+d 1
+illum 2
