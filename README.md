@@ -137,6 +137,71 @@ imports it using Unreal's editor Python. Tools/prepare_assets.py records the
 one-time migration of individually verified scans from the former local
 cache; it is not a dependency for consumers of this repository.
 
+## Shared simulation data structures (contributors)
+
+The simulation foundation is implemented as Blueprint-accessible C++ value types,
+reusable Data Assets, validation functions, and a no-op policy interface. Drone
+movement, sensor behavior, the operator panel, optimization, and RL are future
+work. The existing architectural viewer still runs as before.
+
+Start with the **[shared contracts usage guide](Docs/SIMULATION_CONTRACTS.md)** for
+field definitions, C++ and Blueprint examples, ownership, validation, and tests.
+
+| Contract | Unreal type | What it contains |
+| --- | --- | --- |
+| Scenario configuration | `FIstanaScenarioConfig` | Seed, duration, fixed timestep, map, sensor budget, swarms, conditions, initial sensors |
+| Drone state | `FIstanaDroneState` | Stable drone/group IDs, position, velocity, active flag; simulator ground truth |
+| Sensor configuration | `FIstanaSensorConfig` | Sensor ID/type, placement, abstract model parameters, sampling interval |
+| Detection event | `FIstanaDetectionEvent` | Sensor ID, sequence number, sample/delivery steps, reported position, confidence |
+| Episode result | `FIstanaEpisodeResult` | Run/scenario/version identifiers, seed, executed steps, metrics, completion reason |
+| Policy interface | `IIstanaPolicyInterface` | Reset, receive permitted observations, produce actions; schema 1 actions are no-op only |
+
+### Use the contracts
+
+1. Rebuild the editor after pulling C++ changes, then open the project in UE 5.5.4.
+2. In **Content > Simulation > Examples**, duplicate `DA_SyntheticContractExample`
+   or `DA_AbstractSensorExample` for your task. Assign a fictional map to the
+   scenario; the example intentionally leaves it unassigned.
+3. Call **Create Runtime Config** on the scenario asset, store the returned copy,
+   and edit that copy. For sensors, call **Create Sensor Config** on the sensor preset.
+4. Call **Validate Scenario** or **Validate Sensor** before using the configuration.
+   Show the returned field paths and messages in your UI or logs.
+5. For policies, use `BP_NoOpPolicyExample` as a starting point and follow
+   **Reset Policy → Receive Observations → Produce Actions**. The future coordinator
+   validates returned actions before applying anything.
+
+C++ headers live in `Source/IstanaOpen/Simulation`; include them with paths such as
+`Simulation/IstanaSimulationTypes.h`. Positions use centimetres, velocities use
+centimetres/second, and timestamps use zero-based simulation steps. See the guide
+before adding fields or interpreting metrics.
+
+### Working on another machine
+
+- Use **UE 5.5.4**, the C++ toolchain described above, and Git LFS. From an existing
+  clone, run `git lfs install` and `git lfs pull` before building.
+- Keep `EngineAssociation` in `IstanaOpen.uproject` set to **`5.5`**. Unreal may
+  replace it with a local installation GUID; do not commit that GUID. The descriptor
+  uses `5.5` while this project's tested patch version is `5.5.4`.
+- Build using `Tools/build.ps1`; if discovery fails, supply `-EngineRoot` or set
+  `UE_ENGINE_ROOT` in your own shell. Engine installation paths belong to each
+  developer's environment, not shared source or configuration.
+- If the launcher offers conversion despite using 5.5.4, cancel and launch that
+  installation's `Engine/Binaries/Win64/UnrealEditor.exe` with the full path to your
+  local `IstanaOpen.uproject`. Do not upgrade the shared project to another version.
+- The enabled browser helpers (`ContentBrowserAssetDataSource`,
+  `ContentBrowserClassDataSource`, `EngineAssetDefinitions`) are bundled UE editor
+  plugins. Keep all three enabled; the project disables other engine plugins by
+  default. They are restricted to editor targets and require no marketplace install.
+- Commit source, docs, the project descriptor, and new example `.uasset` files
+  together. Binary assets use the existing Git LFS rules. Build products, caches,
+  generated solution files, and local editor settings under `Saved` are ignored.
+- Close Unreal before full builds involving reflected headers. Each teammate builds
+  locally; copying another developer's DLL is not part of the setup.
+
+Run the `Istana.Simulation.Contracts` automation tests after changing contracts.
+Cross-machine behavior still needs verification on each teammate's setup; tests on
+one Windows machine do not establish support for every toolchain or platform.
+
 ## Fidelity and data
 
 The palace is a modeled interpretation of the publicly visible exterior,
