@@ -140,9 +140,12 @@ cache; it is not a dependency for consumers of this repository.
 ## Shared simulation data structures (contributors)
 
 The simulation foundation is implemented as Blueprint-accessible C++ value types,
-reusable Data Assets, validation functions, and a no-op policy interface. Drone
-movement, sensor behavior, the operator panel, optimization, and RL are future
-work. The existing architectural viewer still runs as before.
+reusable Data Assets, validation functions, and a no-op policy interface.
+A separate [synthetic swarm module](Docs/SWARM_SIMULATION.md) now implements
+seeded multi-swarm spawning, boid movement, level-collision pathfinding and shared
+objective following through `ARedTeamManager`. Sensor behavior, the
+operator panel, optimization, and RL remain future work. The existing architectural
+viewer still runs as before.
 
 Start with the **[shared contracts usage guide](Docs/SIMULATION_CONTRACTS.md)** for
 field definitions, C++ and Blueprint examples, ownership, validation, and tests.
@@ -201,6 +204,48 @@ before adding fields or interpreting metrics.
 Run the `Istana.Simulation.Contracts` automation tests after changing contracts.
 Cross-machine behavior still needs verification on each teammate's setup; tests on
 one Windows machine do not establish support for every toolchain or platform.
+
+## Synthetic swarm demo
+
+The [Red Team Manager README](Source/IstanaOpen/Simulation/RedTeam/README.md)
+covers the implemented multi-swarm spawner, shared-objective controller, configuration,
+runtime ownership and troubleshooting.
+
+To follow a marker in a fictional level, place `BP_SwarmObjective` (or a standard
+Target Point) and assign it to the swarm manager's **Objective Target** property.
+Keep **Follow Objective** enabled. The [swarm guide](Docs/SWARM_SIMULATION.md)
+explains arrival, retargeting and valid collision-free destinations.
+
+For the swarm demo, open **Content > Simulation > Maps > SyntheticSwarmArena** and
+press Play. **Space** pauses, **R** resets, and **V** toggles debug. Configure groups
+on the swarm manager actor and movement through `DA_SwarmMovementExample`.
+See the [swarm guide](Docs/SWARM_SIMULATION.md) for setup, commands, integration,
+tests and model limitations. This demo uses a fictional arena, not the palace map.
+
+## Multiple swarms around one objective
+
+1. Place **Red Team Manager** and assign a Target Point or `BP_SwarmObjective` to
+   **Objective Target**. The objective's position anchors spawning.
+2. Set **Number Of Swarms**, **Drones Per Swarm**, **Min/Max Spawn Radius Cm**,
+   **Swarm Spread Radius Cm**, and **Spawn Height Offset Cm**.
+3. Keep **Auto Initialize**, **Auto Advance**, **Follow Objective** and **Spawn Visuals**
+   enabled, then Play. The inherited manual Swarms array is not used by this actor.
+
+Defaults spawn three groups of 12 drones with centers 30–60 meters from the objective.
+Editor distance fields use centimeters. An assigned movement preset overrides inline
+settings; its Max Drones limits total population (default 128, hard cap 256).
+
+Moving the marker retargets all groups without respawning; removing it brakes them.
+Markers on or inside geometry are accepted: drones approach reachable positions and
+retry blocked paths while keeping collision active. Partial approach does not count
+as exact route completion. There are no arena min/max limits or predefined obstacles;
+navigation uses level objects that block the selected collision channel.
+
+See the [Red Team Manager README](Source/IstanaOpen/Simulation/RedTeam/README.md) for
+setup and lifecycle, the [swarm guide](Docs/SWARM_SIMULATION.md) for navigation tuning,
+and [validation](Docs/VALIDATION.md#swarm-and-red-team-validation-12-september-2026)
+for the successful editor/game builds and 13-test automation run. Learning, sensors,
+rewards and full episode coordination remain future work.
 
 ## Fidelity and data
 

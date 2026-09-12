@@ -1,7 +1,8 @@
 # Validation
 
-Tested on 10 September 2026. These results describe one Windows computer;
-they are not minimum hardware requirements or a guarantee for arbitrary PCs.
+The packaged-viewer measurements below were taken on 10 September 2026. A separate
+swarm/red-team validation run from 12 September is recorded at the end of this document.
+These are local results, not minimum hardware requirements or guarantees for other PCs.
 
 ## Tested build and machine
 
@@ -94,3 +95,33 @@ been tested. Different GPUs, drivers, memory capacities and display settings
 can change startup behavior and performance. No minimum hardware claim is
 made. DirectX 11 compatibility uses a simplified rendering
 path and is not expected to match the DirectX 12 appearance.
+
+## Swarm and red-team validation (12 September 2026)
+
+Both Unreal Engine 5.5.4 Win64 Development targets (`IstanaOpenEditor` and `IstanaOpen`)
+built successfully after the objective-following changes. The unattended
+`Istana.Simulation` run completed with **13 successes, 0 failures, 0 skipped tests**
+and no test warnings. This run used WindowsEditor with `-nullrhi`; it is not a rendering
+benchmark and does not inherit the packaged-viewer GPU/FPS measurements above.
+
+The suite covers four shared-contract tests, eight swarm tests and one red-team test:
+
+- Seeded spawn/reset, group ordering, command validation, movement limits and population.
+- Collision-aware detours, static-mesh collision and manager-relative placement.
+- Spawn and arrival at coordinates outside the removed arena boundary.
+- Multiple visible red-team groups around a shared objective, repeatable reset,
+  shared-target arrival/retargeting, invalid-spawn preservation and visual cleanup.
+- Floor and embedded objectives accepted for partial approach without disabling collision;
+  automatic movement to the unchanged objective after an obstruction moves.
+
+The report for this run is stored locally at
+`Saved/Automation/ObjectiveApproach/index.json` (report timestamp
+`2026.09.12-02.34.45`). Saved reports are generated/ignored files, not published repository
+artifacts. Reproduce the suite using the [swarm guide](SWARM_SIMULATION.md#build-and-verify)
+and inspect [the regression tests](../Source/IstanaOpen/Simulation/Tests/IstanaSwarmTests.cpp).
+
+Earlier visual/reset and objective-marker Python smoke checks passed after the arena
+and predefined-obstacle removal. They use transient managers and leave existing maps
+unsaved. The later 13-test native run above validates the partial-path change. No new
+packaged release, manual play session, large-map navigation benchmark, or physical
+flight-fidelity validation is claimed by these results.
