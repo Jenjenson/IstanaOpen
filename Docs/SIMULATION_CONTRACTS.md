@@ -4,6 +4,20 @@ These contracts support a fictional, synthetic sensor simulation. They do not
 implement sensing, drone motion, placement optimization, or learning. The existing
 architectural viewer remains the default game mode.
 
+The separate [swarm implementation](SWARM_SIMULATION.md) now consumes these group
+configs and produces drone states. Its typed local commands do not change the
+shared schema-1 policy no-op. The implemented [Red Team Manager](../Source/IstanaOpen/Simulation/RedTeam/README.md)
+generates world-space `FIstanaSwarmConfig` groups around a shared objective and uses
+that solver through `AIstanaSwarmManager`. It is a scene spawner/controller, not an
+implementation of the shared policy interface or the planned episode coordinator.
+Use the swarm guide for movement configuration and partial-path objective following.
+
+Manager-relative offsets are an editor setup convenience for `AIstanaSwarmManager`;
+its explicit `InitializeSimulation` API still accepts world-space configs. Red Team
+Manager generates world-space centers relative to the objective instead. Local
+`FIstanaSwarmCommand.bAllowPartialPath` and group navigation status do not change the
+shared schema, sensor observations or `FIstanaPolicyActionBatch`.
+
 ## Start here
 
 All public types live in `Source/IstanaOpen/Simulation`. Include them with
