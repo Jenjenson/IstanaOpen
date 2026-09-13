@@ -1,0 +1,1962 @@
+{
+  "schema": "triad.dynamic_placement_evaluation.v1",
+  "training_performed": false,
+  "source": {
+    "kind": "checkpoint",
+    "path": "RL/BlueTeam/Checkpoints/toy-210",
+    "metadata": {
+      "schema": "triad.dynamic_placement_checkpoint.v1",
+      "created_utc": "2026-09-10T06:09:37.964334+00:00",
+      "policy": {
+        "schema": "triad.dynamic_placement_policy.v1",
+        "feature_size": 114,
+        "hidden_size": 32,
+        "position_dimensions": 2,
+        "scorer": "shared_tanh_mlp",
+        "position_distribution": "tanh_gaussian"
+      },
+      "feature_contract": {
+        "agent": "blue_placement",
+        "feature_size": 114,
+        "fixed_fields": [
+          {
+            "name": "budget",
+            "shape": [
+              2
+            ],
+            "size": 2
+          },
+          {
+            "name": "context",
+            "shape": [
+              25
+            ],
+            "size": 25
+          }
+        ],
+        "mount_columns": [
+          "offset_east",
+          "offset_north",
+          "offset_up",
+          "normal_east",
+          "normal_north",
+          "normal_up",
+          "yaw_cos",
+          "yaw_sin",
+          "pitch",
+          "horizontal_fov",
+          "vertical_fov",
+          "range",
+          "cost",
+          "passive_rf",
+          "search_radar",
+          "electro_optical",
+          "thermal",
+          "allow_dynamic_position",
+          "surface_resolved",
+          "occupied",
+          "enabled",
+          "currently_detecting"
+        ],
+        "mount_width": 22,
+        "observation_schema": "triad.policy_observation.v4",
+        "placement_columns": [
+          "position_east",
+          "position_north",
+          "catalogue_index",
+          "passive_rf",
+          "search_radar",
+          "electro_optical",
+          "thermal",
+          "cost",
+          "active"
+        ],
+        "placement_mode": "pooled_rows",
+        "placement_width": 9,
+        "pooling": "mean_and_max_v1",
+        "schema": "triad.dynamic_placement_features.v1",
+        "stop_is_final_mask_entry": true
+      },
+      "feature_contract_sha256": "bf86357c036f172d5182f786d3304dc55ab02ebe0daca784d9558fda8529b25b",
+      "arrays_filename": "arrays.npz",
+      "arrays_sha256": "1d9abf8547220c525cbc2e3d5007081ba34960d6b3412a7cc4e5c18232887f7c",
+      "array_shapes": {
+        "parameter__input_weights": [
+          114,
+          32
+        ],
+        "adam_mean__input_weights": [
+          114,
+          32
+        ],
+        "adam_variance__input_weights": [
+          114,
+          32
+        ],
+        "parameter__input_bias": [
+          32
+        ],
+        "adam_mean__input_bias": [
+          32
+        ],
+        "adam_variance__input_bias": [
+          32
+        ],
+        "parameter__score_weights": [
+          32
+        ],
+        "adam_mean__score_weights": [
+          32
+        ],
+        "adam_variance__score_weights": [
+          32
+        ],
+        "parameter__score_bias": [
+          1
+        ],
+        "adam_mean__score_bias": [
+          1
+        ],
+        "adam_variance__score_bias": [
+          1
+        ],
+        "parameter__position_weights": [
+          32,
+          2
+        ],
+        "adam_mean__position_weights": [
+          32,
+          2
+        ],
+        "adam_variance__position_weights": [
+          32,
+          2
+        ],
+        "parameter__position_bias": [
+          2
+        ],
+        "adam_mean__position_bias": [
+          2
+        ],
+        "adam_variance__position_bias": [
+          2
+        ],
+        "parameter__position_log_std": [
+          2
+        ],
+        "adam_mean__position_log_std": [
+          2
+        ],
+        "adam_variance__position_log_std": [
+          2
+        ]
+      },
+      "parameter_sha256": "1a7d10dbab564cbea654d46f0dbea684a68d62f76453ccade94210545fa17de7",
+      "optimizer": {
+        "name": "adam",
+        "step": 42
+      },
+      "training": {
+        "updates": 42,
+        "return_count": 220,
+        "return_mean": 3.0797632575757565,
+        "return_m2": 22158.203710759957
+      },
+      "rng_state": {
+        "bit_generator": "PCG64",
+        "state": {
+          "state": 68450945207883607156807035753840616142,
+          "inc": 270144010233136727081680042903076194187
+        },
+        "has_uint32": 0,
+        "uinteger": 0
+      },
+      "details": {
+        "trainer": {
+          "name": "train_blue_placement",
+          "master_seed": 7301,
+          "episodes_completed": 210,
+          "dry_run": false,
+          "batch_size": 5,
+          "learning_rate": 0.0003,
+          "entropy_coefficient": 0.01,
+          "deterministic_collection": false,
+          "updates_enabled": true
+        },
+        "environment": {
+          "observation_schema": "triad.policy_observation.v4",
+          "config_fingerprint": "md5:c7b1fcb83150ed7e5b4b47de6923142f",
+          "config_path": "RL/BlueTeam/DefaultTrainingConfig.json"
+        },
+        "red_script": {
+          "mode": "fixed",
+          "deployment": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "movement": [
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "movement_steps": []
+        },
+        "metrics": {
+          "episodes": 10,
+          "mean_blue_return": 6.761666666666668,
+          "mean_red_return": -6.273833333333334,
+          "mean_steps": 13.8,
+          "mean_sensors_placed": 1.7,
+          "mean_detection_rate": 0.9,
+          "mean_tracking_coverage": 0.49035111230233175,
+          "mean_breach_rate": 0.2,
+          "mean_blue_win_rate": 0.8,
+          "mean_invalid_actions": 0.0,
+          "mean_mean_policy_entropy": 2.940857328674912,
+          "mean_mean_position_radius": 0.8465725816919377,
+          "termination_reasons": {
+            "SustainedTrackDefence": 8,
+            "ProtectedZoneReached": 2
+          },
+          "sensor_profile_counts": {
+            "passive-rf": 3,
+            "electro-optical": 6,
+            "radar-thermal-fused": 2,
+            "search-radar": 3,
+            "thermal": 3
+          }
+        }
+      }
+    }
+  },
+  "environment": {
+    "observation_schema": "triad.policy_observation.v4",
+    "config_fingerprint": "md5:c7b1fcb83150ed7e5b4b47de6923142f",
+    "config_path": "RL/BlueTeam/DefaultTrainingConfig.json"
+  },
+  "deterministic": false,
+  "held_out_seed_start": 1500000000,
+  "held_out_seed_count": 50,
+  "parameter_sha256_before": "1a7d10dbab564cbea654d46f0dbea684a68d62f76453ccade94210545fa17de7",
+  "parameter_sha256_after": "1a7d10dbab564cbea654d46f0dbea684a68d62f76453ccade94210545fa17de7",
+  "red_script": {
+    "mode": "fixed",
+    "deployment": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "movement": [
+      0.0,
+      -1.0,
+      0.0
+    ],
+    "movement_steps": []
+  },
+  "summary": {
+    "episodes": 50,
+    "mean_blue_return": 5.063625000000001,
+    "mean_red_return": -4.580466666666667,
+    "mean_steps": 17.28,
+    "mean_sensors_placed": 1.52,
+    "mean_detection_rate": 0.82,
+    "mean_tracking_coverage": 0.4090310583725218,
+    "mean_breach_rate": 0.28,
+    "mean_blue_win_rate": 0.72,
+    "mean_invalid_actions": 0.0,
+    "mean_mean_policy_entropy": 2.7947799452274715,
+    "mean_mean_position_radius": 0.7698769006453563,
+    "termination_reasons": {
+      "SustainedTrackDefence": 36,
+      "ProtectedZoneReached": 14
+    },
+    "sensor_profile_counts": {
+      "passive-rf": 23,
+      "electro-optical": 11,
+      "thermal": 22,
+      "radar-thermal-fused": 10,
+      "search-radar": 10
+    }
+  },
+  "episodes": [
+    {
+      "episode": 1,
+      "seed": 1500000000,
+      "reason": "SustainedTrackDefence",
+      "steps": 6,
+      "blue_return": 10.902083333333334,
+      "red_return": -10.443333333333333,
+      "placement_decisions": 2,
+      "sensors_placed": 2,
+      "selected_catalogue_indices": [
+        0,
+        2
+      ],
+      "selected_sensor_profiles": [
+        "passive-rf",
+        "electro-optical"
+      ],
+      "selected_modalities": {
+        "passive_rf": 1,
+        "search_radar": 0,
+        "electro_optical": 1,
+        "thermal": 0
+      },
+      "mean_position_radius": 0.9500562965520787,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 3.3497464855231747,
+      "breach_rate": 0.0,
+      "blue_win_rate": 1.0,
+      "red_win_rate": 0.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 0.5,
+      "tracking_coverage": 0.6666666666666666,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 2,
+      "seed": 1500000001,
+      "reason": "SustainedTrackDefence",
+      "steps": 6,
+      "blue_return": 10.870833333333334,
+      "red_return": -10.443333333333333,
+      "placement_decisions": 2,
+      "sensors_placed": 2,
+      "selected_catalogue_indices": [
+        0,
+        3
+      ],
+      "selected_sensor_profiles": [
+        "passive-rf",
+        "thermal"
+      ],
+      "selected_modalities": {
+        "passive_rf": 1,
+        "search_radar": 0,
+        "electro_optical": 0,
+        "thermal": 1
+      },
+      "mean_position_radius": 0.756992607618858,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 3.3494574399433987,
+      "breach_rate": 0.0,
+      "blue_win_rate": 1.0,
+      "red_win_rate": 0.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 0.5,
+      "tracking_coverage": 0.6666666666666666,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 3,
+      "seed": 1500000002,
+      "reason": "SustainedTrackDefence",
+      "steps": 8,
+      "blue_return": 10.833333333333334,
+      "red_return": -10.413333333333334,
+      "placement_decisions": 2,
+      "sensors_placed": 1,
+      "selected_catalogue_indices": [
+        4
+      ],
+      "selected_sensor_profiles": [
+        "radar-thermal-fused"
+      ],
+      "selected_modalities": {
+        "passive_rf": 0,
+        "search_radar": 1,
+        "electro_optical": 0,
+        "thermal": 1
+      },
+      "mean_position_radius": 0.7329321487692141,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 1.7216580839688387,
+      "breach_rate": 0.0,
+      "blue_win_rate": 1.0,
+      "red_win_rate": 0.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 1.5,
+      "tracking_coverage": 0.5,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 4,
+      "seed": 1500000003,
+      "reason": "SustainedTrackDefence",
+      "steps": 6,
+      "blue_return": 10.902083333333334,
+      "red_return": -10.443333333333333,
+      "placement_decisions": 2,
+      "sensors_placed": 2,
+      "selected_catalogue_indices": [
+        0,
+        2
+      ],
+      "selected_sensor_profiles": [
+        "passive-rf",
+        "electro-optical"
+      ],
+      "selected_modalities": {
+        "passive_rf": 1,
+        "search_radar": 0,
+        "electro_optical": 1,
+        "thermal": 0
+      },
+      "mean_position_radius": 0.844691207563886,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 3.3495696719684585,
+      "breach_rate": 0.0,
+      "blue_win_rate": 1.0,
+      "red_win_rate": 0.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 0.5,
+      "tracking_coverage": 0.6666666666666666,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 5,
+      "seed": 1500000004,
+      "reason": "ProtectedZoneReached",
+      "steps": 41,
+      "blue_return": -9.516666666666667,
+      "red_return": 10.098333333333333,
+      "placement_decisions": 2,
+      "sensors_placed": 1,
+      "selected_catalogue_indices": [
+        4
+      ],
+      "selected_sensor_profiles": [
+        "radar-thermal-fused"
+      ],
+      "selected_modalities": {
+        "passive_rf": 0,
+        "search_radar": 1,
+        "electro_optical": 0,
+        "thermal": 1
+      },
+      "mean_position_radius": 0.6477616557165519,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 1.7216580839688387,
+      "breach_rate": 1.0,
+      "blue_win_rate": 0.0,
+      "red_win_rate": 1.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 18.5,
+      "tracking_coverage": 0.0,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 6,
+      "seed": 1500000005,
+      "reason": "SustainedTrackDefence",
+      "steps": 6,
+      "blue_return": 10.975000000000001,
+      "red_return": -10.443333333333333,
+      "placement_decisions": 2,
+      "sensors_placed": 1,
+      "selected_catalogue_indices": [
+        0
+      ],
+      "selected_sensor_profiles": [
+        "passive-rf"
+      ],
+      "selected_modalities": {
+        "passive_rf": 1,
+        "search_radar": 0,
+        "electro_optical": 0,
+        "thermal": 0
+      },
+      "mean_position_radius": 0.8764801802287963,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 2.50378238097296,
+      "breach_rate": 0.0,
+      "blue_win_rate": 1.0,
+      "red_win_rate": 0.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 0.5,
+      "tracking_coverage": 0.6666666666666666,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 7,
+      "seed": 1500000006,
+      "reason": "SustainedTrackDefence",
+      "steps": 6,
+      "blue_return": 10.850000000000001,
+      "red_return": -10.443333333333333,
+      "placement_decisions": 2,
+      "sensors_placed": 2,
+      "selected_catalogue_indices": [
+        3,
+        3
+      ],
+      "selected_sensor_profiles": [
+        "thermal",
+        "thermal"
+      ],
+      "selected_modalities": {
+        "passive_rf": 0,
+        "search_radar": 0,
+        "electro_optical": 0,
+        "thermal": 2
+      },
+      "mean_position_radius": 0.877768885737261,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 3.348867005054888,
+      "breach_rate": 0.0,
+      "blue_win_rate": 1.0,
+      "red_win_rate": 0.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 0.5,
+      "tracking_coverage": 0.6666666666666666,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 8,
+      "seed": 1500000007,
+      "reason": "SustainedTrackDefence",
+      "steps": 14,
+      "blue_return": 10.887500000000001,
+      "red_return": -10.323333333333334,
+      "placement_decisions": 2,
+      "sensors_placed": 1,
+      "selected_catalogue_indices": [
+        3
+      ],
+      "selected_sensor_profiles": [
+        "thermal"
+      ],
+      "selected_modalities": {
+        "passive_rf": 0,
+        "search_radar": 0,
+        "electro_optical": 0,
+        "thermal": 1
+      },
+      "mean_position_radius": 0.43630773465298084,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 2.5026882504260723,
+      "breach_rate": 0.0,
+      "blue_win_rate": 1.0,
+      "red_win_rate": 0.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 4.5,
+      "tracking_coverage": 0.2857142857142857,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 9,
+      "seed": 1500000008,
+      "reason": "ProtectedZoneReached",
+      "steps": 41,
+      "blue_return": -10.0,
+      "red_return": 10.598333333333333,
+      "placement_decisions": 1,
+      "sensors_placed": 0,
+      "selected_catalogue_indices": [],
+      "selected_sensor_profiles": [],
+      "selected_modalities": {},
+      "mean_position_radius": 0.0,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 1.7514792655859814,
+      "breach_rate": 1.0,
+      "blue_win_rate": 0.0,
+      "red_win_rate": 1.0,
+      "detection_rate": 0.0,
+      "mean_detection_latency_seconds_detected_targets": null,
+      "tracking_coverage": 0.0,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 10,
+      "seed": 1500000009,
+      "reason": "ProtectedZoneReached",
+      "steps": 41,
+      "blue_return": -10.208333333333334,
+      "red_return": 10.598333333333333,
+      "placement_decisions": 2,
+      "sensors_placed": 1,
+      "selected_catalogue_indices": [
+        4
+      ],
+      "selected_sensor_profiles": [
+        "radar-thermal-fused"
+      ],
+      "selected_modalities": {
+        "passive_rf": 0,
+        "search_radar": 1,
+        "electro_optical": 0,
+        "thermal": 1
+      },
+      "mean_position_radius": 0.9900613871971118,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 1.7216580839688387,
+      "breach_rate": 1.0,
+      "blue_win_rate": 0.0,
+      "red_win_rate": 1.0,
+      "detection_rate": 0.0,
+      "mean_detection_latency_seconds_detected_targets": null,
+      "tracking_coverage": 0.0,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 11,
+      "seed": 1500000010,
+      "reason": "SustainedTrackDefence",
+      "steps": 6,
+      "blue_return": 10.850000000000001,
+      "red_return": -10.443333333333333,
+      "placement_decisions": 2,
+      "sensors_placed": 1,
+      "selected_catalogue_indices": [
+        4
+      ],
+      "selected_sensor_profiles": [
+        "radar-thermal-fused"
+      ],
+      "selected_modalities": {
+        "passive_rf": 0,
+        "search_radar": 1,
+        "electro_optical": 0,
+        "thermal": 1
+      },
+      "mean_position_radius": 0.9151967446537496,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 1.7216580839688387,
+      "breach_rate": 0.0,
+      "blue_win_rate": 1.0,
+      "red_win_rate": 0.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 0.5,
+      "tracking_coverage": 0.6666666666666666,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 12,
+      "seed": 1500000011,
+      "reason": "SustainedTrackDefence",
+      "steps": 6,
+      "blue_return": 10.891666666666667,
+      "red_return": -10.443333333333333,
+      "placement_decisions": 2,
+      "sensors_placed": 2,
+      "selected_catalogue_indices": [
+        0,
+        0
+      ],
+      "selected_sensor_profiles": [
+        "passive-rf",
+        "passive-rf"
+      ],
+      "selected_modalities": {
+        "passive_rf": 2,
+        "search_radar": 0,
+        "electro_optical": 0,
+        "thermal": 0
+      },
+      "mean_position_radius": 0.5478917414432853,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 3.349738517917153,
+      "breach_rate": 0.0,
+      "blue_win_rate": 1.0,
+      "red_win_rate": 0.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 0.5,
+      "tracking_coverage": 0.6666666666666666,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 13,
+      "seed": 1500000012,
+      "reason": "SustainedTrackDefence",
+      "steps": 13,
+      "blue_return": 10.850000000000001,
+      "red_return": -10.338333333333335,
+      "placement_decisions": 2,
+      "sensors_placed": 1,
+      "selected_catalogue_indices": [
+        4
+      ],
+      "selected_sensor_profiles": [
+        "radar-thermal-fused"
+      ],
+      "selected_modalities": {
+        "passive_rf": 0,
+        "search_radar": 1,
+        "electro_optical": 0,
+        "thermal": 1
+      },
+      "mean_position_radius": 0.9966666408160573,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 1.7216580839688387,
+      "breach_rate": 0.0,
+      "blue_win_rate": 1.0,
+      "red_win_rate": 0.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 0.5,
+      "tracking_coverage": 0.3076923076923077,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 14,
+      "seed": 1500000013,
+      "reason": "SustainedTrackDefence",
+      "steps": 6,
+      "blue_return": 10.902083333333334,
+      "red_return": -10.443333333333333,
+      "placement_decisions": 2,
+      "sensors_placed": 2,
+      "selected_catalogue_indices": [
+        0,
+        2
+      ],
+      "selected_sensor_profiles": [
+        "passive-rf",
+        "electro-optical"
+      ],
+      "selected_modalities": {
+        "passive_rf": 1,
+        "search_radar": 0,
+        "electro_optical": 1,
+        "thermal": 0
+      },
+      "mean_position_radius": 0.9427414611778072,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 3.349891888315767,
+      "breach_rate": 0.0,
+      "blue_win_rate": 1.0,
+      "red_win_rate": 0.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 0.5,
+      "tracking_coverage": 0.6666666666666666,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 15,
+      "seed": 1500000014,
+      "reason": "SustainedTrackDefence",
+      "steps": 6,
+      "blue_return": 10.870833333333334,
+      "red_return": -10.443333333333333,
+      "placement_decisions": 2,
+      "sensors_placed": 2,
+      "selected_catalogue_indices": [
+        3,
+        0
+      ],
+      "selected_sensor_profiles": [
+        "thermal",
+        "passive-rf"
+      ],
+      "selected_modalities": {
+        "passive_rf": 1,
+        "search_radar": 0,
+        "electro_optical": 0,
+        "thermal": 1
+      },
+      "mean_position_radius": 0.8657697056158585,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 3.348680207025823,
+      "breach_rate": 0.0,
+      "blue_win_rate": 1.0,
+      "red_win_rate": 0.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 0.5,
+      "tracking_coverage": 0.6666666666666666,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 16,
+      "seed": 1500000015,
+      "reason": "ProtectedZoneReached",
+      "steps": 41,
+      "blue_return": -10.197916666666666,
+      "red_return": 10.598333333333333,
+      "placement_decisions": 2,
+      "sensors_placed": 2,
+      "selected_catalogue_indices": [
+        2,
+        1
+      ],
+      "selected_sensor_profiles": [
+        "electro-optical",
+        "search-radar"
+      ],
+      "selected_modalities": {
+        "passive_rf": 0,
+        "search_radar": 1,
+        "electro_optical": 1,
+        "thermal": 0
+      },
+      "mean_position_radius": 0.8304825148467954,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 3.3509596145452774,
+      "breach_rate": 1.0,
+      "blue_win_rate": 0.0,
+      "red_win_rate": 1.0,
+      "detection_rate": 0.0,
+      "mean_detection_latency_seconds_detected_targets": null,
+      "tracking_coverage": 0.0,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 17,
+      "seed": 1500000016,
+      "reason": "ProtectedZoneReached",
+      "steps": 41,
+      "blue_return": -9.391666666666667,
+      "red_return": 10.098333333333333,
+      "placement_decisions": 2,
+      "sensors_placed": 2,
+      "selected_catalogue_indices": [
+        3,
+        3
+      ],
+      "selected_sensor_profiles": [
+        "thermal",
+        "thermal"
+      ],
+      "selected_modalities": {
+        "passive_rf": 0,
+        "search_radar": 0,
+        "electro_optical": 0,
+        "thermal": 2
+      },
+      "mean_position_radius": 0.5744125910864464,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 3.348740149700308,
+      "breach_rate": 1.0,
+      "blue_win_rate": 0.0,
+      "red_win_rate": 1.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 11.0,
+      "tracking_coverage": 0.0,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 18,
+      "seed": 1500000017,
+      "reason": "SustainedTrackDefence",
+      "steps": 15,
+      "blue_return": 10.785416666666668,
+      "red_return": -10.308333333333334,
+      "placement_decisions": 2,
+      "sensors_placed": 2,
+      "selected_catalogue_indices": [
+        2,
+        1
+      ],
+      "selected_sensor_profiles": [
+        "electro-optical",
+        "search-radar"
+      ],
+      "selected_modalities": {
+        "passive_rf": 0,
+        "search_radar": 1,
+        "electro_optical": 1,
+        "thermal": 0
+      },
+      "mean_position_radius": 0.6987154983904187,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 3.3503721926811183,
+      "breach_rate": 0.0,
+      "blue_win_rate": 1.0,
+      "red_win_rate": 0.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 5.0,
+      "tracking_coverage": 0.26666666666666666,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 19,
+      "seed": 1500000018,
+      "reason": "SustainedTrackDefence",
+      "steps": 7,
+      "blue_return": 10.883333333333335,
+      "red_return": -10.428333333333335,
+      "placement_decisions": 2,
+      "sensors_placed": 2,
+      "selected_catalogue_indices": [
+        0,
+        0
+      ],
+      "selected_sensor_profiles": [
+        "passive-rf",
+        "passive-rf"
+      ],
+      "selected_modalities": {
+        "passive_rf": 2,
+        "search_radar": 0,
+        "electro_optical": 0,
+        "thermal": 0
+      },
+      "mean_position_radius": 0.9084705354659586,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 3.349903546506036,
+      "breach_rate": 0.0,
+      "blue_win_rate": 1.0,
+      "red_win_rate": 0.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 1.0,
+      "tracking_coverage": 0.5714285714285714,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 20,
+      "seed": 1500000019,
+      "reason": "SustainedTrackDefence",
+      "steps": 9,
+      "blue_return": 10.825000000000001,
+      "red_return": -10.398333333333333,
+      "placement_decisions": 2,
+      "sensors_placed": 2,
+      "selected_catalogue_indices": [
+        1,
+        0
+      ],
+      "selected_sensor_profiles": [
+        "search-radar",
+        "passive-rf"
+      ],
+      "selected_modalities": {
+        "passive_rf": 1,
+        "search_radar": 1,
+        "electro_optical": 0,
+        "thermal": 0
+      },
+      "mean_position_radius": 0.9587016329905967,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 3.3508734245195315,
+      "breach_rate": 0.0,
+      "blue_win_rate": 1.0,
+      "red_win_rate": 0.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 2.0,
+      "tracking_coverage": 0.4444444444444444,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 21,
+      "seed": 1500000020,
+      "reason": "SustainedTrackDefence",
+      "steps": 13,
+      "blue_return": 10.916666666666668,
+      "red_return": -10.338333333333335,
+      "placement_decisions": 2,
+      "sensors_placed": 1,
+      "selected_catalogue_indices": [
+        0
+      ],
+      "selected_sensor_profiles": [
+        "passive-rf"
+      ],
+      "selected_modalities": {
+        "passive_rf": 1,
+        "search_radar": 0,
+        "electro_optical": 0,
+        "thermal": 0
+      },
+      "mean_position_radius": 0.9966666755588903,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 2.5039984016405397,
+      "breach_rate": 0.0,
+      "blue_win_rate": 1.0,
+      "red_win_rate": 0.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 4.0,
+      "tracking_coverage": 0.3076923076923077,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 22,
+      "seed": 1500000021,
+      "reason": "SustainedTrackDefence",
+      "steps": 11,
+      "blue_return": 10.829166666666667,
+      "red_return": -10.368333333333334,
+      "placement_decisions": 2,
+      "sensors_placed": 2,
+      "selected_catalogue_indices": [
+        0,
+        3
+      ],
+      "selected_sensor_profiles": [
+        "passive-rf",
+        "thermal"
+      ],
+      "selected_modalities": {
+        "passive_rf": 1,
+        "search_radar": 0,
+        "electro_optical": 0,
+        "thermal": 1
+      },
+      "mean_position_radius": 0.8489411536410892,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 3.3497777978944216,
+      "breach_rate": 0.0,
+      "blue_win_rate": 1.0,
+      "red_win_rate": 0.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 3.0,
+      "tracking_coverage": 0.36363636363636365,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 23,
+      "seed": 1500000022,
+      "reason": "ProtectedZoneReached",
+      "steps": 41,
+      "blue_return": -10.0,
+      "red_return": 10.598333333333333,
+      "placement_decisions": 1,
+      "sensors_placed": 0,
+      "selected_catalogue_indices": [],
+      "selected_sensor_profiles": [],
+      "selected_modalities": {},
+      "mean_position_radius": 0.0,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 1.7514792655859814,
+      "breach_rate": 1.0,
+      "blue_win_rate": 0.0,
+      "red_win_rate": 1.0,
+      "detection_rate": 0.0,
+      "mean_detection_latency_seconds_detected_targets": null,
+      "tracking_coverage": 0.0,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 24,
+      "seed": 1500000023,
+      "reason": "SustainedTrackDefence",
+      "steps": 6,
+      "blue_return": 10.850000000000001,
+      "red_return": -10.443333333333333,
+      "placement_decisions": 2,
+      "sensors_placed": 2,
+      "selected_catalogue_indices": [
+        0,
+        1
+      ],
+      "selected_sensor_profiles": [
+        "passive-rf",
+        "search-radar"
+      ],
+      "selected_modalities": {
+        "passive_rf": 1,
+        "search_radar": 1,
+        "electro_optical": 0,
+        "thermal": 0
+      },
+      "mean_position_radius": 0.9900330626874776,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 3.3494393363708976,
+      "breach_rate": 0.0,
+      "blue_win_rate": 1.0,
+      "red_win_rate": 0.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 0.5,
+      "tracking_coverage": 0.6666666666666666,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 25,
+      "seed": 1500000024,
+      "reason": "SustainedTrackDefence",
+      "steps": 6,
+      "blue_return": 10.850000000000001,
+      "red_return": -10.443333333333333,
+      "placement_decisions": 2,
+      "sensors_placed": 1,
+      "selected_catalogue_indices": [
+        4
+      ],
+      "selected_sensor_profiles": [
+        "radar-thermal-fused"
+      ],
+      "selected_modalities": {
+        "passive_rf": 0,
+        "search_radar": 1,
+        "electro_optical": 0,
+        "thermal": 1
+      },
+      "mean_position_radius": 0.9477146411127924,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 1.7216580839688387,
+      "breach_rate": 0.0,
+      "blue_win_rate": 1.0,
+      "red_win_rate": 0.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 0.5,
+      "tracking_coverage": 0.6666666666666666,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 26,
+      "seed": 1500000025,
+      "reason": "SustainedTrackDefence",
+      "steps": 16,
+      "blue_return": 10.725000000000001,
+      "red_return": -10.293333333333335,
+      "placement_decisions": 2,
+      "sensors_placed": 2,
+      "selected_catalogue_indices": [
+        1,
+        1
+      ],
+      "selected_sensor_profiles": [
+        "search-radar",
+        "search-radar"
+      ],
+      "selected_modalities": {
+        "passive_rf": 0,
+        "search_radar": 2,
+        "electro_optical": 0,
+        "thermal": 0
+      },
+      "mean_position_radius": 0.87277865021436,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 3.35091011584488,
+      "breach_rate": 0.0,
+      "blue_win_rate": 1.0,
+      "red_win_rate": 0.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 5.5,
+      "tracking_coverage": 0.25,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 27,
+      "seed": 1500000026,
+      "reason": "ProtectedZoneReached",
+      "steps": 41,
+      "blue_return": -9.08125,
+      "red_return": 10.098333333333333,
+      "placement_decisions": 2,
+      "sensors_placed": 1,
+      "selected_catalogue_indices": [
+        2
+      ],
+      "selected_sensor_profiles": [
+        "electro-optical"
+      ],
+      "selected_modalities": {
+        "passive_rf": 0,
+        "search_radar": 0,
+        "electro_optical": 1,
+        "thermal": 0
+      },
+      "mean_position_radius": 0.9249196522470963,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 2.5050285256179174,
+      "breach_rate": 1.0,
+      "blue_win_rate": 0.0,
+      "red_win_rate": 1.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 0.5,
+      "tracking_coverage": 0.0,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 28,
+      "seed": 1500000027,
+      "reason": "SustainedTrackDefence",
+      "steps": 6,
+      "blue_return": 10.850000000000001,
+      "red_return": -10.443333333333333,
+      "placement_decisions": 2,
+      "sensors_placed": 1,
+      "selected_catalogue_indices": [
+        4
+      ],
+      "selected_sensor_profiles": [
+        "radar-thermal-fused"
+      ],
+      "selected_modalities": {
+        "passive_rf": 0,
+        "search_radar": 1,
+        "electro_optical": 0,
+        "thermal": 1
+      },
+      "mean_position_radius": 0.8378235816427007,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 1.7216580839688387,
+      "breach_rate": 0.0,
+      "blue_win_rate": 1.0,
+      "red_win_rate": 0.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 0.5,
+      "tracking_coverage": 0.6666666666666666,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 29,
+      "seed": 1500000028,
+      "reason": "ProtectedZoneReached",
+      "steps": 41,
+      "blue_return": -10.208333333333334,
+      "red_return": 10.598333333333333,
+      "placement_decisions": 2,
+      "sensors_placed": 1,
+      "selected_catalogue_indices": [
+        4
+      ],
+      "selected_sensor_profiles": [
+        "radar-thermal-fused"
+      ],
+      "selected_modalities": {
+        "passive_rf": 0,
+        "search_radar": 1,
+        "electro_optical": 0,
+        "thermal": 1
+      },
+      "mean_position_radius": 0.9966666965218491,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 1.7216580839688387,
+      "breach_rate": 1.0,
+      "blue_win_rate": 0.0,
+      "red_win_rate": 1.0,
+      "detection_rate": 0.0,
+      "mean_detection_latency_seconds_detected_targets": null,
+      "tracking_coverage": 0.0,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 30,
+      "seed": 1500000029,
+      "reason": "SustainedTrackDefence",
+      "steps": 6,
+      "blue_return": 10.870833333333334,
+      "red_return": -10.443333333333333,
+      "placement_decisions": 2,
+      "sensors_placed": 2,
+      "selected_catalogue_indices": [
+        3,
+        0
+      ],
+      "selected_sensor_profiles": [
+        "thermal",
+        "passive-rf"
+      ],
+      "selected_modalities": {
+        "passive_rf": 1,
+        "search_radar": 0,
+        "electro_optical": 0,
+        "thermal": 1
+      },
+      "mean_position_radius": 0.9551017027100167,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 3.348827298318829,
+      "breach_rate": 0.0,
+      "blue_win_rate": 1.0,
+      "red_win_rate": 0.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 0.5,
+      "tracking_coverage": 0.6666666666666666,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 31,
+      "seed": 1500000030,
+      "reason": "SustainedTrackDefence",
+      "steps": 6,
+      "blue_return": 10.891666666666667,
+      "red_return": -10.443333333333333,
+      "placement_decisions": 2,
+      "sensors_placed": 2,
+      "selected_catalogue_indices": [
+        0,
+        0
+      ],
+      "selected_sensor_profiles": [
+        "passive-rf",
+        "passive-rf"
+      ],
+      "selected_modalities": {
+        "passive_rf": 2,
+        "search_radar": 0,
+        "electro_optical": 0,
+        "thermal": 0
+      },
+      "mean_position_radius": 0.8502429979402675,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 3.3498669106826693,
+      "breach_rate": 0.0,
+      "blue_win_rate": 1.0,
+      "red_win_rate": 0.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 0.5,
+      "tracking_coverage": 0.6666666666666666,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 32,
+      "seed": 1500000031,
+      "reason": "SustainedTrackDefence",
+      "steps": 6,
+      "blue_return": 10.870833333333334,
+      "red_return": -10.443333333333333,
+      "placement_decisions": 2,
+      "sensors_placed": 2,
+      "selected_catalogue_indices": [
+        0,
+        3
+      ],
+      "selected_sensor_profiles": [
+        "passive-rf",
+        "thermal"
+      ],
+      "selected_modalities": {
+        "passive_rf": 1,
+        "search_radar": 0,
+        "electro_optical": 0,
+        "thermal": 1
+      },
+      "mean_position_radius": 0.9239806984950332,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 3.349777138223747,
+      "breach_rate": 0.0,
+      "blue_win_rate": 1.0,
+      "red_win_rate": 0.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 0.5,
+      "tracking_coverage": 0.6666666666666666,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 33,
+      "seed": 1500000032,
+      "reason": "SustainedTrackDefence",
+      "steps": 8,
+      "blue_return": 10.812500000000002,
+      "red_return": -10.413333333333334,
+      "placement_decisions": 2,
+      "sensors_placed": 2,
+      "selected_catalogue_indices": [
+        1,
+        3
+      ],
+      "selected_sensor_profiles": [
+        "search-radar",
+        "thermal"
+      ],
+      "selected_modalities": {
+        "passive_rf": 0,
+        "search_radar": 1,
+        "electro_optical": 0,
+        "thermal": 1
+      },
+      "mean_position_radius": 0.991307424686559,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 3.350862082512762,
+      "breach_rate": 0.0,
+      "blue_win_rate": 1.0,
+      "red_win_rate": 0.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 1.5,
+      "tracking_coverage": 0.5,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 34,
+      "seed": 1500000033,
+      "reason": "SustainedTrackDefence",
+      "steps": 6,
+      "blue_return": 10.829166666666667,
+      "red_return": -10.443333333333333,
+      "placement_decisions": 2,
+      "sensors_placed": 2,
+      "selected_catalogue_indices": [
+        3,
+        1
+      ],
+      "selected_sensor_profiles": [
+        "thermal",
+        "search-radar"
+      ],
+      "selected_modalities": {
+        "passive_rf": 0,
+        "search_radar": 1,
+        "electro_optical": 0,
+        "thermal": 1
+      },
+      "mean_position_radius": 0.7676267366177008,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 3.3486453252309527,
+      "breach_rate": 0.0,
+      "blue_win_rate": 1.0,
+      "red_win_rate": 0.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 0.5,
+      "tracking_coverage": 0.6666666666666666,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 35,
+      "seed": 1500000034,
+      "reason": "SustainedTrackDefence",
+      "steps": 6,
+      "blue_return": 10.891666666666667,
+      "red_return": -10.443333333333333,
+      "placement_decisions": 2,
+      "sensors_placed": 2,
+      "selected_catalogue_indices": [
+        0,
+        0
+      ],
+      "selected_sensor_profiles": [
+        "passive-rf",
+        "passive-rf"
+      ],
+      "selected_modalities": {
+        "passive_rf": 2,
+        "search_radar": 0,
+        "electro_optical": 0,
+        "thermal": 0
+      },
+      "mean_position_radius": 0.6605926952527591,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 3.349502231860435,
+      "breach_rate": 0.0,
+      "blue_win_rate": 1.0,
+      "red_win_rate": 0.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 0.5,
+      "tracking_coverage": 0.6666666666666666,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 36,
+      "seed": 1500000035,
+      "reason": "SustainedTrackDefence",
+      "steps": 6,
+      "blue_return": 10.870833333333334,
+      "red_return": -10.443333333333333,
+      "placement_decisions": 2,
+      "sensors_placed": 2,
+      "selected_catalogue_indices": [
+        0,
+        3
+      ],
+      "selected_sensor_profiles": [
+        "passive-rf",
+        "thermal"
+      ],
+      "selected_modalities": {
+        "passive_rf": 1,
+        "search_radar": 0,
+        "electro_optical": 0,
+        "thermal": 1
+      },
+      "mean_position_radius": 0.6752454581564886,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 3.349671219190444,
+      "breach_rate": 0.0,
+      "blue_win_rate": 1.0,
+      "red_win_rate": 0.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 0.5,
+      "tracking_coverage": 0.6666666666666666,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 37,
+      "seed": 1500000036,
+      "reason": "ProtectedZoneReached",
+      "steps": 41,
+      "blue_return": -10.0,
+      "red_return": 10.598333333333333,
+      "placement_decisions": 1,
+      "sensors_placed": 0,
+      "selected_catalogue_indices": [],
+      "selected_sensor_profiles": [],
+      "selected_modalities": {},
+      "mean_position_radius": 0.0,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 1.7514792655859814,
+      "breach_rate": 1.0,
+      "blue_win_rate": 0.0,
+      "red_win_rate": 1.0,
+      "detection_rate": 0.0,
+      "mean_detection_latency_seconds_detected_targets": null,
+      "tracking_coverage": 0.0,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 38,
+      "seed": 1500000037,
+      "reason": "SustainedTrackDefence",
+      "steps": 6,
+      "blue_return": 10.829166666666667,
+      "red_return": -10.443333333333333,
+      "placement_decisions": 2,
+      "sensors_placed": 2,
+      "selected_catalogue_indices": [
+        1,
+        3
+      ],
+      "selected_sensor_profiles": [
+        "search-radar",
+        "thermal"
+      ],
+      "selected_modalities": {
+        "passive_rf": 0,
+        "search_radar": 1,
+        "electro_optical": 0,
+        "thermal": 1
+      },
+      "mean_position_radius": 0.8971466344268527,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 3.3503490425588387,
+      "breach_rate": 0.0,
+      "blue_win_rate": 1.0,
+      "red_win_rate": 0.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 0.5,
+      "tracking_coverage": 0.6666666666666666,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 39,
+      "seed": 1500000038,
+      "reason": "SustainedTrackDefence",
+      "steps": 14,
+      "blue_return": 10.835416666666667,
+      "red_return": -10.323333333333334,
+      "placement_decisions": 2,
+      "sensors_placed": 2,
+      "selected_catalogue_indices": [
+        0,
+        2
+      ],
+      "selected_sensor_profiles": [
+        "passive-rf",
+        "electro-optical"
+      ],
+      "selected_modalities": {
+        "passive_rf": 1,
+        "search_radar": 0,
+        "electro_optical": 1,
+        "thermal": 0
+      },
+      "mean_position_radius": 0.996666684411053,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 3.3499183970666246,
+      "breach_rate": 0.0,
+      "blue_win_rate": 1.0,
+      "red_win_rate": 0.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 4.5,
+      "tracking_coverage": 0.2857142857142857,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 40,
+      "seed": 1500000039,
+      "reason": "SustainedTrackDefence",
+      "steps": 6,
+      "blue_return": 10.850000000000001,
+      "red_return": -10.443333333333333,
+      "placement_decisions": 2,
+      "sensors_placed": 1,
+      "selected_catalogue_indices": [
+        4
+      ],
+      "selected_sensor_profiles": [
+        "radar-thermal-fused"
+      ],
+      "selected_modalities": {
+        "passive_rf": 0,
+        "search_radar": 1,
+        "electro_optical": 0,
+        "thermal": 1
+      },
+      "mean_position_radius": 0.9966666877183966,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 1.7216580839688387,
+      "breach_rate": 0.0,
+      "blue_win_rate": 1.0,
+      "red_win_rate": 0.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 0.5,
+      "tracking_coverage": 0.6666666666666666,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 41,
+      "seed": 1500000040,
+      "reason": "SustainedTrackDefence",
+      "steps": 6,
+      "blue_return": 10.954166666666667,
+      "red_return": -10.443333333333333,
+      "placement_decisions": 2,
+      "sensors_placed": 1,
+      "selected_catalogue_indices": [
+        3
+      ],
+      "selected_sensor_profiles": [
+        "thermal"
+      ],
+      "selected_modalities": {
+        "passive_rf": 0,
+        "search_radar": 0,
+        "electro_optical": 0,
+        "thermal": 1
+      },
+      "mean_position_radius": 0.7772624400054801,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 2.502779669384962,
+      "breach_rate": 0.0,
+      "blue_win_rate": 1.0,
+      "red_win_rate": 0.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 0.5,
+      "tracking_coverage": 0.6666666666666666,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 42,
+      "seed": 1500000041,
+      "reason": "ProtectedZoneReached",
+      "steps": 41,
+      "blue_return": -10.177083333333334,
+      "red_return": 10.598333333333333,
+      "placement_decisions": 2,
+      "sensors_placed": 2,
+      "selected_catalogue_indices": [
+        3,
+        2
+      ],
+      "selected_sensor_profiles": [
+        "thermal",
+        "electro-optical"
+      ],
+      "selected_modalities": {
+        "passive_rf": 0,
+        "search_radar": 0,
+        "electro_optical": 1,
+        "thermal": 1
+      },
+      "mean_position_radius": 0.9214554199087807,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 3.348800560638737,
+      "breach_rate": 1.0,
+      "blue_win_rate": 0.0,
+      "red_win_rate": 1.0,
+      "detection_rate": 0.0,
+      "mean_detection_latency_seconds_detected_targets": null,
+      "tracking_coverage": 0.0,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 43,
+      "seed": 1500000042,
+      "reason": "SustainedTrackDefence",
+      "steps": 6,
+      "blue_return": 10.850000000000001,
+      "red_return": -10.443333333333333,
+      "placement_decisions": 2,
+      "sensors_placed": 2,
+      "selected_catalogue_indices": [
+        3,
+        3
+      ],
+      "selected_sensor_profiles": [
+        "thermal",
+        "thermal"
+      ],
+      "selected_modalities": {
+        "passive_rf": 0,
+        "search_radar": 0,
+        "electro_optical": 0,
+        "thermal": 2
+      },
+      "mean_position_radius": 0.5306550942087239,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 3.3485253961051873,
+      "breach_rate": 0.0,
+      "blue_win_rate": 1.0,
+      "red_win_rate": 0.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 0.5,
+      "tracking_coverage": 0.6666666666666666,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 44,
+      "seed": 1500000043,
+      "reason": "ProtectedZoneReached",
+      "steps": 41,
+      "blue_return": -10.177083333333334,
+      "red_return": 10.598333333333333,
+      "placement_decisions": 2,
+      "sensors_placed": 2,
+      "selected_catalogue_indices": [
+        2,
+        3
+      ],
+      "selected_sensor_profiles": [
+        "electro-optical",
+        "thermal"
+      ],
+      "selected_modalities": {
+        "passive_rf": 0,
+        "search_radar": 0,
+        "electro_optical": 1,
+        "thermal": 1
+      },
+      "mean_position_radius": 0.9522956929229109,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 3.351031398841054,
+      "breach_rate": 1.0,
+      "blue_win_rate": 0.0,
+      "red_win_rate": 1.0,
+      "detection_rate": 0.0,
+      "mean_detection_latency_seconds_detected_targets": null,
+      "tracking_coverage": 0.0,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 45,
+      "seed": 1500000044,
+      "reason": "ProtectedZoneReached",
+      "steps": 41,
+      "blue_return": -9.362499999999999,
+      "red_return": 10.073333333333332,
+      "placement_decisions": 2,
+      "sensors_placed": 1,
+      "selected_catalogue_indices": [
+        3
+      ],
+      "selected_sensor_profiles": [
+        "thermal"
+      ],
+      "selected_modalities": {
+        "passive_rf": 0,
+        "search_radar": 0,
+        "electro_optical": 0,
+        "thermal": 1
+      },
+      "mean_position_radius": 0.5053542196857802,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 2.5026809268044508,
+      "breach_rate": 1.0,
+      "blue_win_rate": 0.0,
+      "red_win_rate": 1.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 18.5,
+      "tracking_coverage": 0.07317073170731707,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 46,
+      "seed": 1500000045,
+      "reason": "ProtectedZoneReached",
+      "steps": 41,
+      "blue_return": -9.466666666666667,
+      "red_return": 10.073333333333332,
+      "placement_decisions": 2,
+      "sensors_placed": 1,
+      "selected_catalogue_indices": [
+        4
+      ],
+      "selected_sensor_profiles": [
+        "radar-thermal-fused"
+      ],
+      "selected_modalities": {
+        "passive_rf": 0,
+        "search_radar": 1,
+        "electro_optical": 0,
+        "thermal": 1
+      },
+      "mean_position_radius": 0.6306597066459712,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 1.7216580839688387,
+      "breach_rate": 1.0,
+      "blue_win_rate": 0.0,
+      "red_win_rate": 1.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 18.5,
+      "tracking_coverage": 0.07317073170731707,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 47,
+      "seed": 1500000046,
+      "reason": "SustainedTrackDefence",
+      "steps": 6,
+      "blue_return": 10.881250000000001,
+      "red_return": -10.443333333333333,
+      "placement_decisions": 2,
+      "sensors_placed": 2,
+      "selected_catalogue_indices": [
+        2,
+        3
+      ],
+      "selected_sensor_profiles": [
+        "electro-optical",
+        "thermal"
+      ],
+      "selected_modalities": {
+        "passive_rf": 0,
+        "search_radar": 0,
+        "electro_optical": 1,
+        "thermal": 1
+      },
+      "mean_position_radius": 0.93101301863787,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 3.350959160887699,
+      "breach_rate": 0.0,
+      "blue_win_rate": 1.0,
+      "red_win_rate": 0.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 0.5,
+      "tracking_coverage": 0.6666666666666666,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 48,
+      "seed": 1500000047,
+      "reason": "SustainedTrackDefence",
+      "steps": 18,
+      "blue_return": 10.802083333333334,
+      "red_return": -10.263333333333334,
+      "placement_decisions": 2,
+      "sensors_placed": 2,
+      "selected_catalogue_indices": [
+        2,
+        0
+      ],
+      "selected_sensor_profiles": [
+        "electro-optical",
+        "passive-rf"
+      ],
+      "selected_modalities": {
+        "passive_rf": 1,
+        "search_radar": 0,
+        "electro_optical": 1,
+        "thermal": 0
+      },
+      "mean_position_radius": 0.9290414653071393,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 3.3511030848045937,
+      "breach_rate": 0.0,
+      "blue_win_rate": 1.0,
+      "red_win_rate": 0.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 6.5,
+      "tracking_coverage": 0.2222222222222222,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 49,
+      "seed": 1500000048,
+      "reason": "ProtectedZoneReached",
+      "steps": 41,
+      "blue_return": -10.0,
+      "red_return": 10.598333333333333,
+      "placement_decisions": 1,
+      "sensors_placed": 0,
+      "selected_catalogue_indices": [],
+      "selected_sensor_profiles": [],
+      "selected_modalities": {},
+      "mean_position_radius": 0.0,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 1.7514792655859814,
+      "breach_rate": 1.0,
+      "blue_win_rate": 0.0,
+      "red_win_rate": 1.0,
+      "detection_rate": 0.0,
+      "mean_detection_latency_seconds_detected_targets": null,
+      "tracking_coverage": 0.0,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    },
+    {
+      "episode": 50,
+      "seed": 1500000049,
+      "reason": "SustainedTrackDefence",
+      "steps": 6,
+      "blue_return": 10.829166666666667,
+      "red_return": -10.443333333333333,
+      "placement_decisions": 2,
+      "sensors_placed": 2,
+      "selected_catalogue_indices": [
+        1,
+        3
+      ],
+      "selected_sensor_profiles": [
+        "search-radar",
+        "thermal"
+      ],
+      "selected_modalities": {
+        "passive_rf": 0,
+        "search_radar": 1,
+        "electro_optical": 0,
+        "thermal": 1
+      },
+      "mean_position_radius": 0.8338849703800595,
+      "position_metric_source": "native_sensor_observations",
+      "mean_policy_entropy": 3.3507745637606785,
+      "breach_rate": 0.0,
+      "blue_win_rate": 1.0,
+      "red_win_rate": 0.0,
+      "detection_rate": 1.0,
+      "mean_detection_latency_seconds_detected_targets": 0.5,
+      "tracking_coverage": 0.6666666666666666,
+      "invalid_actions": 0,
+      "defence_semantics": "Sustained observed track or survived horizon; not physical interception"
+    }
+  ]
+}

@@ -231,7 +231,7 @@ tests and model limitations. This demo uses a fictional arena, not the palace ma
 3. Keep **Auto Initialize**, **Auto Advance**, **Follow Objective** and **Spawn Visuals**
    enabled, then Play. The inherited manual Swarms array is not used by this actor.
 
-Defaults spawn three groups of 12 drones with centers 30–60 meters from the objective.
+Defaults spawn three groups of 12 drones with centers 30â€“60 meters from the objective.
 Editor distance fields use centimeters. An assigned movement preset overrides inline
 settings; its Max Drones limits total population (default 128, hard cap 256).
 
@@ -246,6 +246,16 @@ setup and lifecycle, the [swarm guide](Docs/SWARM_SIMULATION.md) for navigation 
 and [validation](Docs/VALIDATION.md#swarm-and-red-team-validation-12-september-2026)
 for the successful editor/game builds and 13-test automation run. Learning, sensors,
 rewards and full episode coordination remain future work.
+
+## Blue Team reinforcement learning
+
+The [Blue Team RL package](RL/BlueTeam/README.md) adds a CPU Python trainer for
+choosing sensor profiles and continuous placements, a trained TRIAD checkpoint,
+and recorded evaluation results. Start with its Unreal-free quickstart. Live
+training requires the separate original TRIAD host; integration with Istana
+Open's Red Team Manager and policy interface is still pending. See the
+[integration guide](RL/BlueTeam/INTEGRATION.md) and
+[experiment results](RL/BlueTeam/RESULTS.md).
 
 ## Fidelity and data
 

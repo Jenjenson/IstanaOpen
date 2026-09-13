@@ -1,0 +1,79 @@
+name: Blue Team RL
+
+on:
+  push:
+    paths:
+      - "RL/BlueTeam/**"
+      - ".github/workflows/blue-team-rl.yml"
+      - "Tools/export_blue_rl.py"
+  pull_request:
+    paths:
+      - "RL/BlueTeam/**"
+      - ".github/workflows/blue-team-rl.yml"
+      - "Tools/export_blue_rl.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    name: Python 3.11 / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    defaults:
+      run:
+        working-directory: RL/BlueTeam/Python
+    steps:
+      - name: Check out source without Unreal assets
+        uses: actions/checkout@v4
+        with:
+          lfs: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: RL/BlueTeam/Python/pyproject.toml
+
+      - name: Install package and test dependencies
+        run: python -m pip install ".[test]"
+
+      - name: Test policy, environment, transport, and published artifacts
+        run: python -m pytest tests -q
+
+      # This local toy checks the training/evaluation plumbing. It does not
+      # reproduce the native Unreal benchmark included in Results/.
+      - name: Train a local smoke-test policy
+        run: >-
+          python train_blue_placement.py
+          --dry-run --episodes 4 --batch-size 2 --seed 22
+          --checkpoint-every 0 --checkpoint-dir ci_artifacts/checkpoints
+          --metrics-path ci_artifacts/training_metrics.jsonl
+
+      - name: Evaluate the smoke-test checkpoint
+        run: >-
+          python evaluate_checkpoint.py
+          --dry-run --episodes 3 --seed 1500000000
+          --checkpoint ci_artifacts/checkpoints/episode_000004_final
+          --output ci_artifacts/evaluation
+
+      - name: Evaluate the initialized stochastic baseline
+        run: >-
+          python evaluate_checkpoint.py
+          --dry-run --initial --stochastic --policy-seed 22
+          --episodes 3 --seed 1500000000
+          --output ci_artifacts/baseline
+
+      - name: Save smoke-test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: blue-team-rl-smoke-${{ matrix.os }}
+          path: RL/BlueTeam/Python/ci_artifacts/
+          if-no-files-found: ignore

@@ -1,0 +1,190 @@
+{
+  "schema": "istana.blue_rl_export.v1",
+  "source_training_date": "2026-09-10",
+  "note": "Selected TRIAD source and measured synthetic-arena results. NativeReference is not compiled by IstanaOpen.",
+  "files": [
+    {
+      "source": "Content/TRIAD/RL/Python/triad_rl/__init__.py",
+      "published": "RL/BlueTeam/Python/triad_rl/__init__.py",
+      "sha256": "e3024b56fd3c7e6e88e7fe57029b8e05f7d39066ae44423fcc095e548dbe81d6"
+    },
+    {
+      "source": "Content/TRIAD/RL/Python/triad_rl/environment.py",
+      "published": "RL/BlueTeam/Python/triad_rl/environment.py",
+      "sha256": "48079bff33088ff85c3d4c81db5255d59da439bc1d74fca810ba62bff39ec59d"
+    },
+    {
+      "source": "Content/TRIAD/RL/Python/triad_rl/placement_policy.py",
+      "published": "RL/BlueTeam/Python/triad_rl/placement_policy.py",
+      "sha256": "29fe2d3eb327ef25d0416b0c38324d7d31ebd7f7134727b3486afdf128d10607"
+    },
+    {
+      "source": "Content/TRIAD/RL/Python/triad_rl/policy.py",
+      "published": "RL/BlueTeam/Python/triad_rl/policy.py",
+      "sha256": "4bde1adf6c66665ebc601d608b06612871c71eae9dae8661f1d4073f6b163629"
+    },
+    {
+      "source": "Content/TRIAD/RL/Python/triad_rl/remote_control.py",
+      "published": "RL/BlueTeam/Python/triad_rl/remote_control.py",
+      "sha256": "b55bd890f30f7cd8ec49853a3d447f96ca1cdee1ac412ea3beee1bbe04db32f9"
+    },
+    {
+      "source": "Content/TRIAD/RL/Python/triad_rl/rollout.py",
+      "published": "RL/BlueTeam/Python/triad_rl/rollout.py",
+      "sha256": "c632a74862f557f6e0766061d97c6eb12986968bf4e5856ad121a10b761a275a"
+    },
+    {
+      "source": "Content/TRIAD/RL/Python/triad_rl/self_play.py",
+      "published": "RL/BlueTeam/Python/triad_rl/self_play.py",
+      "sha256": "77e201e7c735c3f5999d2f69b18af7c21ab8b06811002456cba5d4315aafd168"
+    },
+    {
+      "source": "Content/TRIAD/RL/Python/tests/test_environment.py",
+      "published": "RL/BlueTeam/Python/tests/test_environment.py",
+      "sha256": "07e57e6ac3f201f6379bf9272de8b930742d034963b5a6d6d735c4297d7b1ac2"
+    },
+    {
+      "source": "Content/TRIAD/RL/Python/tests/test_policy.py",
+      "published": "RL/BlueTeam/Python/tests/test_policy.py",
+      "sha256": "4a20183ba1de082229f5eedbcfd26b3c4a92882076db47ce3412abdc81afed8c"
+    },
+    {
+      "source": "Content/TRIAD/RL/Python/tests/test_remote_control.py",
+      "published": "RL/BlueTeam/Python/tests/test_remote_control.py",
+      "sha256": "3279cfb73ded089b47478d212e38c272a4a06b7ea8c7281c7486e05491470504"
+    },
+    {
+      "source": "Content/TRIAD/RL/Python/train_blue_placement.py",
+      "published": "RL/BlueTeam/Python/train_blue_placement.py",
+      "sha256": "d8018febfefaa855b2ad7e98dd3e49baafbb87d019704c4222c8e9cf1c83181a"
+    },
+    {
+      "source": "Content/TRIAD/RL/Python/train_self_play.py",
+      "published": "RL/BlueTeam/Python/train_self_play.py",
+      "sha256": "3773b95ea8998f937a1c223172735b6cb4cd299a8c29fc16465e90934e3126a9"
+    },
+    {
+      "source": "Content/TRIAD/RL/Python/evaluate_checkpoint.py",
+      "published": "RL/BlueTeam/Python/evaluate_checkpoint.py",
+      "sha256": "3f4b0668d59743d9d2ee653b847c44b663a86909dec25c06a5854eedd17abad9"
+    },
+    {
+      "source": "Content/TRIAD/RL/Python/benchmark_checkpoint.py",
+      "published": "RL/BlueTeam/Python/benchmark_checkpoint.py",
+      "sha256": "b533ee4b8e6420f18cef43ded2fe5be5870818c9ccfe983d3be811e523e129fb"
+    },
+    {
+      "source": "Content/TRIAD/RL/Python/pyproject.toml",
+      "published": "RL/BlueTeam/Python/pyproject.toml",
+      "sha256": "f54b8b311c54252e59cd0dcf1207f9a2182ccaf746b24e42214bbba0377a41af"
+    },
+    {
+      "source": "Content/TRIAD/RL/DefaultTrainingConfig.json",
+      "published": "RL/BlueTeam/DefaultTrainingConfig.json",
+      "sha256": "b141acf840bfc5b598be377cc6035bd2476f64ec33278b284cd7d9a4cb304105"
+    },
+    {
+      "source": "Plugins/TRIADSensorFusion/Source/TRIADSensorFusion/Public/TRIADRLTrainingTypes.h",
+      "published": "RL/BlueTeam/NativeReference/Public/TRIADRLTrainingTypes.h",
+      "sha256": "47617397075417a39baa78300f861f731bcb9a6fcdbb0f1fef82e38d7dd48b9e"
+    },
+    {
+      "source": "Plugins/TRIADSensorFusion/Source/TRIADSensorFusion/Public/TRIADRLTrainingModel.h",
+      "published": "RL/BlueTeam/NativeReference/Public/TRIADRLTrainingModel.h",
+      "sha256": "6fbb4cedf7e5b9032a20dfda2f8ae1120fec18deb45d23ec7e3a0f5627449834"
+    },
+    {
+      "source": "Plugins/TRIADSensorFusion/Source/TRIADSensorFusion/Public/TRIADAdversarialTrainingManager.h",
+      "published": "RL/BlueTeam/NativeReference/Public/TRIADAdversarialTrainingManager.h",
+      "sha256": "3fbc6a3a471211f2e79d870302713e9fc75decdc61ba951604984ec0547f85b2"
+    },
+    {
+      "source": "Plugins/TRIADSensorFusion/Source/TRIADSensorFusion/Public/TRIADSwarmControllerComponent.h",
+      "published": "RL/BlueTeam/NativeReference/Public/TRIADSwarmControllerComponent.h",
+      "sha256": "121b5fde82bff6dcb8bbc8bf4c964967b2221d59245e69a40c2c85a8411a8837"
+    },
+    {
+      "source": "Plugins/TRIADSensorFusion/Source/TRIADSensorFusion/Public/TRIADProtectedZoneComponent.h",
+      "published": "RL/BlueTeam/NativeReference/Public/TRIADProtectedZoneComponent.h",
+      "sha256": "a9e071f8d2326f97ef45d1daf8fe8d4965d2465b3e668c0ec89272df96646737"
+    },
+    {
+      "source": "Plugins/TRIADSensorFusion/Source/TRIADSensorFusion/Private/TRIADRLTrainingModel.cpp",
+      "published": "RL/BlueTeam/NativeReference/Private/TRIADRLTrainingModel.cpp",
+      "sha256": "ad0987499258b600d8c0080c4e71f26d15939c2654dc5d949605647e6e590363"
+    },
+    {
+      "source": "Plugins/TRIADSensorFusion/Source/TRIADSensorFusion/Private/TRIADAdversarialTrainingManager.cpp",
+      "published": "RL/BlueTeam/NativeReference/Private/TRIADAdversarialTrainingManager.cpp",
+      "sha256": "760fe7879ce323b8b54ccc1585e83210a9ba0cccac02886c3ceccf50034f01cc"
+    },
+    {
+      "source": "Plugins/TRIADSensorFusion/Source/TRIADSensorFusion/Private/TRIADSwarmControllerComponent.cpp",
+      "published": "RL/BlueTeam/NativeReference/Private/TRIADSwarmControllerComponent.cpp",
+      "sha256": "254b818a4773c0ddf3a7bbfa451aa9b06b0c5b1b5dd0bde3d94a8ff1d2516ee1"
+    },
+    {
+      "source": "Plugins/TRIADSensorFusion/Source/TRIADSensorFusion/Private/TRIADProtectedZoneComponent.cpp",
+      "published": "RL/BlueTeam/NativeReference/Private/TRIADProtectedZoneComponent.cpp",
+      "sha256": "ea9878c12559f054042e1020a0afb6be1b0db5276e0169db32438d83561cbbcc"
+    },
+    {
+      "source": "Plugins/TRIADSensorFusion/Source/TRIADSensorFusion/Private/Tests/TRIADRLTrainingModelTests.cpp",
+      "published": "RL/BlueTeam/NativeReference/Private/Tests/TRIADRLTrainingModelTests.cpp",
+      "sha256": "1267e7d3192103f4e86999a156090b48e9a0796e1294984746d4bc42ffbe93fb"
+    },
+    {
+      "source": "Plugins/TRIADSensorFusion/Source/TRIADSensorFusionEditor/Private/TRIADRLAssetBootstrapCommandlet.h",
+      "published": "RL/BlueTeam/NativeReference/Editor/TRIADRLAssetBootstrapCommandlet.h",
+      "sha256": "40e4830907985fa91bd830bfb3a686b064915ba481d6d91663759131f9647b1e"
+    },
+    {
+      "source": "Plugins/TRIADSensorFusion/Source/TRIADSensorFusionEditor/Private/TRIADRLAssetBootstrapCommandlet.cpp",
+      "published": "RL/BlueTeam/NativeReference/Editor/TRIADRLAssetBootstrapCommandlet.cpp",
+      "sha256": "c4f1dfcfc531b257133486c8059fa862bbf6c226016d812316a3e74a4a97a214"
+    },
+    {
+      "source": "Saved/TRIAD/RLFundamentals/DynamicTraining/pilot/episode_000210_final/arrays.npz",
+      "published": "RL/BlueTeam/Checkpoints/toy-210/arrays.npz",
+      "sha256": "1d9abf8547220c525cbc2e3d5007081ba34960d6b3412a7cc4e5c18232887f7c"
+    },
+    {
+      "source": "Saved/TRIAD/RLFundamentals/DynamicTraining/pilot/episode_000210_final/checkpoint.json",
+      "published": "RL/BlueTeam/Checkpoints/toy-210/checkpoint.json",
+      "original_sha256": "26c08a7f4646f8c3a0fea3667ffdbaeb1db41c57f9edac06cbd3521c5bf7fd84",
+      "sha256": "ad9471c65551449e9b159110380579b10c8a822786d7d51065f2321dc70f7ebf",
+      "change": "Informational absolute paths changed to repository-relative paths; numeric results and model arrays unchanged."
+    },
+    {
+      "source": "Saved/TRIAD/RLFundamentals/DynamicTraining/pilot/metrics.jsonl",
+      "published": "RL/BlueTeam/Results/training.jsonl",
+      "sha256": "9957648c3ff9eae479c8441615aeeac33e9542d2dbf5849976c572124a8092f2"
+    },
+    {
+      "source": "Saved/TRIAD/RLFundamentals/DynamicTraining/native-dynamic-oracle.json",
+      "published": "RL/BlueTeam/Results/native-oracle.json",
+      "sha256": "06517970079c23f1aa1688a1e145484c6957520a3c9ef8e3df208565c1f921e3"
+    },
+    {
+      "source": "Saved/TRIAD/RLFundamentals/DynamicTraining/eval-initial-v2/evaluation.json",
+      "published": "RL/BlueTeam/Results/initial-stochastic.json",
+      "original_sha256": "6532b0adb5fb9a02cd4d8647bf1d23331c625182f290e9df63273b82c46137fb",
+      "sha256": "25a1e4775ed2f3387fb20f515b4e14baf8c068662d388259e9478c7f8e617b25",
+      "change": "Informational absolute paths changed to repository-relative paths; numeric results and model arrays unchanged."
+    },
+    {
+      "source": "Saved/TRIAD/RLFundamentals/DynamicTraining/eval-trained-210-stochastic/evaluation.json",
+      "published": "RL/BlueTeam/Results/trained-stochastic.json",
+      "original_sha256": "b80cdcf6e254c5a21f6f3240438da7d1c4b009a7f69557f3315c526974259f87",
+      "sha256": "e21e9a85af13c5b4b2fceaff4ed2818a65dedce964687d4aef26a61255d5d1e6",
+      "change": "Informational absolute paths changed to repository-relative paths; numeric results and model arrays unchanged."
+    },
+    {
+      "source": "Saved/TRIAD/RLFundamentals/DynamicTraining/eval-trained-210-deterministic/evaluation.json",
+      "published": "RL/BlueTeam/Results/trained-deterministic.json",
+      "original_sha256": "b87ff9cfd81d694d11510a1ceeea6c53fa4d6c6c1094e89bdc7974028b5371e7",
+      "sha256": "9eeab7783826ea8bc19b3e037da59b1f51b1e759cb41d07bf0771db2536869f5",
+      "change": "Informational absolute paths changed to repository-relative paths; numeric results and model arrays unchanged."
+    }
+  ]
+}

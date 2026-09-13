@@ -1,0 +1,180 @@
+{
+  "schema": "triad.dynamic_native_oracle.v1",
+  "scenario": "toy-one-drone-dynamic-sensors-v4",
+  "config_fingerprint": "md5:c7b1fcb83150ed7e5b4b47de6923142f",
+  "all_repeats_equal": true,
+  "cases": [
+    {
+      "case": "commit-only",
+      "seed": 4242,
+      "candidate": null,
+      "requested_position": null,
+      "placed_indices": [],
+      "placed_positions": [],
+      "reason": "ProtectedZoneReached",
+      "steps": 41,
+      "first_detection_step": null,
+      "blue_return": -10,
+      "red_return": 10.598333333333333,
+      "invalid_actions": 0,
+      "fingerprint": "md5:c7b1fcb83150ed7e5b4b47de6923142f",
+      "repeat_equal": true
+    },
+    {
+      "case": "passive-rf-north",
+      "seed": 4242,
+      "candidate": 0,
+      "requested_position": [
+        0.0,
+        0.6
+      ],
+      "placed_indices": [
+        0
+      ],
+      "placed_positions": [
+        {
+          "X": 0,
+          "Y": 0.6000000000000002
+        }
+      ],
+      "reason": "SustainedTrackDefence",
+      "steps": 6,
+      "first_detection_step": 1,
+      "blue_return": 10.975000000000001,
+      "red_return": -10.443333333333333,
+      "invalid_actions": 0,
+      "fingerprint": "md5:c7b1fcb83150ed7e5b4b47de6923142f",
+      "repeat_equal": true
+    },
+    {
+      "case": "search-radar-north",
+      "seed": 4242,
+      "candidate": 1,
+      "requested_position": [
+        0.0,
+        0.6
+      ],
+      "placed_indices": [
+        1
+      ],
+      "placed_positions": [
+        {
+          "X": 0,
+          "Y": 0.6000000000000002
+        }
+      ],
+      "reason": "SustainedTrackDefence",
+      "steps": 12,
+      "first_detection_step": 7,
+      "blue_return": 10.883333333333335,
+      "red_return": -10.353333333333333,
+      "invalid_actions": 0,
+      "fingerprint": "md5:c7b1fcb83150ed7e5b4b47de6923142f",
+      "repeat_equal": true
+    },
+    {
+      "case": "eo-north",
+      "seed": 4242,
+      "candidate": 2,
+      "requested_position": [
+        0.0,
+        0.6
+      ],
+      "placed_indices": [
+        2
+      ],
+      "placed_positions": [
+        {
+          "X": 0,
+          "Y": 0.6000000000000002
+        }
+      ],
+      "reason": "SustainedTrackDefence",
+      "steps": 12,
+      "first_detection_step": 7,
+      "blue_return": 10.935416666666667,
+      "red_return": -10.353333333333333,
+      "invalid_actions": 0,
+      "fingerprint": "md5:c7b1fcb83150ed7e5b4b47de6923142f",
+      "repeat_equal": true
+    },
+    {
+      "case": "thermal-north",
+      "seed": 4242,
+      "candidate": 3,
+      "requested_position": [
+        0.0,
+        0.6
+      ],
+      "placed_indices": [
+        3
+      ],
+      "placed_positions": [
+        {
+          "X": 0,
+          "Y": 0.6000000000000002
+        }
+      ],
+      "reason": "SustainedTrackDefence",
+      "steps": 9,
+      "first_detection_step": 4,
+      "blue_return": 10.929166666666667,
+      "red_return": -10.398333333333333,
+      "invalid_actions": 0,
+      "fingerprint": "md5:c7b1fcb83150ed7e5b4b47de6923142f",
+      "repeat_equal": true
+    },
+    {
+      "case": "fused-north",
+      "seed": 4242,
+      "candidate": 4,
+      "requested_position": [
+        0.0,
+        0.6
+      ],
+      "placed_indices": [
+        4
+      ],
+      "placed_positions": [
+        {
+          "X": 0,
+          "Y": 0.6000000000000002
+        }
+      ],
+      "reason": "SustainedTrackDefence",
+      "steps": 7,
+      "first_detection_step": 2,
+      "blue_return": 10.841666666666667,
+      "red_return": -10.428333333333335,
+      "invalid_actions": 0,
+      "fingerprint": "md5:c7b1fcb83150ed7e5b4b47de6923142f",
+      "repeat_equal": true
+    },
+    {
+      "case": "passive-rf-south",
+      "seed": 4242,
+      "candidate": 0,
+      "requested_position": [
+        0.0,
+        -0.6
+      ],
+      "placed_indices": [
+        0
+      ],
+      "placed_positions": [
+        {
+          "X": 0,
+          "Y": -0.6000000000000002
+        }
+      ],
+      "reason": "ProtectedZoneReached",
+      "steps": 41,
+      "first_detection_step": 37,
+      "blue_return": -9.341666666666665,
+      "red_return": 10.073333333333332,
+      "invalid_actions": 0,
+      "fingerprint": "md5:c7b1fcb83150ed7e5b4b47de6923142f",
+      "repeat_equal": true
+    }
+  ]
+}

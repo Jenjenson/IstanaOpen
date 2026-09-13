@@ -1,0 +1,21 @@
+{
+  "training_date": "2026-09-10",
+  "python": "3.11",
+  "unreal_engine": "5.5",
+  "packages": {
+    "numpy": "1.26.4",
+    "gymnasium": "1.0.0",
+    "pettingzoo": "1.24.3",
+    "pytest": "8.4.2"
+  },
+  "scenario": "toy-one-drone-dynamic-sensors-v4",
+  "config_fingerprint": "md5:c7b1fcb83150ed7e5b4b47de6923142f",
+  "engine_host": "TRIAD; not the IstanaOpen architectural viewer",
+  "native_tests_passed": 5,
+  "python_and_native_source_contract_tests_passed": 40,
+  "notes": [
+    "Package versions identify the recorded training runtime; the Python package declares supported version ranges.",
+    "Native tests and the 40-test combined suite were run in the original TRIAD project on 2026-09-10.",
+    "The published Python and artifact integrity tests are independently rerunnable without Unreal."
+  ]
+}
