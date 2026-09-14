@@ -141,14 +141,32 @@ def anchored_evaluation_fixture(tmp_path_factory):
         aggregate = evaluator.run_evaluation(runs, protocol_path=protocol_path, output=output)
         assert visited == list(evaluator.PROFILES)
         assert before == {arm: tree(path) for arm, path in runs.items()}
-        yield {"root": root, "protocol_path": protocol_path, "runs": runs, "output": output,
-               "aggregate": aggregate, "lineage": lineage, "summaries": summaries}
+        fixture = {"root": root, "protocol_path": protocol_path, "runs": runs, "output": output,
+                   "aggregate": aggregate, "lineage": lineage, "summaries": summaries}
     finally:
         patches.undo()
+    return fixture
 
 
-def test_small_real_three_arm_evaluation_pairs_eight_methods_and_persists_sources(anchored_evaluation_fixture):
-    fixture = anchored_evaluation_fixture
+@pytest.fixture
+def evaluator_fixture(monkeypatch, anchored_evaluation_fixture):
+    """Cache verified lineage only for this fixture-only test, never the session."""
+    lineage = anchored_evaluation_fixture["lineage"]
+    monkeypatch.setattr(evaluator, "load_published_lineage", lambda: deepcopy(lineage))
+    monkeypatch.setattr(trainer, "load_published_lineage", lambda: deepcopy(lineage))
+    return anchored_evaluation_fixture
+
+
+def test_shared_fixture_restores_real_loaders_and_evaluator_before_return(anchored_evaluation_fixture):
+    from evaluate_robust import evaluate_robust_methods
+    from triad_rl.anchored_lineage import load_published_lineage
+    assert evaluator.evaluate_robust_methods is evaluate_robust_methods
+    assert evaluator.load_published_lineage is load_published_lineage
+    assert trainer.load_published_lineage is load_published_lineage
+
+
+def test_small_real_three_arm_evaluation_pairs_eight_methods_and_persists_sources(evaluator_fixture):
+    fixture = evaluator_fixture
     output, result = fixture["output"], fixture["aggregate"]
     assert set(tree(output)) == set(evaluator.EVALUATION_FILES)
     assert result["final_test_accessed"] is False and result["stage"] == "validation"
@@ -175,8 +193,8 @@ def test_small_real_three_arm_evaluation_pairs_eight_methods_and_persists_source
         assert all(value == identities[0] for value in identities)
 
 
-def test_complete_resume_is_byte_exact_and_never_samples(anchored_evaluation_fixture, monkeypatch):
-    fixture = anchored_evaluation_fixture
+def test_complete_resume_is_byte_exact_and_never_samples(evaluator_fixture, monkeypatch):
+    fixture = evaluator_fixture
     monkeypatch.setattr(evaluator, "evaluate_robust_methods", lambda *a, **k: pytest.fail("Completed resume sampled"))
     before = tree(fixture["output"])
     result = evaluator.run_evaluation(fixture["runs"], protocol_path=fixture["protocol_path"], output=fixture["output"], resume=True)
@@ -186,8 +204,8 @@ def test_complete_resume_is_byte_exact_and_never_samples(anchored_evaluation_fix
 
 
 @pytest.mark.parametrize("change", ["bytes", "receipt_type", "scenario", "seed_type", "lineage", "summary"])
-def test_cached_later_profile_is_validated_before_any_missing_profile_sampling(anchored_evaluation_fixture, tmp_path, monkeypatch, change):
-    fixture = anchored_evaluation_fixture
+def test_cached_later_profile_is_validated_before_any_missing_profile_sampling(evaluator_fixture, tmp_path, monkeypatch, change):
+    fixture = evaluator_fixture
     output = tmp_path / "copy"
     output.mkdir()
     for name in ("evaluation-inputs.json", "validation-stress.json.gz", "validation-stress.receipt.json"):
@@ -217,8 +235,8 @@ def test_cached_later_profile_is_validated_before_any_missing_profile_sampling(a
 
 
 @pytest.mark.parametrize("change", ["lock", "protocol", "endpoint", "aggregate"])
-def test_saved_input_or_aggregate_tamper_refused_without_sampling(anchored_evaluation_fixture, tmp_path, monkeypatch, change):
-    fixture = anchored_evaluation_fixture
+def test_saved_input_or_aggregate_tamper_refused_without_sampling(evaluator_fixture, tmp_path, monkeypatch, change):
+    fixture = evaluator_fixture
     output = tmp_path / "copy"
     shutil.copytree(fixture["output"], output)
     protocol_path, runs = fixture["protocol_path"], fixture["runs"]
@@ -248,8 +266,8 @@ def test_saved_input_or_aggregate_tamper_refused_without_sampling(anchored_evalu
 
 
 @pytest.mark.parametrize("change", ["return_guard", "profile_margin", "prior_pilot", "reservation", "source"])
-def test_changed_declaration_rejected_before_output_or_sampling(anchored_evaluation_fixture, tmp_path, monkeypatch, change):
-    fixture = anchored_evaluation_fixture
+def test_changed_declaration_rejected_before_output_or_sampling(evaluator_fixture, tmp_path, monkeypatch, change):
+    fixture = evaluator_fixture
     declaration = read(fixture["protocol_path"])
     if change == "return_guard": declaration["scale_gate"]["require_equal_profile_mean_return_not_lower"] = False
     elif change == "profile_margin": declaration["scale_gate"]["maximum_profile_point_decline"] = .02

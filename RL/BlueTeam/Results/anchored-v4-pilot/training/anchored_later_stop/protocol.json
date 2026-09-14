@@ -1,0 +1,124 @@
+{
+  "schema": "triad.anchored_credit_pilot_protocol.v1",
+  "experiment": "anchored-v4-pilot",
+  "status": "predeclared_development_experiment_not_a_release",
+  "frozen_reference": {
+    "checkpoint": "Checkpoints/balanced-v3-candidate",
+    "weights_sha256": "a48d3c3a5b43e99dd4545cfb7321eb64077dceb09432a60658c2649dd19f21c0",
+    "selection_report": "Results/balanced-v3/selection.json",
+    "selection_report_sha256": "94d28d6b30fe33b0d23f1901db0912b65e8ff222bd00846f9558560cc4d9f58b",
+    "publication_manifest": "Results/balanced-v3/artifact-manifest.json",
+    "publication_manifest_sha256": "6c05b4004f1cc427bebb253a08afefe70bec68b821fb44d18737c285ab9a6e2a",
+    "source_commit": "b6b538d1a123f40b2046c1970116e9c3f6b81e62"
+  },
+  "prior_pilot_publication": {
+    "manifest": "Results/credit-v4-pilot/artifact-manifest.json",
+    "sha256": "c144bb680aa2714efc815b6b27b08dd69dfb0a0c98322428e7075641df267613",
+    "source_commit": "932c14eaf3e35aabd35359158b399a5e833c83f9",
+    "scope": "Prior failed pilot is development exposure; its weights are not the new initialization."
+  },
+  "training": {
+    "policy_seed": 402,
+    "scenario_seed_start": 402000000,
+    "episodes": 4096,
+    "batch_size": 16,
+    "learning_rate": 0.002,
+    "entropy_coef": 0.015,
+    "gamma": 1.0,
+    "max_grad_norm": 1.0,
+    "profile": "mixed",
+    "initialization": "Identical frozen v3 parameters; fresh zero Adam and update count; sampling RNG explicitly reset after construction.",
+    "endpoint": "Fixed episode 4096, 256 full batches; no internal validation, best checkpoint selection, early stopping, or resume.",
+    "experience_pairing": "Same scenario seeds and initial actor RNG; identical first batch trajectories required. Later trajectories may diverge.",
+    "normalization": "Reference advantages are undiscounted return-to-go minus ordinary sampled learned-critic values. If n>1 and reference std>1e-8, apply (advantage-reference mean)/(reference std+1e-8); otherwise use raw advantages. Never recenter the substituted vector.",
+    "anchored_baseline": "Keep the ordinary critic baseline for the first decision; substitute an independent paired STOP reward-to-go only after an existing placement. Ordinary values remain separately available for reference normalization.",
+    "rationale": "Four thousand ninety-six live episodes per arm gives the new credit rule a meaningful further learning horizon. Chosen before accessing any new training or validation scenario."
+  },
+  "arms": {
+    "shared_critic": {"baseline": "learned_critic", "value_coef": 0.5},
+    "no_critic_gradient": {"baseline": "learned_critic", "value_coef": 0.0},
+    "anchored_later_stop": {"baseline": "anchored_later_stop", "value_coef": 0.0}
+  },
+  "validation": {
+    "stage": "validation",
+    "episodes_per_profile": 200,
+    "run_seeds": {"normal": 995200, "stress": 995201, "capability": 995202},
+    "scenario_seed_ranges": {
+      "normal": {"start": 1000995200000000, "count": 200},
+      "stress": {"start": 1000995201000000, "count": 200},
+      "capability": {"start": 1000995202000000, "count": 200}
+    },
+    "methods": ["shared_critic", "no_critic_gradient", "anchored_later_stop", "balanced_v3", "robust_v2", "adaptive_v1", "all_step_stop_pilot", "greedy_public"],
+    "bootstrap_samples": 2000,
+    "bootstrap_seed": 73042,
+    "confidence_interval": "Two-sided 95% percentile intervals from paired case resampling within each profile, then the equally weighted mean of three profile means.",
+    "prior_pilot_comparison": "all_step_stop_pilot is the frozen prior 1024-episode endpoint, not a matched 4096-episode training control."
+  },
+  "scale_gate": {
+    "primary_arm": "anchored_later_stop",
+    "comparators": ["no_critic_gradient", "balanced_v3"],
+    "primary_metric": "timely_confirmed_fraction = 1 - breached_fraction",
+    "minimum_equal_profile_gain": 0.01,
+    "require_paired_ci_lower_above_zero": true,
+    "maximum_profile_point_decline": 0.01,
+    "require_equal_profile_all_threat_success_not_lower": true,
+    "require_equal_profile_mean_return_not_lower": true,
+    "interpretation": "Every condition must hold against both comparators. Point guards are not statistical noninferiority. Passing only authorizes multi-seed replication, not promotion. Shared-critic, prior policies and greedy remain reported references; cost or return alone cannot pass."
+  },
+  "reserved_final_tests_unopened": {
+    "normal": {"start": 2000000500000000, "count": 200},
+    "stress": {"start": 2000000501000000, "count": 200},
+    "capability": {"start": 2000000502000000, "count": 200}
+  },
+  "diagnostics": [
+    "Exact identical first-batch feature/mask/action/reward trajectory digest across all arms.",
+    "First-decision applied coefficients equal ordinary reference-normalized coefficients on each actual batch, including STOP; no claim of equal gradients or future stopping behavior.",
+    "Ordinary/applied raw and normalized credit, return-to-go and both baselines by first/later and STOP/deployment.",
+    "Clipping, gradient norms, critic-head invariants, sensor and profile counts, learning curves, live decisions, later-only branch counts, and measured compute.",
+    "Paired timely sensing, all-threat success, detection, return and cost; descriptive initial STOP flips and later-layout changes."
+  ],
+  "limitations": [
+    "Single training seed. Scenario confidence intervals do not measure training-seed uncertainty.",
+    "This remains the existing sampled, transition-averaged optimizer with a batch-dependent scale; it is not claimed to be an exactly unbiased policy-gradient estimator.",
+    "Shared parameters and diverging trajectories can change initial decisions despite preserving first-decision credit on an identical batch.",
+    "Paired STOP uses private simulator reward only in detached training records, never actor observations or external-input inference. It is not an oracle optimal-STOP label.",
+    "The diagnostic prior all-step pilot differs in training seed and duration; its comparison cannot isolate the changed baseline rule.",
+    "Synthetic initial sequential sensor type/site planning only. Timely confirmed sensing is not interception. No native Unreal, live sensor, physical command, or mid-flight relocation validation is claimed.",
+    "A failed development screen is not proof that the method can never work. Reserved final tests remain unopened."
+  ],
+  "training_implementation_sha256": {
+    "triad_rl/adaptive_env.py": "afbf0bdedb62ffeb07e416dfa8745378d7057f549d8b5f771cbfd599ae428cc8",
+    "triad_rl/adaptive_inputs.py": "fe011855192d1f5450f10955178f7ed6069cbed58bde090734b0407e474799b9",
+    "triad_rl/adaptive_policy.py": "bc3909894e3b4f418a0a2740fe5fd42c28023d9c1ed96e456c57e829fb06577d",
+    "triad_rl/balanced_policy.py": "a9c8b72521d890dd6cfcd40e4fdffd5970f13d5e29aaf11451656274fe327704",
+    "triad_rl/robust_scenarios.py": "e07cbe525f5997a91561ef3c1c52e62e618b58b5efc915c57e68f82a9d86e6ba",
+    "triad_rl/train_adaptive.py": "e356a4e46782a2fe93d54f7da1095ae4e34fd0664ccecdbde3561756297c66c9",
+    "triad_rl/train_robust.py": "79b870b2a00d46f93e8cc0544d5b85818a2ce8d88fbb9a807df0ac90a1f95e87",
+    "triad_rl/counterfactual_rollout.py": "6d659ec831b9ff906b295d7729d9613c4812c4577fe3220e184d1f741b1cd791",
+    "triad_rl/credit_lineage.py": "4c5596c333f5617fc3f1047b977066240b2d2dcf349d94ead6e1aa3b7ca96a02",
+    "triad_rl/train_credit_pilot.py": "a4a4b90558223bd9b63561680542a08415a62e07c2ce74c4a739e85f8894cde5",
+    "triad_rl/anchored_credit.py": "38bf2926674310b4d675691b96d0093962fd2ca846d846ebc60eaa60aff7f0c2",
+    "triad_rl/anchored_lineage.py": "1b6e11e37c69292fd839d4db00db9d7b3ae5ab02d26191390b74d5fcdf213fa5",
+    "triad_rl/train_anchored_pilot.py": "d370cec786f992d150e61a3e45424edce86c2cea1acb509875d05f17630a94ba"
+  },
+  "evaluation_implementation_sha256": {
+    "evaluate_robust.py": "e3f4b1d6fdc57e200af4b86a15d20185ee235618cf124d71b2bb4d0cc169c911",
+    "triad_rl/adaptive_env.py": "afbf0bdedb62ffeb07e416dfa8745378d7057f549d8b5f771cbfd599ae428cc8",
+    "triad_rl/adaptive_inputs.py": "fe011855192d1f5450f10955178f7ed6069cbed58bde090734b0407e474799b9",
+    "triad_rl/adaptive_policy.py": "bc3909894e3b4f418a0a2740fe5fd42c28023d9c1ed96e456c57e829fb06577d",
+    "triad_rl/adaptive_evaluation.py": "01fd9293a699f25cfeaaff3ad6399b7ec1695a5e67ee6583efb3076ddb5e0910",
+    "triad_rl/train_adaptive.py": "e356a4e46782a2fe93d54f7da1095ae4e34fd0664ccecdbde3561756297c66c9",
+    "triad_rl/robust_scenarios.py": "e07cbe525f5997a91561ef3c1c52e62e618b58b5efc915c57e68f82a9d86e6ba",
+    "triad_rl/train_robust.py": "79b870b2a00d46f93e8cc0544d5b85818a2ce8d88fbb9a807df0ac90a1f95e87",
+    "triad_rl/balanced_policy.py": "a9c8b72521d890dd6cfcd40e4fdffd5970f13d5e29aaf11451656274fe327704",
+    "triad_rl/counterfactual_rollout.py": "6d659ec831b9ff906b295d7729d9613c4812c4577fe3220e184d1f741b1cd791",
+    "triad_rl/credit_lineage.py": "4c5596c333f5617fc3f1047b977066240b2d2dcf349d94ead6e1aa3b7ca96a02",
+    "triad_rl/train_credit_pilot.py": "a4a4b90558223bd9b63561680542a08415a62e07c2ce74c4a739e85f8894cde5",
+    "triad_rl/anchored_credit.py": "38bf2926674310b4d675691b96d0093962fd2ca846d846ebc60eaa60aff7f0c2",
+    "triad_rl/anchored_lineage.py": "1b6e11e37c69292fd839d4db00db9d7b3ae5ab02d26191390b74d5fcdf213fa5",
+    "triad_rl/train_anchored_pilot.py": "d370cec786f992d150e61a3e45424edce86c2cea1acb509875d05f17630a94ba",
+    "triad_rl/evaluate_credit_pilot.py": "044b1196f5b6ece6e99fcd13680095d796d33dc9d2e4cfd8fcb1e72e4e278517",
+    "triad_rl/evaluate_anchored_pilot.py": "01df53b7a36b24affc710311f9a76d688ca70f0d0528ebc5726908ac9d009dac",
+    "triad_rl/placement_policy.py": "29fe2d3eb327ef25d0416b0c38324d7d31ebd7f7134727b3486afdf128d10607"
+  }
+}

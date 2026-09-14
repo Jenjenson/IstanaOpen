@@ -5,6 +5,9 @@ improve timely sensing without the inefficient extra deployment observed in the
 [previous pilot](CREDIT_PILOT_RESULTS.md). It is a predeclared development
 experiment, not a replacement policy or a final-tested robustness claim.
 
+The [completed results](ANCHORED_PILOT_RESULTS.md) failed the fixed scaling gate:
+the matched-control improvement did not translate into a clear gain over v3.
+
 ## The controlled change
 
 Each arm starts from the same frozen v3 parameters, with fresh Adam state and
@@ -80,8 +83,15 @@ Training saves the initialized and fixed-endpoint checkpoints, exact protocol,
 configuration, JSONL batch diagnostics, and summary. The evaluator verifies all
 eight artifacts for every arm. It writes a compressed report and byte receipt
 per profile, then the aggregate and fixed gate decision. Explicit evaluation
-`--resume` validates all cached evidence before sampling missing profiles; an
-incomplete report/receipt pair is rejected and never overwritten.
+`--resume` validates saved inputs and all cached profile reports before sampling
+missing profiles. Incomplete report/receipt pairs are rejected and never overwritten.
+
+`Tools/archive_anchored_pilot.py` can verify and copy a complete terminal run
+bundle into `Results/anchored-v4-pilot`. It recomputes the paired statistics and
+gate from recorded reports, never calls training or inference, and copies exact
+bytes only after input, privacy and destination checks. Existing identical
+artifacts are accepted; differing artifacts are never replaced. Archival does
+not select or promote a policy.
 
 Optional local Trackio import runs after training, without affecting learning:
 
