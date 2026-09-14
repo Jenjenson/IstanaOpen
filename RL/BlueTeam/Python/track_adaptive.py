@@ -11,6 +11,15 @@ import json
 from pathlib import Path
 
 
+def _numeric_fields(value, prefix):
+    """Flatten profile summaries without discarding their numeric metrics."""
+    if isinstance(value, dict):
+        for key, child in value.items():
+            yield from _numeric_fields(child, f"{prefix}/{key}")
+    elif isinstance(value, (int, float)) and not isinstance(value, bool):
+        yield prefix, value
+
+
 def numeric_events(path: Path):
     for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
         event = json.loads(line)
@@ -18,9 +27,9 @@ def numeric_events(path: Path):
         if kind not in ("validation", "training_batch"):
             continue
         prefix = "validation" if kind == "validation" else "training"
-        metrics = {f"{prefix}/{key}": value for key, value in event.items()
-                   if isinstance(value, (int, float)) and not isinstance(value, bool)
-                   and key not in ("episode", "episode_start")}
+        metrics = dict(pair for key, value in event.items()
+                       if key not in ("episode", "episode_start")
+                       for pair in _numeric_fields(value, f"{prefix}/{key}"))
         metrics["episode"] = event["episode"]
         # Strict finite output, with an actionable source location on failure.
         try:

@@ -1,0 +1,198 @@
+{
+  "schema": "triad.robust_training.v1",
+  "completed_episodes": 8000,
+  "optimizer_updates": 500,
+  "best_episode": 8000,
+  "best_validation": {
+    "profiles": {
+      "normal": {
+        "episodes": 60,
+        "mean_return": 7.7056614606056835,
+        "success_rate": 0.65,
+        "detection_rate": 0.9052777777777777,
+        "coverage": 0.4953675741149644,
+        "breach_rate": 0.1566666666666667,
+        "mean_cost": 2.5833333333333335,
+        "mean_invalid_actions": 0.0,
+        "mean_steps": 2.2333333333333334
+      },
+      "stress": {
+        "episodes": 60,
+        "mean_return": -7.916546724702903,
+        "success_rate": 0.0,
+        "detection_rate": 0.4081349206349206,
+        "coverage": 0.13156419029039504,
+        "breach_rate": 0.8512896825396825,
+        "mean_cost": 2.4333333333333345,
+        "mean_invalid_actions": 0.0,
+        "mean_steps": 2.6333333333333333
+      },
+      "capability": {
+        "episodes": 60,
+        "mean_return": 1.4839783924868384,
+        "success_rate": 0.31666666666666665,
+        "detection_rate": 0.7718253968253969,
+        "coverage": 0.3767153012061296,
+        "breach_rate": 0.45337301587301587,
+        "mean_cost": 2.6892760453580724,
+        "mean_invalid_actions": 0.0,
+        "mean_steps": 2.45
+      }
+    },
+    "balanced_mean_return": 0.4243643761298728,
+    "balanced_success_rate": 0.32222222222222224,
+    "seed_ranges": {
+      "normal": {
+        "start": 1000990100000000,
+        "count": 60
+      },
+      "stress": {
+        "start": 1000990101000000,
+        "count": 60
+      },
+      "capability": {
+        "start": 1000990102000000,
+        "count": 60
+      }
+    }
+  },
+  "best_validation_balanced_mean_return": 0.4243643761298728,
+  "initialization": {
+    "kind": "transferred_weights",
+    "weights_sha256": "2062905477954b810516fa14e2009d6d25afb391950354780c6161644eebae36",
+    "source_files_sha256": {
+      "checkpoint.json": "c6480e4cf4a71933aeb7c0ab95d80ad3e34b864173db23bc07576d599b924b90",
+      "arrays.npz": "20f9918a71fef6a5320686601e9807fa239881b96ab54ea7ba63bc14a013d637"
+    },
+    "source_update_count": 250,
+    "source_training_schema": "triad.adaptive_training.v1",
+    "source_seed_provenance": {
+      "final_test": "never accessed by training",
+      "selection": "deterministic validation success_rate then mean_return",
+      "training": {
+        "count": 4000,
+        "start": 43000000
+      },
+      "validation": {
+        "count": 100,
+        "start": 1000000043000000
+      }
+    },
+    "optimizer": "reset_zero_moments",
+    "sampling_rng_seed": 103,
+    "source_selection": {
+      "schema": "triad.adaptive_model_selection.v1",
+      "report_sha256": "fe2ddbe3a3afcdf4170f48849c53364543dc1d9a9b6b5333dbe1c0d11417ba62",
+      "seed_provenance": {
+        "candidate_validation": [
+          {
+            "count": 100,
+            "start": 1000000042000000
+          },
+          {
+            "count": 100,
+            "start": 1000000043000000
+          },
+          {
+            "count": 100,
+            "start": 1000000044000000
+          }
+        ],
+        "training": [
+          {
+            "count": 4000,
+            "start": 42000000
+          },
+          {
+            "count": 4000,
+            "start": 43000000
+          },
+          {
+            "count": 4000,
+            "start": 44000000
+          }
+        ],
+        "validation": {
+          "count": 300,
+          "start": 1000000999000000
+        }
+      }
+    }
+  },
+  "initialized_files_sha256": {
+    "checkpoint.json": "5e7fd9de6c66fc83021533bcf7aae2304af9a2909ee2eb9abaa19bf901dee9c0",
+    "arrays.npz": "3550c6613331f4d8612e4021018562c7cfafa109f2afcb3dd497717a749b22c6"
+  },
+  "elapsed_seconds": 266.23399999999674,
+  "last_weights_sha256": "5c982c86a5da2e5b4960ba437021f751a36dc3af7187515903cf1b1ee2ab27ce",
+  "best_weights_sha256": "5c982c86a5da2e5b4960ba437021f751a36dc3af7187515903cf1b1ee2ab27ce",
+  "config_sha256": "ace3914a3cbaad7e77ac020c2dffe94db1c46838a2a3693c701ad8ba272aad59",
+  "seed_provenance": {
+    "training": {
+      "start": 103000000,
+      "count": 8000
+    },
+    "validation": {
+      "normal": {
+        "start": 1000990100000000,
+        "count": 60
+      },
+      "stress": {
+        "start": 1000990101000000,
+        "count": 60
+      },
+      "capability": {
+        "start": 1000990102000000,
+        "count": 60
+      }
+    },
+    "inherited_training": {
+      "final_test": "never accessed by training",
+      "selection": "deterministic validation success_rate then mean_return",
+      "training": {
+        "count": 4000,
+        "start": 43000000
+      },
+      "validation": {
+        "count": 100,
+        "start": 1000000043000000
+      }
+    },
+    "inherited_selection": {
+      "candidate_validation": [
+        {
+          "count": 100,
+          "start": 1000000042000000
+        },
+        {
+          "count": 100,
+          "start": 1000000043000000
+        },
+        {
+          "count": 100,
+          "start": 1000000044000000
+        }
+      ],
+      "training": [
+        {
+          "count": 4000,
+          "start": 42000000
+        },
+        {
+          "count": 4000,
+          "start": 43000000
+        },
+        {
+          "count": 4000,
+          "start": 44000000
+        }
+      ],
+      "validation": {
+        "count": 300,
+        "start": 1000000999000000
+      }
+    },
+    "selection": "strictly greater equal-profile balanced_mean_return; ties keep earlier checkpoint",
+    "final_test": "never accessed by training"
+  }
+}

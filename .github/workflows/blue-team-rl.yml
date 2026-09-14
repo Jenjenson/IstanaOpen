@@ -7,12 +7,14 @@ on:
       - ".github/workflows/blue-team-rl.yml"
       - "Tools/export_blue_rl.py"
       - "Tools/publish_adaptive_rl.py"
+      - "Tools/publish_robust_rl.py"
   pull_request:
     paths:
       - "RL/BlueTeam/**"
       - ".github/workflows/blue-team-rl.yml"
       - "Tools/export_blue_rl.py"
       - "Tools/publish_adaptive_rl.py"
+      - "Tools/publish_robust_rl.py"
   workflow_dispatch:
 
 permissions:
@@ -101,6 +103,30 @@ jobs:
           --input ../Examples/public-snapshot.json
           --catalogue ../Examples/sensor-catalogue.json --now 0
           --output ci_artifacts/adaptive-recommendation.json
+
+      - name: Train the mixed robustness curriculum
+        run: >-
+          python -m triad_rl.train_robust
+          --episodes 8 --batch-size 4 --seed 122
+          --validation-every 8 --validation-episodes 2 --validation-run-seed 990400
+          --initial-checkpoint ../Checkpoints/adaptive-v1
+          --initial-selection-report ../Results/adaptive-v1/common-validation-selection.json
+          --output ci_artifacts/robust
+
+      - name: Compare capability-varied validation scenarios
+        run: >-
+          python evaluate_robust.py
+          --checkpoint ci_artifacts/robust/best
+          --initialized-checkpoint ci_artifacts/robust/initialized
+          --stage validation --profile capability --seed 1000990500000000
+          --episodes 3 --bootstrap-samples 100 --replays 1
+          --output ci_artifacts/robust-comparison.json
+
+      - name: Render capability-varied recorded replay
+        run: >-
+          python demo_robust.py
+          --checkpoint ci_artifacts/robust/best --profile capability --episodes 2
+          --output ci_artifacts/robust-demo.html
 
       - name: Save smoke-test reports
         if: always()

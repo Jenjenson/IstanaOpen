@@ -1,0 +1,233 @@
+{
+  "schema": "triad.robust_training.v1",
+  "seed": 101,
+  "batch_size": 16,
+  "hidden_size": 32,
+  "learning_rate": 0.002,
+  "entropy_coef": 0.015,
+  "gamma": 1.0,
+  "value_coef": 0.5,
+  "max_grad_norm": 1.0,
+  "validation_every": 1000,
+  "validation_episodes": 60,
+  "validation_run_seed": 990100,
+  "training_profile": "mixed",
+  "validation_profiles": [
+    "normal",
+    "stress",
+    "capability"
+  ],
+  "curriculum": {
+    "schema": "triad.robust_scenarios.v1",
+    "base_scenario_schema": "triad.adaptive_scenario.v1",
+    "rng": "numpy.random.PCG64(SeedSequence([scenario_seed, named_stream]))",
+    "stream_namespaces": {
+      "profile": 2970492929,
+      "capability_threat_family": 2970492930,
+      "catalogue": 2970492931,
+      "sites": 2970492932,
+      "resources": 2970492933,
+      "availability": 2970492934,
+      "blocked_sites": 2970492935,
+      "reset_sequence": 2970492936
+    },
+    "mixed_probabilities": {
+      "normal": 0.4,
+      "stress": 0.3,
+      "capability": 0.3
+    },
+    "normal": {
+      "base_split": "train",
+      "changes": "none"
+    },
+    "stress": {
+      "base_split": "stress",
+      "changes": "none",
+      "retain_impossible_cases": true
+    },
+    "capability": {
+      "base_split_probabilities": {
+        "train": 0.5,
+        "stress": 0.5
+      },
+      "profiles": [
+        "rf",
+        "radar",
+        "eo",
+        "thermal",
+        "fused"
+      ],
+      "range_scale_uniform": [
+        0.65,
+        1.75
+      ],
+      "range_scale_shared_within_sensor": true,
+      "active_modality_strength_uniform": [
+        0.55,
+        0.98
+      ],
+      "cost_scale_uniform": [
+        0.6,
+        1.5
+      ],
+      "height_m_uniform": [
+        2.0,
+        18.0
+      ],
+      "geometry_probabilities": {
+        "jittered_rings": 0.3333333333333333,
+        "annular_cloud": 0.3333333333333333,
+        "partial_arc": 0.3333333333333333
+      },
+      "jittered_rings": {
+        "sites_per_ring_inclusive": [
+          8,
+          20
+        ],
+        "radii_uniform_m": [
+          [
+            42.0,
+            76.0
+          ],
+          [
+            102.0,
+            138.0
+          ]
+        ],
+        "angle_jitter_fraction_of_spacing": 0.3
+      },
+      "annular_cloud": {
+        "site_count_inclusive": [
+          16,
+          40
+        ],
+        "radius_uniform_m": [
+          35.0,
+          145.0
+        ]
+      },
+      "partial_arc": {
+        "site_count_inclusive": [
+          16,
+          40
+        ],
+        "radius_uniform_m": [
+          35.0,
+          145.0
+        ],
+        "arc_width_pi_uniform": [
+          0.75,
+          1.6
+        ]
+      },
+      "budget_uniform": [
+        1.6,
+        4.8
+      ],
+      "max_sites_inclusive": [
+        2,
+        4
+      ],
+      "min_separation_m_uniform": [
+        12.0,
+        32.0
+      ],
+      "deployment_annulus_m": [
+        30.0,
+        150.0
+      ],
+      "sensor_available_independent_probability": 0.8,
+      "site_blocked_independent_probability": 0.1,
+      "rejection_sampling": false,
+      "calibration_status": "synthetic variation only; not validated real hardware specifications"
+    },
+    "base_truth_seed": "scenario_seed unchanged; original v1 generator owns truth and noisy public priors",
+    "leakage_boundary": "capability streams never inspect targets, paths, sensing draws or outcomes",
+    "unchanged": [
+      "feature schema",
+      "input-provider schema",
+      "sensing physics",
+      "reward",
+      "defence definition"
+    ]
+  },
+  "runtime": {
+    "python": "3.11.9",
+    "numpy": "2.4.6"
+  },
+  "selection": "strictly greater equal-profile balanced_mean_return; ties keep earlier checkpoint",
+  "initialization": {
+    "kind": "transferred_weights",
+    "weights_sha256": "2062905477954b810516fa14e2009d6d25afb391950354780c6161644eebae36",
+    "source_files_sha256": {
+      "checkpoint.json": "c6480e4cf4a71933aeb7c0ab95d80ad3e34b864173db23bc07576d599b924b90",
+      "arrays.npz": "20f9918a71fef6a5320686601e9807fa239881b96ab54ea7ba63bc14a013d637"
+    },
+    "source_update_count": 250,
+    "source_training_schema": "triad.adaptive_training.v1",
+    "source_seed_provenance": {
+      "final_test": "never accessed by training",
+      "selection": "deterministic validation success_rate then mean_return",
+      "training": {
+        "count": 4000,
+        "start": 43000000
+      },
+      "validation": {
+        "count": 100,
+        "start": 1000000043000000
+      }
+    },
+    "optimizer": "reset_zero_moments",
+    "sampling_rng_seed": 101,
+    "source_selection": {
+      "schema": "triad.adaptive_model_selection.v1",
+      "report_sha256": "fe2ddbe3a3afcdf4170f48849c53364543dc1d9a9b6b5333dbe1c0d11417ba62",
+      "seed_provenance": {
+        "candidate_validation": [
+          {
+            "count": 100,
+            "start": 1000000042000000
+          },
+          {
+            "count": 100,
+            "start": 1000000043000000
+          },
+          {
+            "count": 100,
+            "start": 1000000044000000
+          }
+        ],
+        "training": [
+          {
+            "count": 4000,
+            "start": 42000000
+          },
+          {
+            "count": 4000,
+            "start": 43000000
+          },
+          {
+            "count": 4000,
+            "start": 44000000
+          }
+        ],
+        "validation": {
+          "count": 300,
+          "start": 1000000999000000
+        }
+      }
+    }
+  },
+  "source_sha256": {
+    "adaptive_env.py": "afbf0bdedb62ffeb07e416dfa8745378d7057f549d8b5f771cbfd599ae428cc8",
+    "adaptive_inputs.py": "fe011855192d1f5450f10955178f7ed6069cbed58bde090734b0407e474799b9",
+    "adaptive_policy.py": "bc3909894e3b4f418a0a2740fe5fd42c28023d9c1ed96e456c57e829fb06577d",
+    "train_adaptive.py": "e356a4e46782a2fe93d54f7da1095ae4e34fd0664ccecdbde3561756297c66c9",
+    "robust_scenarios.py": "e07cbe525f5997a91561ef3c1c52e62e618b58b5efc915c57e68f82a9d86e6ba",
+    "train_robust.py": "79b870b2a00d46f93e8cc0544d5b85818a2ce8d88fbb9a807df0ac90a1f95e87"
+  },
+  "target_episodes": 8000,
+  "config_sha256": "c3b3cc7ce6ae9ca3a6620a6782a7bf002ae05bc8c0a6c83c909e44102a65f57c",
+  "python": "3.11.9",
+  "numpy": "2.4.6"
+}

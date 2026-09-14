@@ -1,0 +1,56 @@
+{
+  "schema": "triad.robust_experiment_protocol.v1",
+  "experiment": "robust-v2",
+  "status": "predeclared; final evaluation not yet run",
+  "purpose": "Broaden the adaptive policy's training distribution and evaluate cost-aware sensing under severe and capability-shifted scenarios.",
+  "frozen_reference": {
+    "checkpoint": "Checkpoints/adaptive-v1",
+    "weights_sha256": "2062905477954b810516fa14e2009d6d25afb391950354780c6161644eebae36",
+    "source_commit": "105b60b9195ec363694e3ceebc0a049cdc435e22"
+  },
+  "candidate_training": {
+    "initialization": "Explicit transfer of frozen adaptive-v1 weights; new optimizer and independent policy RNG, not fresh training from scratch.",
+    "run_seeds": [101, 102, 103],
+    "episodes_per_run": 8000,
+    "batch_size": 16,
+    "learning_rate": 0.002,
+    "entropy_coef": 0.015,
+    "gamma": 1.0,
+    "validation_every": 1000,
+    "validation_episodes_per_profile": 60,
+    "training_profile": "mixed",
+    "profile_probabilities": {"normal": 0.4, "stress": 0.3, "capability": 0.3},
+    "checkpoint_selection": "Maximum equally weighted mean return across normal, stress and capability validation profiles; no final-test access.",
+    "training_seed_ranges": [
+      {"start": 101000000, "count": 8000},
+      {"start": 102000000, "count": 8000},
+      {"start": 103000000, "count": 8000}
+    ],
+    "validation_seed_ranges": [
+      {"profile": "normal", "start": 1000990100000000, "count": 60},
+      {"profile": "stress", "start": 1000990101000000, "count": 60},
+      {"profile": "capability", "start": 1000990102000000, "count": 60}
+    ]
+  },
+  "candidate_selection": {
+    "criterion": "Maximum equally weighted mean return across the three common validation profiles; ties retain the earlier run seed.",
+    "baseline_comparisons": ["adaptive-v1", "greedy public coverage"],
+    "seed_ranges": [
+      {"profile": "normal", "start": 1000990200000000, "count": 300},
+      {"profile": "stress", "start": 1000990201000000, "count": 300},
+      {"profile": "capability", "start": 1000990202000000, "count": 300}
+    ]
+  },
+  "reserved_final_tests": [
+    {"profile": "normal", "start": 2000000500000000, "count": 200},
+    {"profile": "stress", "start": 2000000501000000, "count": 200},
+    {"profile": "capability", "start": 2000000502000000, "count": 200}
+  ],
+  "interpretation": {
+    "success": "All threats gain timely confirmed detection in the synthetic simulator; not physical interception or validated field reliability.",
+    "do_not_censor": "All generated scenarios, including unaffordable and physically unobservable cases, remain in reports.",
+    "capability_generalization": "Varied synthetic catalogue parameters and offered sites; not proof of calibration on real hardware.",
+    "old_final_tests": "The published adaptive-v1 final suites informed this next experiment and must not be called independent evidence for robust-v2.",
+    "changes": "Any later protocol change must be recorded before opening the reserved final suites; exploratory or failed runs must be disclosed."
+  }
+}

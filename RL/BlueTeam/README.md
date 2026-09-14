@@ -11,6 +11,11 @@ an offline replay demo, external-format sensor inputs, and held-out comparisons
 against the original checkpoint and non-RL methods. The adaptive experiment
 is separate from the historical live Unreal experiment documented below.
 
+The follow-on [robust curriculum experiment](ROBUST.md) adds varying sensor
+capabilities and severe cases. Its [v2 candidate](ROBUST_RESULTS.md) has modest
+validation gains but an unresolved stopping/resource-use gap; it is not a
+final-tested robustness release.
+
 This package publishes the Python trainer, a trained checkpoint, recorded
 results, and selected native source from the TRIAD experiment. You can run the
 Python example immediately. Live Unreal training requires the original TRIAD
