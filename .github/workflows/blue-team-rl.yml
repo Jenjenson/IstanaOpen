@@ -9,6 +9,8 @@ on:
       - "Tools/publish_adaptive_rl.py"
       - "Tools/publish_robust_rl.py"
       - "Tools/publish_balanced_rl.py"
+      - "Tools/archive_credit_pilot.py"
+      - "Tools/archive_anchored_pilot.py"
   pull_request:
     paths:
       - "RL/BlueTeam/**"
@@ -17,6 +19,8 @@ on:
       - "Tools/publish_adaptive_rl.py"
       - "Tools/publish_robust_rl.py"
       - "Tools/publish_balanced_rl.py"
+      - "Tools/archive_credit_pilot.py"
+      - "Tools/archive_anchored_pilot.py"
   workflow_dispatch:
 
 permissions:
@@ -26,7 +30,7 @@ jobs:
   python:
     name: Python 3.11 / ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 20
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:

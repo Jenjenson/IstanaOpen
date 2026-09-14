@@ -28,6 +28,11 @@ with and without critic gradients and a training-only paired STOP baseline.
 Its [completed results](CREDIT_PILOT_RESULTS.md) show a small sensing gain but
 higher cost and a failed predeclared scaling gate; it does not replace v3.
 
+The follow-up [anchored later-placement pilot](ANCHORED_PILOT.md) preserves the
+first decision's ordinary learning coefficient while changing later-placement
+credit. Its fixed sensing-and-return gate tests whether this improves useful
+coverage without repeating the previous pilot's extra-spending tradeoff.
+
 This package publishes the Python trainer, a trained checkpoint, recorded
 results, and selected native source from the TRIAD experiment. You can run the
 Python example immediately. Live Unreal training requires the original TRIAD
