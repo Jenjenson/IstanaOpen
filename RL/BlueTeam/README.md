@@ -23,6 +23,10 @@ Its [v3 results and offline demo](BALANCED_RESULTS.md) document 24,000 further
 training episodes and the measured cost/detection tradeoff; it remains an
 experimental candidate, not a final-tested replacement.
 
+The [credit-assignment pilot](CREDIT_PILOT.md) compares matched training runs
+with and without critic gradients and a training-only paired STOP baseline.
+Its sensing-first protocol is fixed before training; it does not replace v3.
+
 This package publishes the Python trainer, a trained checkpoint, recorded
 results, and selected native source from the TRIAD experiment. You can run the
 Python example immediately. Live Unreal training requires the original TRIAD
