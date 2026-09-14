@@ -5,7 +5,15 @@ synthetic objective. It supports passive RF, search radar, electro-optical,
 thermal, and combined radar/thermal profiles, including repeated deployments
 of the same profile within the available budget.
 
-**New: randomized adaptive training.** Start with the
+**Latest experiment:** [temporal RL results](TEMPORAL_RESULTS.md) and the
+[18-example offline replay](Results/temporal-v6-demo.html). Download the HTML
+and open it in a browser to see every fixed endpoint choose sensor types/sites
+and run through recorded threats. The new pilot improves over older baselines
+but does not beat its own temporal control; it is not a promoted replacement.
+For changing available sensors and supplying public snapshots, see the
+[temporal input guide](TEMPORAL.md).
+
+**Foundation: randomized adaptive training.** Start with the
 [adaptive guide](ADAPTIVE.md) for scenario-conditioned sensor/site choices,
 an offline replay demo, external-format sensor inputs, and held-out comparisons
 against the original checkpoint and non-RL methods. The adaptive experiment
@@ -41,10 +49,11 @@ the [completed results and 18-example replay](RANKING_PILOT_RESULTS.md) show
 higher detection but lower timely sensing and return than public greedy. The
 fixed development gate failed; no endpoint was selected or promoted.
 
-The new [temporal-confirmation experiment](TEMPORAL.md) uses public track
+The [temporal-confirmation experiment](TEMPORAL.md) uses public track
 motion, sensor height/strength and repeated-hit deadlines to inform placement.
 It adds a bounded learned correction with an independent value baseline.
-The first reused-case diagnostic is mixed; no temporal policy is promoted.
+Its [fresh results](TEMPORAL_RESULTS.md) separate the benefit of forecasting
+from learning; the full matched-control gate failed and no policy is promoted.
 
 This package publishes the Python trainer, a trained checkpoint, recorded
 results, and selected native source from the TRIAD experiment. You can run the

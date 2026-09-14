@@ -1,0 +1,181 @@
+{
+  "schema": "triad.temporal_pilot_protocol.v1",
+  "experiment": "temporal-v6-pilot",
+  "status": "predeclared_development_experiment_not_a_release",
+  "prior_publication": {
+    "path": "Results/ranking-v5-pilot/artifact-manifest.json",
+    "sha256": "a9d975e38dbdf8a5095c52e0767e2142ac5616dcd09d338c85247747517dd058"
+  },
+  "development_probe": {
+    "path": "Results/temporal-v6-development/reused-probe.json",
+    "sha256": "1860fb3c1d520484fd868e88cb4044009b8eaab1d468980032a23ca944d4af1d",
+    "interpretation": "Fixed first 20 already-consumed ranking-v5 cases/profile; non-RL engineering diagnostic, not unseen evaluation or promotion. Feature/probe source committed before execution in 28b50f1."
+  },
+  "temporal_config": {
+    "objective_radius_m": 20.0,
+    "lead_time_s": 4.0,
+    "look_interval_s": 1.0,
+    "required_confirmations": 2,
+    "confirmation_window": 3,
+    "horizon_s": 96.0,
+    "prior_spawn_radius_m": 320.0,
+    "altitude_uncertainty_m": 10.0,
+    "max_hypotheses": 64,
+    "rf_persistent_weight": 0.5
+  },
+  "training": {
+    "policy_seeds": [
+      406,
+      407,
+      408
+    ],
+    "episodes": 512,
+    "batch_size": 16,
+    "profile": "mixed",
+    "hidden_size": 64,
+    "temperature": 0.05,
+    "learning_rate": 0.001,
+    "critic_learning_rate": 0.001,
+    "gamma": 1.0,
+    "entropy_coef": 0.0,
+    "value_coef": 1.0,
+    "normalize_advantages": false,
+    "max_grad_norm": 1.0,
+    "endpoint": "fixed_no_selection_or_resume",
+    "scenario_seed_ranges": {
+      "406": {
+        "start": 406000000,
+        "count": 512
+      },
+      "407": {
+        "start": 407000000,
+        "count": 512
+      },
+      "408": {
+        "start": 408000000,
+        "count": 512
+      }
+    }
+  },
+  "learning_objective": {
+    "initialization": "Exact deterministic TemporalPublicGreedy scores plus zero residual; random hidden actor features, zero actor output and independent zero linear critic correction.",
+    "actor": "temporal_marginal_return + .25*tanh(tanh(features@w1+b1)@wa), including STOP. Shared candidate scorer over variable legal sensor/site options.",
+    "sampling": "Count-balanced softmax(score/.05 - deployment_indicator*log(number_of_legal_deployments)). Deterministic evaluation uses highest raw score, STOP wins ties; it is not the joint distribution mode.",
+    "critic": "Independent public pooled legal-deployment/STOP feature linear baseline with public STOP return-to-go prior. Detached before-update sampled value; no critic-to-actor gradient path.",
+    "update": "One original-return REINFORCE update per 16 complete episodes; no normalized advantages, entropy regularization, counterfactual branches, demonstration labels or auxiliary ranking loss. Separate actor/critic clipping and Adam moments.",
+    "scoring": "Original frozen simulator, terminal reward, shaping, legal actions and mixed curriculum. New public feature schema v2; same sensor_input.v1 wire interface.",
+    "budget_rationale": "Three fixed training seeds and 512 episodes each (32 updates each) form a bounded representation-and-objective pilot, not a compute-matched comparison. All three fixed endpoints evaluated; no best seed/checkpoint selection."
+  },
+  "validation": {
+    "stage": "validation",
+    "episodes_per_profile": 200,
+    "run_seeds": {
+      "normal": 995400,
+      "stress": 995401,
+      "capability": 995402
+    },
+    "scenario_seed_ranges": {
+      "normal": {
+        "start": 1000995400000000,
+        "count": 200
+      },
+      "stress": {
+        "start": 1000995401000000,
+        "count": 200
+      },
+      "capability": {
+        "start": 1000995402000000,
+        "count": 200
+      }
+    },
+    "methods": [
+      "temporal_406",
+      "temporal_407",
+      "temporal_408",
+      "temporal_public",
+      "greedy_public",
+      "balanced_v3",
+      "robust_v2",
+      "adaptive_v1",
+      "anchored_later_stop"
+    ],
+    "bootstrap_samples": 2000,
+    "bootstrap_seed": 73044,
+    "confidence_interval": "First average the three temporal endpoint metrics for each scenario, then resample paired scenario differences within each profile and average profile means equally. Two-sided 95% percentile intervals; conditional on these three trained endpoints, not population training-seed uncertainty.",
+    "selection": "All three fixed endpoints and source/input hashes bound before first validation case. No endpoint selection, ensemble action selection, early stopping, retraining, scenario filtering/replacement or reserved final-test access."
+  },
+  "scale_gate": {
+    "comparators": [
+      "temporal_public",
+      "greedy_public",
+      "balanced_v3"
+    ],
+    "minimum_equal_profile_gain": 0.01,
+    "require_paired_ci_lower_above_zero": true,
+    "maximum_profile_point_decline": 0.01,
+    "maximum_individual_seed_point_decline": 0.01,
+    "require_equal_profile_detection_not_lower": true,
+    "require_equal_profile_all_threat_success_not_lower": true,
+    "require_equal_profile_mean_return_not_lower": true,
+    "interpretation": "All conditions must hold against all three comparators. Timely confirmation is primary. Profile timely/detection and individual-seed equal-profile timely point guards are not statistical noninferiority. Aggregate detection, all-threat success and original return must not decline. Passing supports further development only; it is not final-tested robustness or deployment approval."
+  },
+  "reserved_final_tests_unopened": {
+    "normal": {
+      "start": 2000000500000000,
+      "count": 200
+    },
+    "stress": {
+      "start": 2000000501000000,
+      "count": 200
+    },
+    "capability": {
+      "start": 2000000502000000,
+      "count": 200
+    }
+  },
+  "limitations": [
+    "Designed after inspecting already-consumed prior results. New validation is a development screen, not a reserved final test.",
+    "Temporal probabilities are exact only conditional on approximate public trajectories and declared emission correlation assumptions; not real-world calibration or knowledge of hidden paths.",
+    "Feature changes and learning-objective changes are combined. Compare against the matched non-RL temporal control to distinguish any learned benefit from the forecast prior.",
+    "Deterministic raw-score policy differs from training's count-balanced stochastic distribution; no convergence or policy-improvement guarantee.",
+    "Initial sequential sensor layout planning in synthetic cases. Timely confirmation means sensing, not interception. No native Unreal integration, physical device control, live sensor calibration or mid-flight relocation validation.",
+    "Three seeds do not characterize all training variability. No unseen-sensor performance claim follows solely from a variable-catalogue architecture."
+  ],
+  "training_implementation_sha256": {
+    "train_temporal.py": "de2717ac5dc379bc4f6b63cfb92ddbcc61a416b3a3efe872f45d439994ed132c",
+    "triad_rl/temporal_policy.py": "55c48c66cc6c8f11efd02e65b42cbb6b37c4933fb5d1c2220dc1b734f908b140",
+    "triad_rl/temporal_env.py": "c69350413dafd10b936414e9a015af6fceb4ba0c2cec9d6ce4203e301b665d7d",
+    "triad_rl/temporal_inputs.py": "643ad89cd4060361d6a858a94ad61f7e26408bd55a46015e895eb331bf9c61d1",
+    "triad_rl/temporal_confirmation.py": "50647e7b1237ac55efc3556a3aca0e512abb1aac85f259fc086b1ee605764eea",
+    "triad_rl/temporal_lineage.py": "b93dfe6fadb2d8303900659b143e4e0c8f60e26005adea7e056e4074bdcecaf9",
+    "triad_rl/adaptive_env.py": "afbf0bdedb62ffeb07e416dfa8745378d7057f549d8b5f771cbfd599ae428cc8",
+    "triad_rl/adaptive_inputs.py": "fe011855192d1f5450f10955178f7ed6069cbed58bde090734b0407e474799b9",
+    "triad_rl/robust_scenarios.py": "e07cbe525f5997a91561ef3c1c52e62e618b58b5efc915c57e68f82a9d86e6ba",
+    "triad_rl/adaptive_policy.py": "bc3909894e3b4f418a0a2740fe5fd42c28023d9c1ed96e456c57e829fb06577d",
+    "triad_rl/ranking_policy.py": "b54405aefd8fff8717915226614b6692aded7b698d1e698e57e166fd9f5d8a6c",
+    "triad_rl/credit_lineage.py": "4c5596c333f5617fc3f1047b977066240b2d2dcf349d94ead6e1aa3b7ca96a02"
+  },
+  "evaluation_implementation_sha256": {
+    "evaluate_robust.py": "e3f4b1d6fdc57e200af4b86a15d20185ee235618cf124d71b2bb4d0cc169c911",
+    "triad_rl/adaptive_env.py": "afbf0bdedb62ffeb07e416dfa8745378d7057f549d8b5f771cbfd599ae428cc8",
+    "triad_rl/adaptive_inputs.py": "fe011855192d1f5450f10955178f7ed6069cbed58bde090734b0407e474799b9",
+    "triad_rl/adaptive_policy.py": "bc3909894e3b4f418a0a2740fe5fd42c28023d9c1ed96e456c57e829fb06577d",
+    "triad_rl/adaptive_evaluation.py": "01fd9293a699f25cfeaaff3ad6399b7ec1695a5e67ee6583efb3076ddb5e0910",
+    "triad_rl/train_adaptive.py": "e356a4e46782a2fe93d54f7da1095ae4e34fd0664ccecdbde3561756297c66c9",
+    "triad_rl/robust_scenarios.py": "e07cbe525f5997a91561ef3c1c52e62e618b58b5efc915c57e68f82a9d86e6ba",
+    "triad_rl/train_robust.py": "79b870b2a00d46f93e8cc0544d5b85818a2ce8d88fbb9a807df0ac90a1f95e87",
+    "train_temporal.py": "de2717ac5dc379bc4f6b63cfb92ddbcc61a416b3a3efe872f45d439994ed132c",
+    "triad_rl/temporal_policy.py": "55c48c66cc6c8f11efd02e65b42cbb6b37c4933fb5d1c2220dc1b734f908b140",
+    "triad_rl/temporal_env.py": "c69350413dafd10b936414e9a015af6fceb4ba0c2cec9d6ce4203e301b665d7d",
+    "triad_rl/temporal_inputs.py": "643ad89cd4060361d6a858a94ad61f7e26408bd55a46015e895eb331bf9c61d1",
+    "triad_rl/temporal_confirmation.py": "50647e7b1237ac55efc3556a3aca0e512abb1aac85f259fc086b1ee605764eea",
+    "triad_rl/temporal_lineage.py": "b93dfe6fadb2d8303900659b143e4e0c8f60e26005adea7e056e4074bdcecaf9",
+    "triad_rl/ranking_policy.py": "b54405aefd8fff8717915226614b6692aded7b698d1e698e57e166fd9f5d8a6c",
+    "triad_rl/credit_lineage.py": "4c5596c333f5617fc3f1047b977066240b2d2dcf349d94ead6e1aa3b7ca96a02",
+    "evaluate_temporal.py": "4145ea0a5d24b2ffc38e24afac2f45cf657ab00948ed6a692e3dc9f665f0f5e0",
+    "triad_rl/evaluate_credit_pilot.py": "044b1196f5b6ece6e99fcd13680095d796d33dc9d2e4cfd8fcb1e72e4e278517",
+    "triad_rl/placement_policy.py": "29fe2d3eb327ef25d0416b0c38324d7d31ebd7f7134727b3486afdf128d10607",
+    "triad_rl/balanced_policy.py": "a9c8b72521d890dd6cfcd40e4fdffd5970f13d5e29aaf11451656274fe327704"
+  },
+  "prior_source_commit": "f0ce2b8974e581a4f2ad86733540c9e60b81b7d5"
+}

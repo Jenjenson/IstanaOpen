@@ -12,6 +12,7 @@ on:
       - "Tools/archive_credit_pilot.py"
       - "Tools/archive_anchored_pilot.py"
       - "Tools/archive_ranking_pilot.py"
+      - "Tools/archive_temporal_pilot.py"
   pull_request:
     paths:
       - "RL/BlueTeam/**"
@@ -23,6 +24,7 @@ on:
       - "Tools/archive_credit_pilot.py"
       - "Tools/archive_anchored_pilot.py"
       - "Tools/archive_ranking_pilot.py"
+      - "Tools/archive_temporal_pilot.py"
   workflow_dispatch:
 
 permissions:

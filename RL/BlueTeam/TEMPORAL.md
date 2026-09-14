@@ -6,6 +6,10 @@ more **timely confirmations**, especially on fast/high-altitude stress cases.
 It preserves the original simulator, reward, curriculum and published models.
 There is not yet a promoted temporal-trained checkpoint.
 
+The completed [three-seed results and offline replay](TEMPORAL_RESULTS.md)
+improve over older baselines but show no meaningful learned timely-sensing
+gain over the matched temporal control. The full gate failed; no promotion.
+
 ## What the new observation represents
 
 The old features average one-look sensing coverage at four fixed radii. The new
@@ -71,7 +75,7 @@ print(observation["options"][action])
 
 This produces a local recommendation, not a device command. `TemporalPublicGreedy`
 is explicitly a **non-RL control**, choosing positive expected marginal original
-return and otherwise STOP. A future learned policy must be compared with this
+return and otherwise STOP. A learned policy must be compared with this
 stronger control as well as the existing policies; a better forecast alone is
 not proof that reinforcement learning improved deployment.
 
@@ -80,12 +84,14 @@ the same builder and applies each selected placement to a local copy of the
 snapshot before the next decision. From `RL/BlueTeam/Python`:
 
 ```powershell
-python recommend_temporal.py --checkpoint <temporal-checkpoint-directory> `
+python recommend_temporal.py --checkpoint ../Results/temporal-v6-pilot/training/seed-406/last `
   --input ../Examples/public-snapshot.json `
   --catalogue ../Examples/sensor-catalogue.json `
   --config ../Examples/temporal-config.json --now 0 --output ../runs/temporal-plan.json
 ```
 
+Seed 406 is used only to make this command directly runnable, not because it
+was selected as a winner; seeds 407 and 408 are retained alongside it.
 The configuration must match the checkpoint exactly. Supply your provider's
 clock through `--now` for fresh external data; zero is only this offline
 example's clock. The output names sensor IDs, positions, costs and STOP, plus
