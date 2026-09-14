@@ -11,6 +11,22 @@ import json
 from pathlib import Path
 
 
+def dashboard_config(value):
+    """Keep full provenance readable by Trackio's 64-bit JSON encoder.
+
+    NumPy RNG state contains unsigned 128-bit integers. Preserve those exact
+    digits as strings in the dashboard only; on-disk experiment evidence and
+    checkpoint/resume semantics are never changed.
+    """
+    if isinstance(value, dict):
+        return {key: dashboard_config(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [dashboard_config(item) for item in value]
+    if isinstance(value, int) and not isinstance(value, bool) and not -(2**63) <= value < 2**63:
+        return str(value)
+    return value
+
+
 def _numeric_fields(value, prefix):
     """Flatten profile summaries without discarding their numeric metrics."""
     if isinstance(value, dict):
@@ -53,7 +69,7 @@ def main() -> None:
     if not events:
         parser.error("No training or validation events found")
     config = json.loads((args.run_dir / "config.json").read_text(encoding="utf-8"))
-    trackio.init(project=args.project, name=args.name, config=config, space_id=None)
+    trackio.init(project=args.project, name=args.name, config=dashboard_config(config), space_id=None)
     try:
         for event in events:
             trackio.log(event)

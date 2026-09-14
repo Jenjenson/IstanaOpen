@@ -8,6 +8,7 @@ on:
       - "Tools/export_blue_rl.py"
       - "Tools/publish_adaptive_rl.py"
       - "Tools/publish_robust_rl.py"
+      - "Tools/publish_balanced_rl.py"
   pull_request:
     paths:
       - "RL/BlueTeam/**"
@@ -15,6 +16,7 @@ on:
       - "Tools/export_blue_rl.py"
       - "Tools/publish_adaptive_rl.py"
       - "Tools/publish_robust_rl.py"
+      - "Tools/publish_balanced_rl.py"
   workflow_dispatch:
 
 permissions:
@@ -24,7 +26,7 @@ jobs:
   python:
     name: Python 3.11 / ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -127,6 +129,20 @@ jobs:
           python demo_robust.py
           --checkpoint ci_artifacts/robust/best --profile capability --episodes 2
           --output ci_artifacts/robust-demo.html
+
+      - name: Train count-balanced deploy-or-stop policy
+        run: >-
+          python -m triad_rl.train_balanced
+          --episodes 8 --batch-size 4 --seed 222
+          --validation-every 8 --validation-episodes 2 --validation-run-seed 992400
+          --initial-checkpoint ../Checkpoints/robust-v2-candidate
+          --initial-selection-report ../Results/robust-v2/selection.json
+          --output ci_artifacts/balanced
+
+      - name: Render balanced-policy replay and external-input recommendation
+        run: |
+          python demo_balanced.py --checkpoint ci_artifacts/balanced/best --profile capability --seed 1000992500000000 --episodes 2 --output ci_artifacts/balanced-demo.html
+          python recommend_balanced.py --checkpoint ci_artifacts/balanced/best --input ../Examples/public-snapshot.json --catalogue ../Examples/sensor-catalogue.json --now 0 --output ci_artifacts/balanced-plan.json
 
       - name: Save smoke-test reports
         if: always()

@@ -1,0 +1,66 @@
+{
+  "schema": "triad.balanced_experiment_protocol.v1",
+  "experiment": "balanced-v3",
+  "status": "predeclared; final evaluation not yet run",
+  "purpose": "Test learned deploy-versus-stop exploration without changing sensing physics, observations, reward, or the mixed robustness curriculum.",
+  "frozen_reference": {
+    "checkpoint": "Checkpoints/robust-v2-candidate",
+    "weights_sha256": "5c982c86a5da2e5b4960ba437021f751a36dc3af7187515903cf1b1ee2ab27ce",
+    "source_commit": "6b4c446864bcd8a55fc2e5e1490a187cc0fbfe0e",
+    "selection_report": "Results/robust-v2/selection.json"
+  },
+  "policy_change": {
+    "stochastic": "Subtract log(number of legal deployment rows) from deployment logits before the shared softmax; STOP is unchanged. STOP competes with the mean exponential deployment score, not a catalogue-size-dependent sum.",
+    "deterministic": "Choose STOP when its probability is at least one half; otherwise choose the highest-probability legal sensor/site deployment.",
+    "entropy": "H(joint) - P(deploy)*log(number of legal deployments), equivalently H(gate) - P(deploy)*KL(conditional deployment || uniform).",
+    "interpretation": "Architecture and inference change as well as additional training; matched initialized controls distinguish the untrained architecture change from subsequent weight learning. No hardcoded coverage threshold."
+  },
+  "candidate_training": {
+    "initialization": "Explicit transfer of frozen robust-v2 weights into the balanced actor; reset Adam and independent policy RNG. Not independent training from scratch.",
+    "run_seeds": [201, 202, 203],
+    "episodes_per_run": 8000,
+    "batch_size": 16,
+    "learning_rate": 0.002,
+    "entropy_coef": 0.015,
+    "gamma": 1.0,
+    "value_coef": 0.5,
+    "max_grad_norm": 1.0,
+    "validation_every": 1000,
+    "validation_episodes_per_profile": 60,
+    "training_profile": "mixed",
+    "profile_probabilities": {"normal": 0.4, "stress": 0.3, "capability": 0.3},
+    "checkpoint_selection": "Maximum equally weighted mean return across normal, stress and capability validation profiles; strict greater, ties keep earlier checkpoint; no final-test access.",
+    "training_seed_ranges": [
+      {"start": 201000000, "count": 8000},
+      {"start": 202000000, "count": 8000},
+      {"start": 203000000, "count": 8000}
+    ],
+    "validation_seed_ranges": [
+      {"profile": "normal", "start": 1000991300000000, "count": 60},
+      {"profile": "stress", "start": 1000991301000000, "count": 60},
+      {"profile": "capability", "start": 1000991302000000, "count": 60}
+    ]
+  },
+  "candidate_selection": {
+    "criterion": "Maximum equally weighted mean return across the three common validation profiles; ties retain the earlier run seed.",
+    "baseline_comparisons": ["matched initialized balanced actor", "robust-v2", "adaptive-v1", "greedy public coverage", "random legal", "fixed RF/radar", "original toy-210 transfer"],
+    "seed_ranges": [
+      {"profile": "normal", "start": 1000991800000000, "count": 300},
+      {"profile": "stress", "start": 1000991801000000, "count": 300},
+      {"profile": "capability", "start": 1000991802000000, "count": 300}
+    ]
+  },
+  "reserved_final_tests": [
+    {"profile": "normal", "start": 2000000500000000, "count": 200},
+    {"profile": "stress", "start": 2000000501000000, "count": 200},
+    {"profile": "capability", "start": 2000000502000000, "count": 200}
+  ],
+  "interpretation": {
+    "success": "Timely confirmed sensing of all simulated threats, not interception or field reliability.",
+    "validation": "All model selection and exploratory diagnostics remain development evidence; do not present selected validation gains as independent test results.",
+    "lineage": "Reserve all training, validation and selection exposure inherited from v1 and v2. Their published results motivated this experiment.",
+    "do_not_censor": "Keep impossible, unaffordable and poor-public-coverage cases; zero forecast coverage does not prove no true sensing.",
+    "final_reservation": "Carry forward the unopened v2 final-test suites; no new model is selected or tuned using them.",
+    "changes": "Disclose all exploratory/failed runs and record protocol changes before opening final tests."
+  }
+}

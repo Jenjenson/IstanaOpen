@@ -16,6 +16,13 @@ capabilities and severe cases. Its [v2 candidate](ROBUST_RESULTS.md) has modest
 validation gains but an unresolved stopping/resource-use gap; it is not a
 final-tested robustness release.
 
+The additive [balanced deployment experiment](BALANCED.md) tests a learned
+deploy-or-stop gate to address that gap, with an explicitly versioned actor,
+matched initialized controls and unchanged simulation physics/rewards.
+Its [v3 results and offline demo](BALANCED_RESULTS.md) document 24,000 further
+training episodes and the measured cost/detection tradeoff; it remains an
+experimental candidate, not a final-tested replacement.
+
 This package publishes the Python trainer, a trained checkpoint, recorded
 results, and selected native source from the TRIAD experiment. You can run the
 Python example immediately. Live Unreal training requires the original TRIAD

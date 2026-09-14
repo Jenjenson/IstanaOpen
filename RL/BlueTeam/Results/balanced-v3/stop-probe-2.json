@@ -1,0 +1,1911 @@
+{
+  "schema": "triad.balanced_stop_probe.v1",
+  "policy_kind": "balanced",
+  "policy_schema": "triad.balanced_joint_actor_critic.v1",
+  "profile": "stress",
+  "weights_sha256": "08c349426c6bdf84adfc633fc30471ea454a703817c828cc239ff6e77728810b",
+  "weights_sha256_after": "08c349426c6bdf84adfc633fc30471ea454a703817c828cc239ff6e77728810b",
+  "checkpoint_files_sha256_before": {
+    "checkpoint.json": "4e8772625971e359c69e51456323ec328b7551ff0fa1a0dcd09c30b4739cd298",
+    "arrays.npz": "03a38a6a2b5db8752575426ef5d0b10c6a287eb88fd0330aa689b4ca1e17bf52"
+  },
+  "checkpoint_files_sha256_after": {
+    "checkpoint.json": "4e8772625971e359c69e51456323ec328b7551ff0fa1a0dcd09c30b4739cd298",
+    "arrays.npz": "03a38a6a2b5db8752575426ef5d0b10c6a287eb88fd0330aa689b4ca1e17bf52"
+  },
+  "policy_rng_sha256_before": "0a356edaec05674c595230789d554784fdf9dd9d558b9992c548a50c29db485e",
+  "policy_rng_sha256_after": "0a356edaec05674c595230789d554784fdf9dd9d558b9992c548a50c29db485e",
+  "source_sha256_before": {
+    "probe_stop_exploration.py": "276d76fc501a899fe1a48698203a290652cc1582e7670c507cc4c0e854f3745e",
+    "triad_rl/robust_scenarios.py": "e07cbe525f5997a91561ef3c1c52e62e618b58b5efc915c57e68f82a9d86e6ba",
+    "triad_rl/adaptive_env.py": "afbf0bdedb62ffeb07e416dfa8745378d7057f549d8b5f771cbfd599ae428cc8",
+    "triad_rl/adaptive_inputs.py": "fe011855192d1f5450f10955178f7ed6069cbed58bde090734b0407e474799b9",
+    "triad_rl/adaptive_policy.py": "bc3909894e3b4f418a0a2740fe5fd42c28023d9c1ed96e456c57e829fb06577d",
+    "probe_balanced.py": "34a2cbc392a3c37b047dd720eed6faf01736bb0128cbc63cee58f759acdee4ef",
+    "evaluate_robust.py": "e3f4b1d6fdc57e200af4b86a15d20185ee235618cf124d71b2bb4d0cc169c911",
+    "triad_rl/balanced_policy.py": "a9c8b72521d890dd6cfcd40e4fdffd5970f13d5e29aaf11451656274fe327704",
+    "triad_rl/adaptive_evaluation.py": "01fd9293a699f25cfeaaff3ad6399b7ec1695a5e67ee6583efb3076ddb5e0910"
+  },
+  "source_sha256_after": {
+    "probe_stop_exploration.py": "276d76fc501a899fe1a48698203a290652cc1582e7670c507cc4c0e854f3745e",
+    "triad_rl/robust_scenarios.py": "e07cbe525f5997a91561ef3c1c52e62e618b58b5efc915c57e68f82a9d86e6ba",
+    "triad_rl/adaptive_env.py": "afbf0bdedb62ffeb07e416dfa8745378d7057f549d8b5f771cbfd599ae428cc8",
+    "triad_rl/adaptive_inputs.py": "fe011855192d1f5450f10955178f7ed6069cbed58bde090734b0407e474799b9",
+    "triad_rl/adaptive_policy.py": "bc3909894e3b4f418a0a2740fe5fd42c28023d9c1ed96e456c57e829fb06577d",
+    "probe_balanced.py": "34a2cbc392a3c37b047dd720eed6faf01736bb0128cbc63cee58f759acdee4ef",
+    "evaluate_robust.py": "e3f4b1d6fdc57e200af4b86a15d20185ee235618cf124d71b2bb4d0cc169c911",
+    "triad_rl/balanced_policy.py": "a9c8b72521d890dd6cfcd40e4fdffd5970f13d5e29aaf11451656274fe327704",
+    "triad_rl/adaptive_evaluation.py": "01fd9293a699f25cfeaaff3ad6399b7ec1695a5e67ee6583efb3076ddb5e0910"
+  },
+  "stage": "validation",
+  "training_performed": false,
+  "final_test_accessed": false,
+  "independent_unseen_evidence": false,
+  "private_truth_accessed": false,
+  "simulation_rollouts_performed": false,
+  "seed_provenance": {
+    "validation_diagnostic": {
+      "start": 1000990101000000,
+      "count": 60
+    }
+  },
+  "scope": "Public initial snapshot and first recommendation only; no layout or outcome.",
+  "interpretation": "Low forecast coverage is not a feasibility label. Deterministic STOP uses the actual versioned actor; joint_argmax_stop is diagnostic only. uniform_stop_probability describes the old flat categorical reference, not the balanced prior.",
+  "groups": {
+    "all": {
+      "count": 60,
+      "deterministic_stop_count": 0,
+      "forced_stop_count": 0,
+      "deterministic_stop_with_deployment_available_count": 0,
+      "first_sensor_counts": {
+        "fused": 12,
+        "rf": 42,
+        "thermal": 6
+      },
+      "legal_deployment_count": {
+        "count": 60,
+        "min": 96.0,
+        "median": 128.0,
+        "mean": 142.4,
+        "max": 160.0
+      },
+      "max_legal_marginal_coverage": {
+        "count": 60,
+        "min": 0.0,
+        "median": 0.04652651399374008,
+        "mean": 0.07515397521977624,
+        "max": 0.3130187392234802
+      },
+      "stop_probability": {
+        "count": 60,
+        "min": 3.642756977066323e-06,
+        "median": 0.05621575747510911,
+        "mean": 0.14174452012117816,
+        "max": 0.4916660952154973
+      },
+      "uniform_stop_probability": {
+        "count": 60,
+        "min": 0.006211180124223602,
+        "median": 0.007751937984496124,
+        "mean": 0.007092483030898383,
+        "max": 0.010309278350515464
+      },
+      "categorical_entropy_nats": {
+        "count": 60,
+        "min": 0.8880134289221996,
+        "median": 3.2506537114893304,
+        "mean": 2.8639025902892525,
+        "max": 3.8791407097708945
+      },
+      "best_deployment_probability": {
+        "count": 60,
+        "min": 0.009710138918724178,
+        "median": 0.11507441860313383,
+        "mean": 0.2017863637410446,
+        "max": 0.6955558723624463
+      },
+      "stop_versus_best_deployment_probability": {
+        "count": 60,
+        "min": 7.139253700662738e-06,
+        "median": 0.31211463028850106,
+        "mean": 0.4245840967428876,
+        "max": 0.9796901341663354
+      },
+      "log_probability_ratio_stop_vs_best_deployment": {
+        "count": 60,
+        "min": -11.849895171513284,
+        "median": -0.7911791135144601,
+        "mean": -1.8360082190887745,
+        "max": 3.876129562394411
+      },
+      "first_action_cost": {
+        "count": 60,
+        "min": 0.8,
+        "median": 0.8,
+        "mean": 1.0599999999999998,
+        "max": 2.0
+      }
+    },
+    "coverage_le_0.01": {
+      "count": 19,
+      "deterministic_stop_count": 0,
+      "forced_stop_count": 0,
+      "deterministic_stop_with_deployment_available_count": 0,
+      "first_sensor_counts": {
+        "rf": 15,
+        "thermal": 4
+      },
+      "legal_deployment_count": {
+        "count": 19,
+        "min": 96.0,
+        "median": 128.0,
+        "mean": 138.10526315789474,
+        "max": 160.0
+      },
+      "max_legal_marginal_coverage": {
+        "count": 19,
+        "min": 0.0,
+        "median": 0.0,
+        "mean": 8.190222280590158e-05,
+        "max": 0.00155614223331213
+      },
+      "stop_probability": {
+        "count": 19,
+        "min": 0.023418288436082048,
+        "median": 0.32165262615140955,
+        "mean": 0.2826399991783215,
+        "max": 0.4916660952154973
+      },
+      "uniform_stop_probability": {
+        "count": 19,
+        "min": 0.006211180124223602,
+        "median": 0.007751937984496124,
+        "mean": 0.007318887213133583,
+        "max": 0.010309278350515464
+      },
+      "categorical_entropy_nats": {
+        "count": 19,
+        "min": 3.0640271049951027,
+        "median": 3.4690257764702674,
+        "mean": 3.4326633680457483,
+        "max": 3.790162454737244
+      },
+      "best_deployment_probability": {
+        "count": 19,
+        "min": 0.009710138918724178,
+        "median": 0.02930337836091693,
+        "mean": 0.04167434062138656,
+        "max": 0.10004500775861065
+      },
+      "stop_versus_best_deployment_probability": {
+        "count": 19,
+        "min": 0.2034343204391009,
+        "median": 0.9267963696399008,
+        "mean": 0.7742111621307647,
+        "max": 0.9796901341663354
+      },
+      "log_probability_ratio_stop_vs_best_deployment": {
+        "count": 19,
+        "min": -1.3649663830622565,
+        "median": 2.5384888606385827,
+        "mean": 1.8399359049061754,
+        "max": 3.876129562394411
+      },
+      "first_action_cost": {
+        "count": 19,
+        "min": 0.8,
+        "median": 0.8,
+        "mean": 0.8421052631578949,
+        "max": 1.0
+      }
+    },
+    "coverage_le_0.001": {
+      "count": 18,
+      "deterministic_stop_count": 0,
+      "forced_stop_count": 0,
+      "deterministic_stop_with_deployment_available_count": 0,
+      "first_sensor_counts": {
+        "rf": 14,
+        "thermal": 4
+      },
+      "legal_deployment_count": {
+        "count": 18,
+        "min": 96.0,
+        "median": 128.0,
+        "mean": 138.66666666666666,
+        "max": 160.0
+      },
+      "max_legal_marginal_coverage": {
+        "count": 18,
+        "min": 0.0,
+        "median": 0.0,
+        "mean": 0.0,
+        "max": 0.0
+      },
+      "stop_probability": {
+        "count": 18,
+        "min": 0.023418288436082048,
+        "median": 0.3302463663330265,
+        "mean": 0.2834832469951414,
+        "max": 0.4916660952154973
+      },
+      "uniform_stop_probability": {
+        "count": 18,
+        "min": 0.006211180124223602,
+        "median": 0.007751937984496124,
+        "mean": 0.007294828836946775,
+        "max": 0.010309278350515464
+      },
+      "categorical_entropy_nats": {
+        "count": 18,
+        "min": 3.0640271049951027,
+        "median": 3.450409281676402,
+        "mean": 3.427203653515948,
+        "max": 3.790162454737244
+      },
+      "best_deployment_probability": {
+        "count": 18,
+        "min": 0.009710138918724178,
+        "median": 0.028061529264990566,
+        "mean": 0.041115965849798534,
+        "max": 0.10004500775861065
+      },
+      "stop_versus_best_deployment_probability": {
+        "count": 18,
+        "min": 0.2034343204391009,
+        "median": 0.9287012475438575,
+        "mean": 0.7706702711743222,
+        "max": 0.9796901341663354
+      },
+      "log_probability_ratio_stop_vs_best_deployment": {
+        "count": 18,
+        "min": -1.3649663830622565,
+        "median": 2.567263190801662,
+        "mean": 1.8508749619303895,
+        "max": 3.876129562394411
+      },
+      "first_action_cost": {
+        "count": 18,
+        "min": 0.8,
+        "median": 0.8,
+        "mean": 0.8444444444444446,
+        "max": 1.0
+      }
+    },
+    "coverage_zero": {
+      "count": 18,
+      "deterministic_stop_count": 0,
+      "forced_stop_count": 0,
+      "deterministic_stop_with_deployment_available_count": 0,
+      "first_sensor_counts": {
+        "rf": 14,
+        "thermal": 4
+      },
+      "legal_deployment_count": {
+        "count": 18,
+        "min": 96.0,
+        "median": 128.0,
+        "mean": 138.66666666666666,
+        "max": 160.0
+      },
+      "max_legal_marginal_coverage": {
+        "count": 18,
+        "min": 0.0,
+        "median": 0.0,
+        "mean": 0.0,
+        "max": 0.0
+      },
+      "stop_probability": {
+        "count": 18,
+        "min": 0.023418288436082048,
+        "median": 0.3302463663330265,
+        "mean": 0.2834832469951414,
+        "max": 0.4916660952154973
+      },
+      "uniform_stop_probability": {
+        "count": 18,
+        "min": 0.006211180124223602,
+        "median": 0.007751937984496124,
+        "mean": 0.007294828836946775,
+        "max": 0.010309278350515464
+      },
+      "categorical_entropy_nats": {
+        "count": 18,
+        "min": 3.0640271049951027,
+        "median": 3.450409281676402,
+        "mean": 3.427203653515948,
+        "max": 3.790162454737244
+      },
+      "best_deployment_probability": {
+        "count": 18,
+        "min": 0.009710138918724178,
+        "median": 0.028061529264990566,
+        "mean": 0.041115965849798534,
+        "max": 0.10004500775861065
+      },
+      "stop_versus_best_deployment_probability": {
+        "count": 18,
+        "min": 0.2034343204391009,
+        "median": 0.9287012475438575,
+        "mean": 0.7706702711743222,
+        "max": 0.9796901341663354
+      },
+      "log_probability_ratio_stop_vs_best_deployment": {
+        "count": 18,
+        "min": -1.3649663830622565,
+        "median": 2.567263190801662,
+        "mean": 1.8508749619303895,
+        "max": 3.876129562394411
+      },
+      "first_action_cost": {
+        "count": 18,
+        "min": 0.8,
+        "median": 0.8,
+        "mean": 0.8444444444444446,
+        "max": 1.0
+      }
+    }
+  },
+  "records": [
+    {
+      "scenario_seed": 1000990101000000,
+      "public_input_sha256": "a05ec16aa95ef8f65ec9545ab76ce1cf73240f309cecddb40f023099b1b7efe4",
+      "legal_deployment_count": 160,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.17080172896385193,
+      "stop_probability": 0.002200872107793806,
+      "uniform_stop_probability": 0.006211180124223602,
+      "categorical_entropy_nats": 1.5533880800872353,
+      "best_deployment_probability": 0.4626652346899001,
+      "stop_versus_best_deployment_probability": 0.004734421536891285,
+      "log_probability_ratio_stop_vs_best_deployment": -5.348150062896114,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 151,
+        "stop": false,
+        "sensor_id": "fused",
+        "site_index": 23,
+        "position": [
+          119.99955701828537,
+          -0.3260604472776819
+        ],
+        "cost": 2.0
+      },
+      "joint_argmax_stop": false
+    },
+    {
+      "scenario_seed": 1000990101000001,
+      "public_input_sha256": "ff91b68b6918aa5dd4029db5e74f9636cbb210cc94e436d0529a50138aad32f6",
+      "legal_deployment_count": 128,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.00155614223331213,
+      "stop_probability": 0.2674615384755645,
+      "uniform_stop_probability": 0.007751937984496124,
+      "categorical_entropy_nats": 3.5309382295821528,
+      "best_deployment_probability": 0.051725086509971104,
+      "stop_versus_best_deployment_probability": 0.8379471993467298,
+      "log_probability_ratio_stop_vs_best_deployment": 1.6430328784703248,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 24,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 24,
+        "position": [
+          84.1719813536617,
+          85.52822665646019
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": true
+    },
+    {
+      "scenario_seed": 1000990101000002,
+      "public_input_sha256": "aefbbb0ba17f4795631c10d88261aefac7dd058240197483ff86995edfa1d70c",
+      "legal_deployment_count": 160,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.0,
+      "stop_probability": 0.3545034584530172,
+      "uniform_stop_probability": 0.006211180124223602,
+      "categorical_entropy_nats": 3.519254211786467,
+      "best_deployment_probability": 0.02930337836091693,
+      "stop_versus_best_deployment_probability": 0.923650712936302,
+      "log_probability_ratio_stop_vs_best_deployment": 2.493015289989838,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 29,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 29,
+        "position": [
+          -17.59167676510133,
+          -118.7035505306905
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": true
+    },
+    {
+      "scenario_seed": 1000990101000003,
+      "public_input_sha256": "952277709287376be6c512926c74b96abb1a8f7b7ef69eec5716d04fc213c455",
+      "legal_deployment_count": 160,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.12635213136672974,
+      "stop_probability": 0.047028418549496014,
+      "uniform_stop_probability": 0.006211180124223602,
+      "categorical_entropy_nats": 3.2921332307542173,
+      "best_deployment_probability": 0.2775293851069773,
+      "stop_versus_best_deployment_probability": 0.14489997781496275,
+      "log_probability_ratio_stop_vs_best_deployment": -1.7751747508855091,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 158,
+        "stop": false,
+        "sensor_id": "fused",
+        "site_index": 30,
+        "position": [
+          -17.264572289330687,
+          -118.75156648931615
+        ],
+        "cost": 2.0
+      },
+      "joint_argmax_stop": false
+    },
+    {
+      "scenario_seed": 1000990101000004,
+      "public_input_sha256": "7d070925728b0099e613ed7b39677ce9611222675f0d1acfd456848c998dee42",
+      "legal_deployment_count": 160,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.0292425025254488,
+      "stop_probability": 0.13464110512825664,
+      "uniform_stop_probability": 0.006211180124223602,
+      "categorical_entropy_nats": 3.6809896987028106,
+      "best_deployment_probability": 0.08458749639776497,
+      "stop_versus_best_deployment_probability": 0.6141584820184844,
+      "log_probability_ratio_stop_vs_best_deployment": 0.46482629889972094,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 27,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 27,
+        "position": [
+          -62.64074856247296,
+          -102.35300005145449
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": true
+    },
+    {
+      "scenario_seed": 1000990101000005,
+      "public_input_sha256": "d101e3d40321cc468798530be24c79967e50287fe252a0ddecdb58274406558a",
+      "legal_deployment_count": 128,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.01813901960849762,
+      "stop_probability": 0.1849829579739871,
+      "uniform_stop_probability": 0.007751937984496124,
+      "categorical_entropy_nats": 3.6953589684083425,
+      "best_deployment_probability": 0.05300304838402335,
+      "stop_versus_best_deployment_probability": 0.7772850211020851,
+      "log_probability_ratio_stop_vs_best_deployment": 1.2499142731977875,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 27,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 27,
+        "position": [
+          -38.17175475901374,
+          113.76694220474465
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": true
+    },
+    {
+      "scenario_seed": 1000990101000006,
+      "public_input_sha256": "a9c97a024b7ba176d1872126fda966e2d952f93c6d8c3debca234bd06f4d9059",
+      "legal_deployment_count": 160,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.06486961990594864,
+      "stop_probability": 0.0309925415669174,
+      "uniform_stop_probability": 0.006211180124223602,
+      "categorical_entropy_nats": 3.198820103626204,
+      "best_deployment_probability": 0.12948485606776217,
+      "stop_versus_best_deployment_probability": 0.19312714453078741,
+      "log_probability_ratio_stop_vs_best_deployment": -1.429817351817662,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 24,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 24,
+        "position": [
+          -64.37542884291385,
+          -101.27094430926836
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": false
+    },
+    {
+      "scenario_seed": 1000990101000007,
+      "public_input_sha256": "28847cd659c390b513a363af5171ad3ce43e8fcb415f0125ea5b8ed89abdcc27",
+      "legal_deployment_count": 160,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.08556951582431793,
+      "stop_probability": 0.18450766161671683,
+      "uniform_stop_probability": 0.006211180124223602,
+      "categorical_entropy_nats": 3.8791407097708945,
+      "best_deployment_probability": 0.05740747338907403,
+      "stop_versus_best_deployment_probability": 0.7626958173257748,
+      "log_probability_ratio_stop_vs_best_deployment": 1.1675164957298885,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 155,
+        "stop": false,
+        "sensor_id": "fused",
+        "site_index": 27,
+        "position": [
+          -113.09455116726807,
+          40.12010090059826
+        ],
+        "cost": 2.0
+      },
+      "joint_argmax_stop": true
+    },
+    {
+      "scenario_seed": 1000990101000008,
+      "public_input_sha256": "f2ee90a1881eb316bea13cb0dccc4a57b7e5993074623982e1501a4bc336327f",
+      "legal_deployment_count": 96,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.0,
+      "stop_probability": 0.38975992923523534,
+      "uniform_stop_probability": 0.010309278350515464,
+      "categorical_entropy_nats": 3.1877870486340507,
+      "best_deployment_probability": 0.030785448372009083,
+      "stop_versus_best_deployment_probability": 0.9267963696399008,
+      "log_probability_ratio_stop_vs_best_deployment": 2.5384888606385827,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 121,
+        "stop": false,
+        "sensor_id": "thermal",
+        "site_index": 25,
+        "position": [
+          -111.82096431429882,
+          -43.54390818266443
+        ],
+        "cost": 1.0
+      },
+      "joint_argmax_stop": true
+    },
+    {
+      "scenario_seed": 1000990101000009,
+      "public_input_sha256": "3408a62391dd0aebca4084e64a4fef1b721f72afcab9f4f84885aef425747d83",
+      "legal_deployment_count": 160,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.14959175884723663,
+      "stop_probability": 0.00024806666716078904,
+      "uniform_stop_probability": 0.006211180124223602,
+      "categorical_entropy_nats": 1.6273305648262917,
+      "best_deployment_probability": 0.38924183159528764,
+      "stop_versus_best_deployment_probability": 0.0006369014145615538,
+      "log_probability_ratio_stop_vs_best_deployment": -7.358258575256547,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 20,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 20,
+        "position": [
+          119.1196507067961,
+          -14.50892192724502
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": false
+    },
+    {
+      "scenario_seed": 1000990101000010,
+      "public_input_sha256": "da7085c54300fe17acde26ec68cd910243cccec6af0bdd4d4ef3d943eee93a97",
+      "legal_deployment_count": 128,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.0,
+      "stop_probability": 0.3127274705914105,
+      "uniform_stop_probability": 0.007751937984496124,
+      "categorical_entropy_nats": 3.522062656126378,
+      "best_deployment_probability": 0.033570499518279576,
+      "stop_versus_best_deployment_probability": 0.903058919150909,
+      "log_probability_ratio_stop_vs_best_deployment": 2.2316844194916365,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 21,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 21,
+        "position": [
+          -71.77615150519586,
+          96.16747930097351
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": true
+    },
+    {
+      "scenario_seed": 1000990101000011,
+      "public_input_sha256": "b148e8886074661c8a02a967bd7efbe5e05f95fcccc13bfa48058a14bf55f0e7",
+      "legal_deployment_count": 128,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.0,
+      "stop_probability": 0.4916660952154973,
+      "uniform_stop_probability": 0.007751937984496124,
+      "categorical_entropy_nats": 3.0640271049951027,
+      "best_deployment_probability": 0.012424983962516793,
+      "stop_versus_best_deployment_probability": 0.9753517083008544,
+      "log_probability_ratio_stop_vs_best_deployment": 3.6780905365928263,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 124,
+        "stop": false,
+        "sensor_id": "thermal",
+        "site_index": 28,
+        "position": [
+          92.48128122913928,
+          76.46706887423403
+        ],
+        "cost": 1.0
+      },
+      "joint_argmax_stop": true
+    },
+    {
+      "scenario_seed": 1000990101000012,
+      "public_input_sha256": "c02bf7b54a67895323ac23b5497d53f4bfd1a6e14b962a79de6b6dfbe92c9a3e",
+      "legal_deployment_count": 128,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.0,
+      "stop_probability": 0.056377219235076284,
+      "uniform_stop_probability": 0.007751937984496124,
+      "categorical_entropy_nats": 3.408676005152552,
+      "best_deployment_probability": 0.09512493007908973,
+      "stop_versus_best_deployment_probability": 0.3721215803887266,
+      "log_probability_ratio_stop_vs_best_deployment": -0.5231259185021848,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 27,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 27,
+        "position": [
+          51.427786192201324,
+          -108.42132081546151
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": false
+    },
+    {
+      "scenario_seed": 1000990101000013,
+      "public_input_sha256": "445ddf3a2f85bdeff7b4aa3ab50bf2896299e237ea33682b803e47559895d037",
+      "legal_deployment_count": 128,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.0,
+      "stop_probability": 0.40875367542161267,
+      "uniform_stop_probability": 0.007751937984496124,
+      "categorical_entropy_nats": 3.249930491003348,
+      "best_deployment_probability": 0.0268196801690642,
+      "stop_versus_best_deployment_probability": 0.9384267200350345,
+      "log_probability_ratio_stop_vs_best_deployment": 2.7239767613365853,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 126,
+        "stop": false,
+        "sensor_id": "thermal",
+        "site_index": 30,
+        "position": [
+          38.99144174653237,
+          -113.48862264794111
+        ],
+        "cost": 1.0
+      },
+      "joint_argmax_stop": true
+    },
+    {
+      "scenario_seed": 1000990101000014,
+      "public_input_sha256": "dfe6321263a2119102d925de74b58b365e9b29b61d30acd64d6d81a612b3be26",
+      "legal_deployment_count": 160,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.20327983796596527,
+      "stop_probability": 1.2517384055398504e-05,
+      "uniform_stop_probability": 0.006211180124223602,
+      "categorical_entropy_nats": 1.4408735341362142,
+      "best_deployment_probability": 0.39946435014014003,
+      "stop_versus_best_deployment_probability": 3.1334440296822326e-05,
+      "log_probability_ratio_stop_vs_best_deployment": -10.370761401433201,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 26,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 26,
+        "position": [
+          -100.86220063612036,
+          -65.01397144336747
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": false
+    },
+    {
+      "scenario_seed": 1000990101000015,
+      "public_input_sha256": "c7b1eb12335b75a113269813c3ee6d78b2a4056b5cb90ecaab0a5c60c6629896",
+      "legal_deployment_count": 160,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.10300666838884354,
+      "stop_probability": 0.0032467605478221084,
+      "uniform_stop_probability": 0.006211180124223602,
+      "categorical_entropy_nats": 1.7171649342882371,
+      "best_deployment_probability": 0.4532572543359538,
+      "stop_versus_best_deployment_probability": 0.007112227805156808,
+      "log_probability_ratio_stop_vs_best_deployment": -4.9388021099254225,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 17,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 17,
+        "position": [
+          -17.138610225029023,
+          118.76981114557071
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": false
+    },
+    {
+      "scenario_seed": 1000990101000016,
+      "public_input_sha256": "aba73147acee212ae83c4cb95cbbb6e09f13e9c37f9c375dcdd4ba2f27a526e7",
+      "legal_deployment_count": 128,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.17893719673156738,
+      "stop_probability": 2.8078581910489058e-05,
+      "uniform_stop_probability": 0.007751937984496124,
+      "categorical_entropy_nats": 1.4823831175700322,
+      "best_deployment_probability": 0.4160781903611226,
+      "stop_versus_best_deployment_probability": 6.747935324745888e-05,
+      "log_probability_ratio_stop_vs_best_deployment": -9.603621403061293,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 28,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 28,
+        "position": [
+          83.67298916678438,
+          -86.01645705267791
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": false
+    },
+    {
+      "scenario_seed": 1000990101000017,
+      "public_input_sha256": "5418d2d3a9353cb7270ccb27b039824edae3bf9ba0af73d9b62c1511fbfc5f24",
+      "legal_deployment_count": 128,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.01196766272187233,
+      "stop_probability": 0.34215401374277715,
+      "uniform_stop_probability": 0.007751937984496124,
+      "categorical_entropy_nats": 3.5123276474302703,
+      "best_deployment_probability": 0.029237524759911517,
+      "stop_versus_best_deployment_probability": 0.921275738058583,
+      "log_probability_ratio_stop_vs_best_deployment": 2.4598079895099962,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 126,
+        "stop": false,
+        "sensor_id": "thermal",
+        "site_index": 30,
+        "position": [
+          -64.20740677497943,
+          -101.37755626977957
+        ],
+        "cost": 1.0
+      },
+      "joint_argmax_stop": true
+    },
+    {
+      "scenario_seed": 1000990101000018,
+      "public_input_sha256": "e982a5856a99a111ac7d1880d233bd2c48e3f551c349d5779c9f020a9ee01d08",
+      "legal_deployment_count": 160,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.0,
+      "stop_probability": 0.33884010651464347,
+      "uniform_stop_probability": 0.006211180124223602,
+      "categorical_entropy_nats": 3.6797579019068523,
+      "best_deployment_probability": 0.025266788173580544,
+      "stop_versus_best_deployment_probability": 0.9306061254478143,
+      "log_probability_ratio_stop_vs_best_deployment": 2.5960375209647415,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 31,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 31,
+        "position": [
+          -83.87959188670219,
+          85.81499906729758
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": true
+    },
+    {
+      "scenario_seed": 1000990101000019,
+      "public_input_sha256": "a4829a425e6866c60721e405f5a9aeb6f80534d7c4febfe713df448ebf8157b1",
+      "legal_deployment_count": 160,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.17355096340179443,
+      "stop_probability": 0.006063052031817092,
+      "uniform_stop_probability": 0.006211180124223602,
+      "categorical_entropy_nats": 1.4027485329484333,
+      "best_deployment_probability": 0.6351312768781335,
+      "stop_versus_best_deployment_probability": 0.009455872827391439,
+      "log_probability_ratio_stop_vs_best_deployment": -4.6516184038543065,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 149,
+        "stop": false,
+        "sensor_id": "fused",
+        "site_index": 21,
+        "position": [
+          119.4254031307011,
+          11.729155428654161
+        ],
+        "cost": 2.0
+      },
+      "joint_argmax_stop": false
+    },
+    {
+      "scenario_seed": 1000990101000020,
+      "public_input_sha256": "dce394a70b9ea8b4cfa7b99d2dc9c80a5944c765921b62c860fe34c8f254e3ed",
+      "legal_deployment_count": 128,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.0,
+      "stop_probability": 0.3866206168340111,
+      "uniform_stop_probability": 0.007751937984496124,
+      "categorical_entropy_nats": 3.4690257764702674,
+      "best_deployment_probability": 0.02022779858284657,
+      "stop_versus_best_deployment_probability": 0.9502817319268133,
+      "log_probability_ratio_stop_vs_best_deployment": 2.9503860681209897,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 18,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 18,
+        "position": [
+          119.81632857915035,
+          6.63682196635408
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": true
+    },
+    {
+      "scenario_seed": 1000990101000021,
+      "public_input_sha256": "93c359c61659467dd64f46628853132a366c487247841aac98dc0139d8a01e19",
+      "legal_deployment_count": 128,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.031548064202070236,
+      "stop_probability": 0.2074280843430045,
+      "uniform_stop_probability": 0.007751937984496124,
+      "categorical_entropy_nats": 3.566006974776928,
+      "best_deployment_probability": 0.0719052380238145,
+      "stop_versus_best_deployment_probability": 0.7425826699995751,
+      "log_probability_ratio_stop_vs_best_deployment": 1.059435584531142,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 29,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 29,
+        "position": [
+          -14.105039776241792,
+          -119.16814949016637
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": true
+    },
+    {
+      "scenario_seed": 1000990101000022,
+      "public_input_sha256": "d7d78ea05ffb88c71e832c8790db6fc44642f8ccbcc232c46bc08a3fe639a29d",
+      "legal_deployment_count": 160,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.03615664690732956,
+      "stop_probability": 0.026228507471110947,
+      "uniform_stop_probability": 0.006211180124223602,
+      "categorical_entropy_nats": 2.6902274180017796,
+      "best_deployment_probability": 0.2298132374942924,
+      "stop_versus_best_deployment_probability": 0.10243840306062191,
+      "log_probability_ratio_stop_vs_best_deployment": -2.170420077506555,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 20,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 20,
+        "position": [
+          100.35131524241567,
+          65.79979885316759
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": false
+    },
+    {
+      "scenario_seed": 1000990101000023,
+      "public_input_sha256": "6f17b9c7f741a8629fa2c94e7df61ca0d8f1aa8abc832869a470e2262e19ccc0",
+      "legal_deployment_count": 128,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.0,
+      "stop_probability": 0.023418288436082048,
+      "uniform_stop_probability": 0.007751937984496124,
+      "categorical_entropy_nats": 3.310525431057691,
+      "best_deployment_probability": 0.09169644926174134,
+      "stop_versus_best_deployment_probability": 0.2034343204391009,
+      "log_probability_ratio_stop_vs_best_deployment": -1.3649663830622565,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 27,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 27,
+        "position": [
+          58.997411432885805,
+          104.49548049661668
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": false
+    },
+    {
+      "scenario_seed": 1000990101000024,
+      "public_input_sha256": "3c33aa2e6a4313b22c4f5fc928de00da735b1703c522e6353c558d6c6580619e",
+      "legal_deployment_count": 160,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.0,
+      "stop_probability": 0.312435105253061,
+      "uniform_stop_probability": 0.006211180124223602,
+      "categorical_entropy_nats": 3.683958733359664,
+      "best_deployment_probability": 0.022851358797256884,
+      "stop_versus_best_deployment_probability": 0.9318452689046598,
+      "log_probability_ratio_stop_vs_best_deployment": 2.61538620288598,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 24,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 24,
+        "position": [
+          38.03989763197199,
+          -113.81109870372525
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": true
+    },
+    {
+      "scenario_seed": 1000990101000025,
+      "public_input_sha256": "32c88b8d53d4aae35e3b234122e86550df8d02ac8c6030e1dcb7f2c5a0ea6768",
+      "legal_deployment_count": 128,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.0387430377304554,
+      "stop_probability": 0.034249834094501844,
+      "uniform_stop_probability": 0.007751937984496124,
+      "categorical_entropy_nats": 3.176752971294672,
+      "best_deployment_probability": 0.14651883239212812,
+      "stop_versus_best_deployment_probability": 0.18946775876689356,
+      "log_probability_ratio_stop_vs_best_deployment": -1.4534722482068154,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 17,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 17,
+        "position": [
+          91.48001396743025,
+          -77.66213391685015
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": false
+    },
+    {
+      "scenario_seed": 1000990101000026,
+      "public_input_sha256": "c260cdbc47dfed56b27e6911526371698bb3637c931436006342d03b66ce8d4b",
+      "legal_deployment_count": 160,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.21318432688713074,
+      "stop_probability": 0.00038489096843264927,
+      "uniform_stop_probability": 0.006211180124223602,
+      "categorical_entropy_nats": 1.002664663012248,
+      "best_deployment_probability": 0.6955558723624463,
+      "stop_versus_best_deployment_probability": 0.000553051335275293,
+      "log_probability_ratio_stop_vs_best_deployment": -7.49950652590995,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 152,
+        "stop": false,
+        "sensor_id": "fused",
+        "site_index": 24,
+        "position": [
+          62.49140571589509,
+          102.4442492854108
+        ],
+        "cost": 2.0
+      },
+      "joint_argmax_stop": false
+    },
+    {
+      "scenario_seed": 1000990101000027,
+      "public_input_sha256": "0b2a6b086dfdd2785079cb579d1606adbe340d3b810114e222fffe1a11946aef",
+      "legal_deployment_count": 128,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.0,
+      "stop_probability": 0.32165262615140955,
+      "uniform_stop_probability": 0.007751937984496124,
+      "categorical_entropy_nats": 3.6477511834573235,
+      "best_deployment_probability": 0.02147539169908739,
+      "stop_versus_best_deployment_probability": 0.9374128879547098,
+      "log_probability_ratio_stop_vs_best_deployment": 2.7065644549727725,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 16,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 16,
+        "position": [
+          28.118351320393554,
+          -116.65915445871757
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": true
+    },
+    {
+      "scenario_seed": 1000990101000028,
+      "public_input_sha256": "f2545ece6ff832dfcd605d297483068fa834d2fc25fc3a2775ed6d14800dc50f",
+      "legal_deployment_count": 96,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.3130187392234802,
+      "stop_probability": 4.595510062380622e-06,
+      "uniform_stop_probability": 0.010309278350515464,
+      "categorical_entropy_nats": 0.8880134289221996,
+      "best_deployment_probability": 0.6436915462805032,
+      "stop_versus_best_deployment_probability": 7.139253700662738e-06,
+      "log_probability_ratio_stop_vs_best_deployment": -11.849895171513284,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 156,
+        "stop": false,
+        "sensor_id": "fused",
+        "site_index": 28,
+        "position": [
+          -107.60341892248128,
+          53.11783350432319
+        ],
+        "cost": 2.0
+      },
+      "joint_argmax_stop": false
+    },
+    {
+      "scenario_seed": 1000990101000029,
+      "public_input_sha256": "528465872f634d6b3b75335cbfd7f74bdafd9c2981b25e7f86e6236896bd0a70",
+      "legal_deployment_count": 128,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.23464170098304749,
+      "stop_probability": 5.166858850914872e-06,
+      "uniform_stop_probability": 0.007751937984496124,
+      "categorical_entropy_nats": 1.0845881669873567,
+      "best_deployment_probability": 0.6453090189763705,
+      "stop_versus_best_deployment_probability": 8.006733718750467e-06,
+      "log_probability_ratio_stop_vs_best_deployment": -11.735219648718141,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 17,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 17,
+        "position": [
+          -119.48109719286168,
+          11.147529483699046
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": false
+    },
+    {
+      "scenario_seed": 1000990101000030,
+      "public_input_sha256": "1a5ff38da1a53fee96a951088d605ceea5304ffef905f640b417f40d38676149",
+      "legal_deployment_count": 160,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.01289028488099575,
+      "stop_probability": 0.2428755116096085,
+      "uniform_stop_probability": 0.006211180124223602,
+      "categorical_entropy_nats": 3.781532697932999,
+      "best_deployment_probability": 0.05120390336048087,
+      "stop_versus_best_deployment_probability": 0.8258840954043356,
+      "log_probability_ratio_stop_vs_best_deployment": 1.556733247519375,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 16,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 16,
+        "position": [
+          113.774297944525,
+          38.14982473394149
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": true
+    },
+    {
+      "scenario_seed": 1000990101000031,
+      "public_input_sha256": "3d82b0cb97a5b6011dcb8b3ff4aace6faef60b32655b188f1a87e0be44565349",
+      "legal_deployment_count": 128,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.10705763101577759,
+      "stop_probability": 0.028722183747451814,
+      "uniform_stop_probability": 0.007751937984496124,
+      "categorical_entropy_nats": 3.545335057086315,
+      "best_deployment_probability": 0.12698770841603352,
+      "stop_versus_best_deployment_probability": 0.18445959565173534,
+      "log_probability_ratio_stop_vs_best_deployment": -1.4864205205847503,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 151,
+        "stop": false,
+        "sensor_id": "fused",
+        "site_index": 23,
+        "position": [
+          -28.075749469856007,
+          -116.66941455114052
+        ],
+        "cost": 2.0
+      },
+      "joint_argmax_stop": false
+    },
+    {
+      "scenario_seed": 1000990101000032,
+      "public_input_sha256": "6535322c055a6eb8f593dc7e880f75c6c121df7cc06f09010d4fbf822bef3f78",
+      "legal_deployment_count": 128,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.0,
+      "stop_probability": 0.06136320266038494,
+      "uniform_stop_probability": 0.007751937984496124,
+      "categorical_entropy_nats": 3.4317927868825366,
+      "best_deployment_probability": 0.10004500775861065,
+      "stop_versus_best_deployment_probability": 0.3801739855803724,
+      "log_probability_ratio_stop_vs_best_deployment": -0.4888098120271689,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 24,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 24,
+        "position": [
+          70.10993882744737,
+          97.38889298894196
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": false
+    },
+    {
+      "scenario_seed": 1000990101000033,
+      "public_input_sha256": "da870169d3aa83e92bec0931fadd307e698ee9ccc5ac1b9dc395a680dc53472e",
+      "legal_deployment_count": 160,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.19046494364738464,
+      "stop_probability": 1.8031637199051052e-05,
+      "uniform_stop_probability": 0.006211180124223602,
+      "categorical_entropy_nats": 1.4740571210455742,
+      "best_deployment_probability": 0.4036338003883991,
+      "stop_versus_best_deployment_probability": 4.467126312437386e-05,
+      "log_probability_ratio_stop_vs_best_deployment": -10.016135473945429,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 19,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 19,
+        "position": [
+          39.61210459385846,
+          113.27347955124013
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": false
+    },
+    {
+      "scenario_seed": 1000990101000034,
+      "public_input_sha256": "0945ae763741015e3a98fceb00d1d2a1d5ae5ee6e2cd80bb3549166b9c7c885e",
+      "legal_deployment_count": 160,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.16604675352573395,
+      "stop_probability": 0.018024249496746716,
+      "uniform_stop_probability": 0.006211180124223602,
+      "categorical_entropy_nats": 1.5079258895412386,
+      "best_deployment_probability": 0.6524755283454535,
+      "stop_versus_best_deployment_probability": 0.02688181277964369,
+      "log_probability_ratio_stop_vs_best_deployment": -3.589055588534248,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 145,
+        "stop": false,
+        "sensor_id": "fused",
+        "site_index": 17,
+        "position": [
+          78.54173736728968,
+          90.72593615569747
+        ],
+        "cost": 2.0
+      },
+      "joint_argmax_stop": false
+    },
+    {
+      "scenario_seed": 1000990101000035,
+      "public_input_sha256": "a52e4b6428074fbf6e33cc7c272f309a5615e4dbbaa5a7cbf17cd5d2d0d411ef",
+      "legal_deployment_count": 128,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.0,
+      "stop_probability": 0.4606868404898158,
+      "uniform_stop_probability": 0.007751937984496124,
+      "categorical_entropy_nats": 3.1833640828429566,
+      "best_deployment_probability": 0.015335992270491428,
+      "stop_versus_best_deployment_probability": 0.9677830742244803,
+      "log_probability_ratio_stop_vs_best_deployment": 3.4025160056377928,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 118,
+        "stop": false,
+        "sensor_id": "thermal",
+        "site_index": 22,
+        "position": [
+          -115.54653958433647,
+          -32.38822610278873
+        ],
+        "cost": 1.0
+      },
+      "joint_argmax_stop": true
+    },
+    {
+      "scenario_seed": 1000990101000036,
+      "public_input_sha256": "835fc14ada5fe50681b78c590adf912eeae250d274cb371c83d40396ca068690",
+      "legal_deployment_count": 128,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.1203996017575264,
+      "stop_probability": 0.07939349482407233,
+      "uniform_stop_probability": 0.007751937984496124,
+      "categorical_entropy_nats": 3.192952301178084,
+      "best_deployment_probability": 0.23052396906768022,
+      "stop_versus_best_deployment_probability": 0.2561762535969988,
+      "log_probability_ratio_stop_vs_best_deployment": -1.0659384085799823,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 144,
+        "stop": false,
+        "sensor_id": "fused",
+        "site_index": 16,
+        "position": [
+          -87.57552226836916,
+          -82.03979460860673
+        ],
+        "cost": 2.0
+      },
+      "joint_argmax_stop": false
+    },
+    {
+      "scenario_seed": 1000990101000037,
+      "public_input_sha256": "6bf11f3a16104395e73f615e9a16b8bf63236daf85b36036e34c37e222be3744",
+      "legal_deployment_count": 128,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.018280314281582832,
+      "stop_probability": 0.4729716775075096,
+      "uniform_stop_probability": 0.007751937984496124,
+      "categorical_entropy_nats": 3.144265078007656,
+      "best_deployment_probability": 0.012617414597020687,
+      "stop_versus_best_deployment_probability": 0.9740162726013116,
+      "log_probability_ratio_stop_vs_best_deployment": 3.623957537683513,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 115,
+        "stop": false,
+        "sensor_id": "thermal",
+        "site_index": 19,
+        "position": [
+          103.66197601280581,
+          60.44993572470092
+        ],
+        "cost": 1.0
+      },
+      "joint_argmax_stop": true
+    },
+    {
+      "scenario_seed": 1000990101000038,
+      "public_input_sha256": "4b015e79e473181c8fb5904868bdd8f0f5556c3a9cbf35ce57c9797d168cb563",
+      "legal_deployment_count": 128,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.15547652542591095,
+      "stop_probability": 0.009286629022347545,
+      "uniform_stop_probability": 0.007751937984496124,
+      "categorical_entropy_nats": 2.6051402795415872,
+      "best_deployment_probability": 0.2645783572278809,
+      "stop_versus_best_deployment_probability": 0.03390951559562425,
+      "log_probability_ratio_stop_vs_best_deployment": -3.3495618279467485,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 21,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 21,
+        "position": [
+          23.147760290530876,
+          117.74625766253517
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": false
+    },
+    {
+      "scenario_seed": 1000990101000039,
+      "public_input_sha256": "c5009722fcc66a5975e23d6ca4ed46beb66ce44ccd051047e2d56c986a608b8e",
+      "legal_deployment_count": 160,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.0773666575551033,
+      "stop_probability": 0.0028301540015424464,
+      "uniform_stop_probability": 0.006211180124223602,
+      "categorical_entropy_nats": 2.2970753982942202,
+      "best_deployment_probability": 0.2988625444181126,
+      "stop_versus_best_deployment_probability": 0.00938091646356551,
+      "log_probability_ratio_stop_vs_best_deployment": -4.659652622342216,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 17,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 17,
+        "position": [
+          -12.466397342073224,
+          -119.35069726360861
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": false
+    },
+    {
+      "scenario_seed": 1000990101000040,
+      "public_input_sha256": "c1a0fbaf2b5549fe2003176a809753688d4e1743494398a35db95e18253e8107",
+      "legal_deployment_count": 128,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.05148155242204666,
+      "stop_probability": 0.13527293465055773,
+      "uniform_stop_probability": 0.007751937984496124,
+      "categorical_entropy_nats": 3.803675315258822,
+      "best_deployment_probability": 0.05315841135307652,
+      "stop_versus_best_deployment_probability": 0.7178897647313347,
+      "log_probability_ratio_stop_vs_best_deployment": 0.9340181264836667,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 19,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 19,
+        "position": [
+          -114.55249978669933,
+          35.74527650778839
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": true
+    },
+    {
+      "scenario_seed": 1000990101000041,
+      "public_input_sha256": "264432c2684652dca1a3afb9c820d38c9869aadbaa36f595cd391a8fed7212e2",
+      "legal_deployment_count": 128,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.12219686061143875,
+      "stop_probability": 0.0003242394461721365,
+      "uniform_stop_probability": 0.007751937984496124,
+      "categorical_entropy_nats": 1.4811688774587022,
+      "best_deployment_probability": 0.5835364943796241,
+      "stop_versus_best_deployment_probability": 0.0005553369620312201,
+      "log_probability_ratio_stop_vs_best_deployment": -7.495379998438326,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 29,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 29,
+        "position": [
+          -114.63174990581705,
+          -35.490307318058186
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": false
+    },
+    {
+      "scenario_seed": 1000990101000042,
+      "public_input_sha256": "5b8eac876798e383610eea6a6427606a7a48e64a02c2e0b00234f47415b319a8",
+      "legal_deployment_count": 160,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.09152080863714218,
+      "stop_probability": 0.00618813716509031,
+      "uniform_stop_probability": 0.006211180124223602,
+      "categorical_entropy_nats": 2.777364726489665,
+      "best_deployment_probability": 0.23164586343170568,
+      "stop_versus_best_deployment_probability": 0.02601872377188476,
+      "log_probability_ratio_stop_vs_best_deployment": -3.6225756559587285,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 27,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 27,
+        "position": [
+          -48.374452062744645,
+          109.81763240768406
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": false
+    },
+    {
+      "scenario_seed": 1000990101000043,
+      "public_input_sha256": "9ce2e35cb261cb251a570178908671366f3bc1be3cfd4feb4e9b5845d5b24f94",
+      "legal_deployment_count": 128,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.2054714858531952,
+      "stop_probability": 2.6061528672591263e-05,
+      "uniform_stop_probability": 0.007751937984496124,
+      "categorical_entropy_nats": 1.4087329654376566,
+      "best_deployment_probability": 0.5839300506975743,
+      "stop_versus_best_deployment_probability": 4.462925916339074e-05,
+      "log_probability_ratio_stop_vs_best_deployment": -10.0170762487265,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 26,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 26,
+        "position": [
+          113.08414041837464,
+          -40.14943568516653
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": false
+    },
+    {
+      "scenario_seed": 1000990101000044,
+      "public_input_sha256": "31e7a59f08175b2b3b5495d665ea27eee958d62314afd7fe2c25acaad8efcd91",
+      "legal_deployment_count": 160,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.11419153958559036,
+      "stop_probability": 0.0010160337676490099,
+      "uniform_stop_probability": 0.006211180124223602,
+      "categorical_entropy_nats": 1.7146062050320388,
+      "best_deployment_probability": 0.3408752215587515,
+      "stop_versus_best_deployment_probability": 0.002971803904955134,
+      "log_probability_ratio_stop_vs_best_deployment": -5.815609906657208,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 29,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 29,
+        "position": [
+          102.55166034993391,
+          -62.3149818219647
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": false
+    },
+    {
+      "scenario_seed": 1000990101000045,
+      "public_input_sha256": "eeb5981aaaad65e39fe7b460852efdfa9576f12807a499a02ba4f86b984b8a4a",
+      "legal_deployment_count": 160,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.0,
+      "stop_probability": 0.4683894703179439,
+      "uniform_stop_probability": 0.006211180124223602,
+      "categorical_entropy_nats": 3.281197517914685,
+      "best_deployment_probability": 0.009710138918724178,
+      "stop_versus_best_deployment_probability": 0.9796901341663354,
+      "log_probability_ratio_stop_vs_best_deployment": 3.876129562394411,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 28,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 28,
+        "position": [
+          28.867293234594012,
+          116.47608931153194
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": true
+    },
+    {
+      "scenario_seed": 1000990101000046,
+      "public_input_sha256": "6afd462af42da53738c2478b7af33655dc32474412a0a4d0c8aaa4dd4368539b",
+      "legal_deployment_count": 160,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.0,
+      "stop_probability": 0.15638409218791421,
+      "uniform_stop_probability": 0.006211180124223602,
+      "categorical_entropy_nats": 3.790162454737244,
+      "best_deployment_probability": 0.04462324646199454,
+      "stop_versus_best_deployment_probability": 0.7780019040015542,
+      "log_probability_ratio_stop_vs_best_deployment": 1.2540601662262434,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 22,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 22,
+        "position": [
+          -119.81702260483114,
+          6.624280648748495
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": true
+    },
+    {
+      "scenario_seed": 1000990101000047,
+      "public_input_sha256": "acfb9763b969ae42a418881fa7f9cf11e1fc26680c26ca24f2bb3698f285ebba",
+      "legal_deployment_count": 160,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.1244058758020401,
+      "stop_probability": 0.0002795963350983871,
+      "uniform_stop_probability": 0.006211180124223602,
+      "categorical_entropy_nats": 2.4920018394484353,
+      "best_deployment_probability": 0.23156843000358204,
+      "stop_versus_best_deployment_probability": 0.0012059465828273069,
+      "log_probability_ratio_stop_vs_best_deployment": -6.719283800182904,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 25,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 25,
+        "position": [
+          51.070512575604745,
+          108.59006743374367
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": false
+    },
+    {
+      "scenario_seed": 1000990101000048,
+      "public_input_sha256": "eea610d6247aa6bcba11cd163e4874d09241a4acc0226c7a61ab4b848672ea27",
+      "legal_deployment_count": 128,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.06693717837333679,
+      "stop_probability": 0.05605429571514194,
+      "uniform_stop_probability": 0.007751937984496124,
+      "categorical_entropy_nats": 3.4469470238464837,
+      "best_deployment_probability": 0.11526692860751848,
+      "stop_versus_best_deployment_probability": 0.32718827417186347,
+      "log_probability_ratio_stop_vs_best_deployment": -0.7209297697044041,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 24,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 24,
+        "position": [
+          -94.02578783381361,
+          74.55971581377352
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": false
+    },
+    {
+      "scenario_seed": 1000990101000049,
+      "public_input_sha256": "f4f664c811ab25dedd08fe0228f6977422f919b05780462fedd6b6468e33469e",
+      "legal_deployment_count": 160,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.0415714755654335,
+      "stop_probability": 0.06252635593784842,
+      "uniform_stop_probability": 0.006211180124223602,
+      "categorical_entropy_nats": 3.2513769319753125,
+      "best_deployment_probability": 0.18790239021155,
+      "stop_versus_best_deployment_probability": 0.2496772311456091,
+      "log_probability_ratio_stop_vs_best_deployment": -1.1003344641364632,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 29,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 29,
+        "position": [
+          118.99313787948574,
+          -15.512354353665764
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": false
+    },
+    {
+      "scenario_seed": 1000990101000050,
+      "public_input_sha256": "5d036b4caff90c2ca5fa9b6589a43e47f54ca814f1b03c4502d36b4b7fb57fad",
+      "legal_deployment_count": 128,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.05152714625000954,
+      "stop_probability": 0.24735860164447193,
+      "uniform_stop_probability": 0.007751937984496124,
+      "categorical_entropy_nats": 3.5726003976365632,
+      "best_deployment_probability": 0.05102854498607133,
+      "stop_versus_best_deployment_probability": 0.8289854453775992,
+      "log_probability_ratio_stop_vs_best_deployment": 1.5784539305072238,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 151,
+        "stop": false,
+        "sensor_id": "fused",
+        "site_index": 23,
+        "position": [
+          -119.75950516471383,
+          -7.593478959138683
+        ],
+        "cost": 2.0
+      },
+      "joint_argmax_stop": true
+    },
+    {
+      "scenario_seed": 1000990101000051,
+      "public_input_sha256": "68694c9047b7fbfdedab5c28f2aa377d9b74e0e192f3ee16d0a2382bc64e0c2e",
+      "legal_deployment_count": 160,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.0,
+      "stop_probability": 0.047459749541477386,
+      "uniform_stop_probability": 0.006211180124223602,
+      "categorical_entropy_nats": 3.6201070758981935,
+      "best_deployment_probability": 0.058468623137041306,
+      "stop_versus_best_deployment_probability": 0.44803623751978766,
+      "log_probability_ratio_stop_vs_best_deployment": -0.2086082799766804,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 31,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 31,
+        "position": [
+          -78.57658829497026,
+          -90.69575388033743
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": false
+    },
+    {
+      "scenario_seed": 1000990101000052,
+      "public_input_sha256": "8fa90a33fbda8a81986d4184f68fedecff9c815a6f746bd55250d28693447ed9",
+      "legal_deployment_count": 128,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.23281070590019226,
+      "stop_probability": 3.642756977066323e-06,
+      "uniform_stop_probability": 0.007751937984496124,
+      "categorical_entropy_nats": 2.081523498648456,
+      "best_deployment_probability": 0.2299462253332571,
+      "stop_versus_best_deployment_probability": 1.5841526708929773e-05,
+      "log_probability_ratio_stop_vs_best_deployment": -11.052859951430857,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 29,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 29,
+        "position": [
+          -118.71713914922503,
+          -17.49973920444361
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": false
+    },
+    {
+      "scenario_seed": 1000990101000053,
+      "public_input_sha256": "b0a9946316d1332719d5ad1cfcd0fbc9bc2c93a22c1eaf0c3bf6b77af7708a0b",
+      "legal_deployment_count": 160,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.027332790195941925,
+      "stop_probability": 0.29683189985519004,
+      "uniform_stop_probability": 0.006211180124223602,
+      "categorical_entropy_nats": 3.767667195614719,
+      "best_deployment_probability": 0.03472753217957376,
+      "stop_versus_best_deployment_probability": 0.8952600082390882,
+      "log_probability_ratio_stop_vs_best_deployment": 2.145633177894348,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 24,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 24,
+        "position": [
+          15.432049922616004,
+          119.0035790856136
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": true
+    },
+    {
+      "scenario_seed": 1000990101000054,
+      "public_input_sha256": "beb1929b00bf6dd18354b675a907f8762f3124023fab847dc2a55dab789e1777",
+      "legal_deployment_count": 128,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.0,
+      "stop_probability": 0.4632222477404761,
+      "uniform_stop_probability": 0.007751937984496124,
+      "categorical_entropy_nats": 3.1641731237557362,
+      "best_deployment_probability": 0.015100232165874387,
+      "stop_versus_best_deployment_probability": 0.9684308540781299,
+      "log_probability_ratio_stop_vs_best_deployment": 3.4234968367070047,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 18,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 18,
+        "position": [
+          118.84218903476123,
+          16.629314640900752
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": true
+    },
+    {
+      "scenario_seed": 1000990101000055,
+      "public_input_sha256": "bc0aa57f557d06616f8e49987cdd6f15a05d9b68935a5f000e38467889e57034",
+      "legal_deployment_count": 160,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.13428181409835815,
+      "stop_probability": 0.00013276736134525913,
+      "uniform_stop_probability": 0.006211180124223602,
+      "categorical_entropy_nats": 1.894083878754994,
+      "best_deployment_probability": 0.3010927981586272,
+      "stop_versus_best_deployment_probability": 0.0004407572813950153,
+      "log_probability_ratio_stop_vs_best_deployment": -7.726575361914168,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 16,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 16,
+        "position": [
+          19.12499779754678,
+          -118.46617432517955
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": false
+    },
+    {
+      "scenario_seed": 1000990101000056,
+      "public_input_sha256": "11c904d153f5b89c3397f3a5ee71584f4e550537899cdabf2eeb9238725340eb",
+      "legal_deployment_count": 128,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.08431544154882431,
+      "stop_probability": 0.1459642035881499,
+      "uniform_stop_probability": 0.007751937984496124,
+      "categorical_entropy_nats": 3.6913474484361437,
+      "best_deployment_probability": 0.14214478817841067,
+      "stop_versus_best_deployment_probability": 0.5066284210470493,
+      "log_probability_ratio_stop_vs_best_deployment": 0.02651523755775198,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 144,
+        "stop": false,
+        "sensor_id": "fused",
+        "site_index": 16,
+        "position": [
+          119.06411839573917,
+          -14.957797653578725
+        ],
+        "cost": 2.0
+      },
+      "joint_argmax_stop": true
+    },
+    {
+      "scenario_seed": 1000990101000057,
+      "public_input_sha256": "ac55540b29958c20f6aa40cd9692a3fa8f8582eb4142fef61cb800ef73b5022b",
+      "legal_deployment_count": 160,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.011794441379606724,
+      "stop_probability": 0.017138943440237305,
+      "uniform_stop_probability": 0.006211180124223602,
+      "categorical_entropy_nats": 3.368026744748628,
+      "best_deployment_probability": 0.11488190859874917,
+      "stop_versus_best_deployment_probability": 0.1298199729477286,
+      "log_probability_ratio_stop_vs_best_deployment": -1.902551450665971,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 20,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 20,
+        "position": [
+          92.5260910099783,
+          76.41284239192527
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": false
+    },
+    {
+      "scenario_seed": 1000990101000058,
+      "public_input_sha256": "12fe8fa891a3559ea891c7748be261ae0907198c26e10643cc69e372a51b0445",
+      "legal_deployment_count": 128,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.1172594204545021,
+      "stop_probability": 0.1068644526988254,
+      "uniform_stop_probability": 0.007751937984496124,
+      "categorical_entropy_nats": 3.4232318075272974,
+      "best_deployment_probability": 0.25289887152159507,
+      "stop_versus_best_deployment_probability": 0.29704098640513865,
+      "log_probability_ratio_stop_vs_best_deployment": -0.8614284573245161,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 149,
+        "stop": false,
+        "sensor_id": "fused",
+        "site_index": 21,
+        "position": [
+          119.997364711082,
+          0.7952750439774134
+        ],
+        "cost": 2.0
+      },
+      "joint_argmax_stop": false
+    },
+    {
+      "scenario_seed": 1000990101000059,
+      "public_input_sha256": "5e4121b3fcd5f6c7595a8dab74ac4b94c8c27342749e64cf3eee35b7d01c613a",
+      "legal_deployment_count": 160,
+      "forced_stop": false,
+      "max_legal_marginal_coverage": 0.0,
+      "stop_probability": 0.04843825163347603,
+      "uniform_stop_probability": 0.006211180124223602,
+      "categorical_entropy_nats": 3.4761121773060157,
+      "best_deployment_probability": 0.08725743760724802,
+      "stop_versus_best_deployment_probability": 0.3569623464423148,
+      "log_probability_ratio_stop_vs_best_deployment": -0.5885729776441058,
+      "deterministic_stop": false,
+      "first_action": {
+        "index": 26,
+        "stop": false,
+        "sensor_id": "rf",
+        "site_index": 26,
+        "position": [
+          70.18157056108582,
+          -97.33728552604768
+        ],
+        "cost": 0.8
+      },
+      "joint_argmax_stop": false
+    }
+  ]
+}
