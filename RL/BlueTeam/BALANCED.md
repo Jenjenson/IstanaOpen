@@ -196,6 +196,20 @@ The validated bundle's selected checkpoint is at
 `Results/balanced-v3/demo.html`, all relative to `RL/BlueTeam`. Full training,
 comparison and interpretation details are in [the results](BALANCED_RESULTS.md).
 
+The original probes hash unrounded public inputs, whose last floating bits can
+differ between Windows and Linux. A separate exact-input supplement lets both
+platforms verify the published actor decisions without weakening those hashes:
+
+```powershell
+python verify_balanced_probes.py verify ../Results/balanced-v3/portable-public-inputs.json.gz
+```
+
+This checks original archive/source/checkpoint identities, regenerates the
+public observations within a declared numerical tolerance, and repeats
+inference on the exact archived inputs. It performs no training or sensing
+rollout. The original publication exporter retains its strict producer-byte
+checks; the supplement does not replace or rewrite any v3 evidence.
+
 “Dynamic” means scenario-conditioned, sequential initial placement from the
 currently offered catalogue and sites. This version does **not** relocate
 sensors mid-flight, calibrate real devices, connect to live Istana/C2, or

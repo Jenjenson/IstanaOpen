@@ -152,6 +152,23 @@ the full experiment binding, and support parallel profile workers. The
 interrupted validation was rerun on the same declared development seeds;
 it is not presented as a second independent evaluation.
 
+The first GitHub CI run passed all 568 tests and smoke checks on Windows,
+but Linux passed 567 tests and failed the exact public-input hash check in
+the remaining probe test. Local Linux reproduction isolated 172 last-bit
+floating differences across 47 of the 60 snapshots (maximum absolute
+difference about 5.7e-14). Hashes of unrounded JSON therefore differed;
+there was no corresponding sensor-choice or action-count change.
+
+An additive [public-input corpus](Results/balanced-v3/portable-public-inputs.json.gz)
+and its [separate manifest](Results/balanced-v3/portable-public-inputs.manifest.json)
+preserve the producer's exact public observations. The portable verifier
+checks those input hashes against all three original probes, verifies
+runtime-generated observations with a tight floating tolerance, and repeats
+actor inference on the archived inputs. Original file hashes, masks,
+sensor/site choices, counts and source bindings remain exact. The original
+41-file bundle, weights, probabilities and evaluation results are unchanged;
+this supplement performs no sensing rollout or further training.
+
 Local Trackio imports initially failed because inherited RNG provenance
 contains integers larger than its JSON encoder supports. The dashboard-only
 adapter now preserves those integers' exact digits as strings. Original
