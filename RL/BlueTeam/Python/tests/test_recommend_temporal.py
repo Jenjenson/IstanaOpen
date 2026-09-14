@@ -46,6 +46,7 @@ def test_external_public_plan_matches_exact_supplied_simulation(monkeypatch, lea
     assert all(row["stop"] for row in plan["decisions"][len(expected):])
     assert plan["new_placements"] == [row for row in expected if not row["stop"]]
     assert plan["physical_commands_sent"] is False
+    assert plan["new_deployment_cost"] == pytest.approx(sum(row["cost"] for row in env.placements))
     assert sensors == before[1]
     assert policy.rng_fingerprint() == rng
 

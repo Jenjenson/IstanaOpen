@@ -31,6 +31,7 @@ def recommend_layout(policy, payload, *, config: TemporalConfig, catalogue=None,
             decisions.append(option)
             row = observation["option_features"][action]
             explanations.append({"action": action, "score": float(policy.scores(observation)[action]),
+                "deployment_cost": 0. if option["stop"] else float(observation["catalogue"][option["sensor_index"]]["cost"]),
                 "forecast": {name: float(row[FEATURE_NAMES.index(name)]) for name in
                     ("temporal_detection", "temporal_confirmation", "temporal_timely",
                      "temporal_marginal_timely", "temporal_marginal_return")}})
@@ -46,6 +47,7 @@ def recommend_layout(policy, payload, *, config: TemporalConfig, catalogue=None,
         "source": initial["state"]["source"], "physical_commands_sent": False,
         "status": "experimental_offline_recommendation_not_a_device_command",
         "decisions": decisions, "new_placements": [row for row in decisions if not row["stop"]],
+        "new_deployment_cost": sum(row["deployment_cost"] for row in explanations),
         "forecast_explanations": explanations, "final_public_state": state,
         "limitations": "Forecast values are approximate public-model estimates, not observed outcomes or calibrated real-world probabilities. Changed capabilities need evaluation; physical integration is not validated."}
 

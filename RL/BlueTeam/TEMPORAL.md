@@ -93,6 +93,20 @@ clearly labelled forecast estimates. Existing output files are never replaced.
 Input/catalogue objects and the policy RNG are unchanged. New catalogue
 capabilities remain experimental until separately evaluated.
 
+The three fixed trained endpoints were also checked on this same public example
+with only `available_sensor_ids` changed (inference only, no outcome scoring):
+
+| Available profiles | Recommended layout | Catalogue cost |
+|---|---|---:|
+| All five | Fused at site 10 | 2.0 |
+| All except fused | Radar at site 10, RF at site 27 (seed 406) or 26 (407/408) | 2.0 |
+| Radar only | Radar at site 10, then STOP | 1.2 |
+
+Site indices are zero-based and refer to the supplied snapshot's positions.
+These are all three endpoints, not a selected winner. This demonstrates
+availability-conditioned planning, **not successful defence, calibration or
+unseen-sensor generalization**. No device commands were sent.
+
 ## First development probe
 
 Before sampling any new evaluation cases, `probe_temporal.py` scores the public
