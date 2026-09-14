@@ -5,6 +5,12 @@ synthetic objective. It supports passive RF, search radar, electro-optical,
 thermal, and combined radar/thermal profiles, including repeated deployments
 of the same profile within the available budget.
 
+**New: randomized adaptive training.** Start with the
+[adaptive guide](ADAPTIVE.md) for scenario-conditioned sensor/site choices,
+an offline replay demo, external-format sensor inputs, and held-out comparisons
+against the original checkpoint and non-RL methods. The adaptive experiment
+is separate from the historical live Unreal experiment documented below.
+
 This package publishes the Python trainer, a trained checkpoint, recorded
 results, and selected native source from the TRIAD experiment. You can run the
 Python example immediately. Live Unreal training requires the original TRIAD
@@ -92,6 +98,9 @@ the seed changes do not make them 50 different threat scenarios. See
 | Included | Purpose |
 | --- | --- |
 | [Python/](Python/) | Policy, live bridge, training/evaluation commands, and tests |
+| [ADAPTIVE.md](ADAPTIVE.md) | Randomized trainer, trained adaptive checkpoint, offline demo and benchmark commands |
+| [ADAPTIVE_INPUTS.md](ADAPTIVE_INPUTS.md) | Shared simulated/external sensor input contract and recommendation API |
+| [Examples/](Examples/) | Public observation and interchangeable sensor catalogue examples |
 | [DefaultTrainingConfig.json](DefaultTrainingConfig.json) | Version-4 live scenario and five sensor profiles |
 | [Checkpoints/toy-210/](Checkpoints/toy-210/) | Live-trained policy, optimizer and random-generator state |
 | [Results/](Results/) | Training history, three evaluation reports, and native oracle |

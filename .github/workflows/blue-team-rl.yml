@@ -6,11 +6,13 @@ on:
       - "RL/BlueTeam/**"
       - ".github/workflows/blue-team-rl.yml"
       - "Tools/export_blue_rl.py"
+      - "Tools/publish_adaptive_rl.py"
   pull_request:
     paths:
       - "RL/BlueTeam/**"
       - ".github/workflows/blue-team-rl.yml"
       - "Tools/export_blue_rl.py"
+      - "Tools/publish_adaptive_rl.py"
   workflow_dispatch:
 
 permissions:
@@ -69,6 +71,36 @@ jobs:
           --dry-run --initial --stochastic --policy-seed 22
           --episodes 3 --seed 1500000000
           --output ci_artifacts/baseline
+
+      # A separate versioned experiment; the native toy-210 artifact above is
+      # preserved and is evaluated only through the explicit transfer adapter.
+      - name: Train an adaptive randomized smoke-test policy
+        run: >-
+          python -m triad_rl.train_adaptive
+          --episodes 8 --batch-size 4 --seed 22
+          --validation-every 8 --validation-episodes 2
+          --output ci_artifacts/adaptive
+
+      - name: Compare adaptive policy and non-RL baselines
+        run: >-
+          python evaluate_adaptive.py
+          --checkpoint ci_artifacts/adaptive/best
+          --episodes 3 --bootstrap-samples 100 --replays 1
+          --output ci_artifacts/adaptive-comparison.json
+
+      - name: Render an offline adaptive replay
+        run: >-
+          python demo_adaptive.py
+          --checkpoint ci_artifacts/adaptive/best --episodes 2
+          --output ci_artifacts/adaptive-demo.html
+
+      - name: Recommend a layout from an external-format snapshot
+        run: >-
+          python recommend_adaptive.py
+          --checkpoint ../Checkpoints/adaptive-v1
+          --input ../Examples/public-snapshot.json
+          --catalogue ../Examples/sensor-catalogue.json --now 0
+          --output ci_artifacts/adaptive-recommendation.json
 
       - name: Save smoke-test reports
         if: always()

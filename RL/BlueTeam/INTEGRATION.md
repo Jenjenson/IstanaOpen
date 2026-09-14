@@ -2,6 +2,12 @@
 
 ## What is runnable here
 
+The new [adaptive experiment](ADAPTIVE.md) is also self-contained: randomized
+training, external-format observation inference, paired evaluation and offline
+replay. Its `triad.sensor_input.v1` adapter is a backend-neutral planning
+boundary, not a native Unreal or physical-sensor connection. The live commands
+below refer only to the preserved TRIAD v4 experiment.
+
 The Python dry-run, policy, checkpoint inspection, and Python tests are
 self-contained. The live client speaks TRIAD's `triad.rl_training.v4` contract
 over Unreal Remote Control. It is not an adapter for Istana Open's
@@ -18,6 +24,8 @@ supported setup procedure.
 | Component | Current state |
 | --- | --- |
 | Blue profile/position policy and CPU trainer | Included; runnable with the Python dry-run |
+| Adaptive joint sensor/site policy, randomized simulator and replay | Included; runnable without Unreal |
+| External public-observation adapter | Included; returns local recommendations only; device feeds require integration |
 | TRIAD Remote Control client | Included; requires a compatible live TRIAD manager |
 | TRIAD native manager/model/types | Selected reference source only |
 | Istana Open Red Team Manager | Existing separate swarm implementation |

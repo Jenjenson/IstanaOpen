@@ -1,0 +1,92 @@
+[
+  {
+    "id": "rf",
+    "label": "Passive RF",
+    "cost": 0.8,
+    "ranges": {
+      "rf": 130,
+      "radar": 0,
+      "eo": 0,
+      "thermal": 0
+    },
+    "strengths": {
+      "rf": 0.88,
+      "radar": 0,
+      "eo": 0,
+      "thermal": 0
+    },
+    "height_m": 4
+  },
+  {
+    "id": "radar",
+    "label": "Search radar",
+    "cost": 1.2,
+    "ranges": {
+      "rf": 0,
+      "radar": 100,
+      "eo": 0,
+      "thermal": 0
+    },
+    "strengths": {
+      "rf": 0,
+      "radar": 0.86,
+      "eo": 0,
+      "thermal": 0
+    },
+    "height_m": 4
+  },
+  {
+    "id": "eo",
+    "label": "Electro-optical",
+    "cost": 0.7,
+    "ranges": {
+      "rf": 0,
+      "radar": 0,
+      "eo": 100,
+      "thermal": 0
+    },
+    "strengths": {
+      "rf": 0,
+      "radar": 0,
+      "eo": 0.94,
+      "thermal": 0
+    },
+    "height_m": 4
+  },
+  {
+    "id": "thermal",
+    "label": "Thermal",
+    "cost": 1,
+    "ranges": {
+      "rf": 0,
+      "radar": 0,
+      "eo": 0,
+      "thermal": 115
+    },
+    "strengths": {
+      "rf": 0,
+      "radar": 0,
+      "eo": 0,
+      "thermal": 0.86
+    },
+    "height_m": 4
+  },
+  {
+    "id": "fused",
+    "label": "Radar + thermal",
+    "cost": 2,
+    "ranges": {
+      "rf": 0,
+      "radar": 100,
+      "eo": 0,
+      "thermal": 125
+    },
+    "strengths": {
+      "rf": 0,
+      "radar": 0.86,
+      "eo": 0,
+      "thermal": 0.86
+    },
+    "height_m": 4
+  }
+]

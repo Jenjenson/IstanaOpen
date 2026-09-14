@@ -251,7 +251,10 @@ rewards and full episode coordination remain future work.
 
 The [Blue Team RL package](RL/BlueTeam/README.md) adds a CPU Python trainer for
 choosing sensor profiles and continuous placements, a trained TRIAD checkpoint,
-and recorded evaluation results. Start with its Unreal-free quickstart. Live
+and recorded evaluation results. Its new [adaptive experiment](RL/BlueTeam/ADAPTIVE.md)
+adds randomized threats/weather, joint sensor/site decisions, a shared external
+input contract, held-out baseline comparisons and an offline replay demo.
+Start with its Unreal-free quickstart. Live
 training requires the separate original TRIAD host; integration with Istana
 Open's Red Team Manager and policy interface is still pending. See the
 [integration guide](RL/BlueTeam/INTEGRATION.md) and

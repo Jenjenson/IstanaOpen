@@ -1,0 +1,685 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Blue Team · Adaptive deployment replay</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0d1420;
+        --panel: #141f30;
+        --ink: #e8eef6;
+        --muted: #a9b8c9;
+        --line: #2c3c50;
+        --blue: #79beff;
+        --green: #77dab0;
+        --amber: #f4c77d;
+        --red: #ff8b96;
+        font:
+          15px/1.5 system-ui,
+          sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+      }
+      main {
+        max-width: 1250px;
+        margin: auto;
+        padding: 30px;
+      }
+      h1 {
+        font-size: clamp(24px, 4vw, 36px);
+        line-height: 1.2;
+        font-weight: 600;
+        margin: 8px 0 10px;
+      }
+      h2 {
+        font-size: 17px;
+        margin: 0 0 12px;
+        font-weight: 600;
+      }
+      p {
+        margin: 8px 0;
+        color: var(--muted);
+      }
+      .eyebrow {
+        font-size: 12px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--blue);
+      }
+      header {
+        margin-bottom: 24px;
+      }
+      .toolbar {
+        display: flex;
+        align-items: end;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin: 20px 0;
+      }
+      label {
+        display: flex;
+        gap: 7px;
+        flex-direction: column;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      select,
+      button {
+        font: inherit;
+        color: var(--ink);
+        border: 1px solid var(--line);
+        background: var(--panel);
+        border-radius: 6px;
+        padding: 9px 12px;
+        min-height: 42px;
+      }
+      button {
+        cursor: pointer;
+      }
+      button:focus-visible,
+      select:focus-visible,
+      input:focus-visible {
+        outline: 2px solid var(--blue);
+        outline-offset: 3px;
+      }
+      label.scrub {
+        flex: 1;
+        min-width: 180px;
+      }
+      input {
+        width: 100%;
+        accent-color: var(--blue);
+        min-height: 25px;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.8fr) minmax(270px, 1fr);
+        gap: 24px;
+      }
+      .map {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        overflow: hidden;
+        background: #101b29;
+      }
+      .map svg {
+        display: block;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1;
+      }
+      .map-caption {
+        padding: 12px 15px;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 12px;
+      }
+      section.details {
+        padding: 0 0 12px;
+      }
+      .metric-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin: 16px 0;
+      }
+      .metric {
+        border-top: 1px solid var(--line);
+        padding-top: 10px;
+      }
+      .metric span {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .metric strong {
+        font-size: 25px;
+        font-weight: 500;
+        font-variant-numeric: tabular-nums;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 13px;
+      }
+      td,
+      th {
+        text-align: left;
+        padding: 8px 5px;
+        border-bottom: 1px solid var(--line);
+        font-weight: 400;
+      }
+      th {
+        color: var(--muted);
+      }
+      .legend {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding: 12px 0;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .swatch {
+        display: inline-block;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        margin-right: 4px;
+      }
+      .note {
+        font-size: 12px;
+        margin-top: 16px;
+      }
+      .status {
+        font-size: 13px;
+        color: var(--green);
+        margin-top: 4px;
+        min-height: 20px;
+      }
+      .reward {
+        margin-top: 22px;
+      }
+      .barrow {
+        display: grid;
+        grid-template-columns: 130px 1fr 45px;
+        gap: 8px;
+        align-items: center;
+        font-size: 12px;
+        padding: 3px 0;
+      }
+      .bar-track {
+        height: 5px;
+        background: var(--line);
+      }
+      .bar {
+        height: 5px;
+        background: var(--green);
+      }
+      .value {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      footer {
+        border-top: 1px solid var(--line);
+        margin-top: 24px;
+        padding-top: 15px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .error {
+        color: var(--red);
+      }
+      @media (max-width: 780px) {
+        main {
+          padding: 18px;
+        }
+        .layout {
+          grid-template-columns: 1fr;
+        }
+        .map {
+          max-width: 620px;
+        }
+        select {
+          max-width: 100%;
+        }
+        .toolbar label:first-child {
+          width: 100%;
+        }
+        .toolbar label.scrub {
+          width: 100%;
+          flex-basis: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div class="eyebrow">Blue Team / Learning laboratory</div>
+        <h1>Adaptive sensor deployment</h1>
+        <p>
+          A trained policy chooses sensor types and sites for each new scenario.
+          Inspect its layout, then replay the sensing outcome.
+        </p>
+      </header>
+      <div class="toolbar">
+        <label
+          >Recorded scenario<select
+            id="scenario"
+            aria-label="Recorded scenario"
+          ></select
+        ></label>
+        <button id="play" type="button">Play replay</button>
+        <button id="restart" type="button">Restart</button>
+        <label class="scrub"
+          >Replay time <output id="time">0.0 s</output
+          ><input
+            id="timeline"
+            type="range"
+            min="0"
+            value="0"
+            step="1"
+            aria-label="Replay frame"
+        /></label>
+      </div>
+      <div class="layout">
+        <div>
+          <div class="map">
+            <svg
+              id="arena"
+              viewBox="0 0 650 650"
+              role="img"
+              aria-label="Sensor and threat positions in the synthetic arena"
+            >
+              <title>Sensor deployment and drone paths</title>
+            </svg>
+            <div class="map-caption">
+              Local East / North coordinates in metres. Dashed rings: nominal
+              sensor ranges, not guaranteed coverage. Trails and threat markers:
+              evaluation ground truth, not policy inputs.
+            </div>
+          </div>
+          <div class="legend">
+            <span
+              ><i class="swatch" style="background: var(--blue)"></i
+              >Sensor</span
+            ><span>◇ Undetected threat</span
+            ><span style="color: var(--amber)">◇ Detected</span
+            ><span style="color: var(--green)">◇ Confirmed track</span
+            ><span style="color: var(--red)">× Missed deadline</span>
+          </div>
+        </div>
+        <section class="details">
+          <h2 id="heading">Scenario</h2>
+          <p id="conditions"></p>
+          <div id="frame-status" class="status" aria-live="polite"></div>
+          <div class="metric-row">
+            <div class="metric">
+              <span>Final episode reward</span><strong id="reward">—</strong>
+            </div>
+            <div class="metric">
+              <span>Timely confirmed detection</span
+              ><strong id="outcome">—</strong>
+            </div>
+            <div class="metric">
+              <span>Detected threats</span><strong id="detected">—</strong>
+            </div>
+            <div class="metric">
+              <span>Sensor cost / budget</span><strong id="cost">—</strong>
+            </div>
+          </div>
+          <h2>Policy-selected layout</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Sensor type</th>
+                <th>East, North (m)</th>
+                <th>Cost</th>
+              </tr>
+            </thead>
+            <tbody id="placements"></tbody>
+          </table>
+          <div class="reward">
+            <h2>Reward breakdown</h2>
+            <div id="components"></div>
+          </div>
+          <p class="note">
+            Recorded replay, not live inference. The policy makes sequential
+            placement decisions before the approach; it does not move deployed
+            sensors. “Defence” means timely confirmed detection in this
+            synthetic model, not physical interception.
+          </p>
+        </section>
+      </div>
+      <footer id="provenance"></footer>
+      <p id="error" role="alert" class="error"></p>
+    </main>
+    <script id="replay-data" type="application/json">
+      __REPLAY_DATA__
+    </script>
+    <script>
+      "use strict";
+      (() => {
+        const byId = (id) => document.getElementById(id);
+        const svgNS = "http://www.w3.org/2000/svg";
+        const make = (tag, attrs = {}, text = "") => {
+          const e = document.createElementNS(svgNS, tag);
+          for (const [k, v] of Object.entries(attrs))
+            e.setAttribute(k, String(v));
+          if (text) e.textContent = text;
+          return e;
+        };
+        const fmt = (v, n = 1) =>
+          Number.isFinite(Number(v)) ? Number(v).toFixed(n) : "—";
+        const pct = (v) =>
+          Number.isFinite(Number(v)) ? `${Math.round(Number(v) * 100)}%` : "—";
+        let data,
+          replay,
+          frameIndex = 0,
+          timer = null;
+        const pause = () => {
+          if (timer !== null) clearInterval(timer);
+          timer = null;
+          byId("play").textContent = "Play replay";
+        };
+        function draw() {
+          const frames = replay.frames,
+            frame = frames[frameIndex],
+            svg = byId("arena");
+          const width = Math.max(280, svg.getBoundingClientRect().width);
+          const compact = width < 480;
+          svg.replaceChildren(
+            make("title", {}, "Sensor deployment and drone paths"),
+          );
+          const all = frames
+            .flatMap((f) => f.threats || [])
+            .map((t) => t.position)
+            .concat(replay.placements.map((p) => p.position));
+          const extent =
+              Math.max(
+                220,
+                ...all.flatMap((p) => p.slice(0, 2).map(Math.abs)),
+              ) * 1.18,
+            scale = 285 / extent;
+          const xy = (p) => [
+            325 + Number(p[0]) * scale,
+            325 - Number(p[1]) * scale,
+          ];
+          const line = (a, b, attrs = {}) =>
+            svg.append(
+              make("line", {
+                x1: a[0],
+                y1: a[1],
+                x2: b[0],
+                y2: b[1],
+                stroke: "#2c3c50",
+                ...attrs,
+              }),
+            );
+          const labelBoxes = [];
+          const text = (p, s, attrs = {}) => {
+            const node = make(
+                "text",
+                {
+                  x: p[0],
+                  y: p[1],
+                  fill: "#a9b8c9",
+                  "font-family": "system-ui",
+                  ...attrs,
+                  "font-size": Number(attrs["font-size"] || 12) * 650 / width,
+                },
+                s,
+              );
+            svg.append(node);
+            labelBoxes.push(node.getBBox());
+          };
+          const threatLabel = (point, label, color) => {
+            const unit = 650 / width;
+            const labelWidth = label.length * 6.3 * unit;
+            const labelHeight = 13 * unit;
+            let best = null;
+            for (const [dx,dy] of [[12,17],[12,-15],[20,34],[-115,-18],[-115,25],[25,52],[-120,45],[30,-40]]) {
+              const box = {x: Math.max(12,Math.min(630-labelWidth,point[0]+dx*unit)),
+                           y: Math.max(35,Math.min(605-labelHeight,point[1]+dy*unit-labelHeight)),
+                           width:labelWidth,height:labelHeight};
+              const conflicts = labelBoxes.filter(b => box.x < b.x+b.width+4*unit && box.x+box.width+4*unit > b.x && box.y < b.y+b.height+3*unit && box.y+box.height+3*unit > b.y).length;
+              if (!best || conflicts < best.conflicts) best={box,conflicts};
+              if (!conflicts) break;
+            }
+            const anchor=[best.box.x,best.box.y+labelHeight];
+            line(point,[anchor[0],anchor[1]-labelHeight/2],{stroke:color,"stroke-opacity":.35});
+            text(anchor,label,{fill:color,"font-size":11});
+          };
+          for (let i = -2; i <= 2; i++) {
+            const m = (i * extent) / 3;
+            const [x, y] = xy([m, m]);
+            line([x, 40], [x, 610]);
+            line([40, y], [610, y]);
+            if (i) {
+              if (!compact || Math.abs(i) === 1) {
+                text([x, 632], fmt(m, 0), { "text-anchor": "middle" });
+              }
+              text([10, y + 4], fmt(m, 0));
+            }
+          }
+          text([325, 24], "North (m)", { "text-anchor": "middle" });
+          text([605, 632], "East (m)", { "text-anchor": "end" });
+          svg.append(
+            make("circle", {
+              cx: 325,
+              cy: 325,
+              r:
+                Number(replay.scenario.objective_radius || 20) * scale,
+              fill: "#263244",
+              stroke: "#7791ad",
+            }),
+          );
+          text([325, 329], "Objective", {
+            "text-anchor": "middle",
+            "font-size": 11,
+          });
+          replay.placements.forEach((p, index) => {
+            const c = replay.catalogue.find((s) => s.id === p.sensor_id) || {},
+              [x, y] = xy(p.position);
+            const range = Math.max(0, ...Object.values(c.ranges || {}));
+            svg.append(
+              make("circle", {
+                cx: x,
+                cy: y,
+                r: range * scale,
+                fill: "none",
+                stroke: "#79beff",
+                "stroke-opacity": 0.22,
+                "stroke-dasharray": "5 5",
+              }),
+            );
+            svg.append(
+              make("rect", {
+                x: x - 5,
+                y: y - 5,
+                width: 10,
+                height: 10,
+                rx: 2,
+                fill: "#79beff",
+              }),
+            );
+            text([x + 10, y - 9], compact ? `${index + 1}` : `${index + 1} ${c.label || p.sensor_id}`, {
+              fill: "#d3eaff",
+              "font-size": 12,
+            });
+          });
+          const threats = frame.threats || [];
+          threats.forEach((t) => {
+            const trail = frames
+              .slice(0, frameIndex + 1)
+              .map((f) => (f.threats || []).find((v) => v.id === t.id))
+              .filter(Boolean)
+              .map((v) => xy(v.position).join(","))
+              .join(" ");
+            svg.append(
+              make("polyline", {
+                points: trail,
+                fill: "none",
+                stroke: "#8494a8",
+                "stroke-opacity": 0.45,
+                "stroke-width": 1,
+              }),
+            );
+          });
+          (frame.detections || []).forEach((d) => {
+            const p = replay.placements[d.sensor_index],
+              t = threats.find((t) => t.id === d.target_id);
+            if (p && t)
+              line(xy(p.position), xy(t.position), {
+                stroke: "#f4c77d",
+                "stroke-opacity": 0.6,
+                "stroke-dasharray": "3 3",
+              });
+          });
+          threats.forEach((t) => {
+            const [x, y] = xy(t.position),
+              color = t.breached
+                ? "#ff8b96"
+                : t.tracked
+                  ? "#77dab0"
+                  : t.detected
+                    ? "#f4c77d"
+                    : "#c5d0dd";
+            if (t.breached) {
+              line([x - 5, y - 5], [x + 5, y + 5], {
+                stroke: color,
+                "stroke-width": 2,
+              });
+              line([x - 5, y + 5], [x + 5, y - 5], {
+                stroke: color,
+                "stroke-width": 2,
+              });
+            } else
+              svg.append(
+                make("polygon", {
+                  points: `${x},${y - 6} ${x + 6},${y} ${x},${y + 6} ${x - 6},${y}`,
+                  fill: color,
+                }),
+              );
+            if (!compact) {
+              threatLabel([x,y],`${t.id} · ${fmt(t.position[2], 0)}m`,color);
+            }
+          });
+          byId("timeline").value = frameIndex;
+          byId("time").textContent =
+            `${fmt(frame.time)} s / ${fmt(frames.at(-1).time)} s`;
+          byId("frame-status").textContent =
+            `Frame ${frameIndex + 1}/${frames.length} · ${threats.filter((t) => t.detected).length} detected now · ${threats.filter((t) => t.tracked).length} confirmed tracks`;
+        }
+        function select(index) {
+          pause();
+          replay = data.replays[index];
+          frameIndex = 0;
+          byId("timeline").max = replay.frames.length - 1;
+          const m = replay.metrics,
+            s = replay.scenario;
+          byId("heading").textContent =
+            `Scenario ${Number(index) + 1} / seed ${replay.seed}`;
+          const weather = s.public?.weather || {};
+          const paths = [...new Set((s.targets || []).map(t => t.path))].join(" / ");
+          byId("conditions").textContent =
+            `${replay.split} · ${replay.frames[0].threats.length} threats · visibility ${pct(weather.visibility)} · rain ${pct(weather.rain)} · light ${pct(weather.illumination)} · ${paths}`;
+          byId("reward").textContent = fmt(
+            m.return ?? m.total_reward ?? m.reward,
+            2,
+          );
+          byId("outcome").textContent =
+            m.success === true ||
+            m.success === 1 ||
+            m.outcome === "defended" ||
+            m.outcome === "success"
+              ? "Success"
+              : "Missed";
+          byId("detected").textContent = pct(
+            m.detected_fraction ?? m.detection_rate,
+          );
+          byId("cost").textContent =
+            `${fmt(m.cost ?? m.total_cost)} / ${fmt(s.public?.budget_total)}`;
+          byId("placements").replaceChildren();
+          replay.placements.forEach((p, i) => {
+            const row = document.createElement("tr"),
+              c = replay.catalogue.find((s) => s.id === p.sensor_id) || {};
+            [
+              `${i + 1}. ${c.label || p.sensor_id}`,
+              p.position.map((x) => fmt(x, 0)).join(", "),
+              fmt(p.cost),
+            ].forEach((v) => {
+              const td = document.createElement("td");
+              td.textContent = v;
+              row.append(td);
+            });
+            byId("placements").append(row);
+          });
+          if (!replay.placements.length) {
+            const row = document.createElement("tr"),
+              cell = document.createElement("td");
+            cell.colSpan = 3;
+            cell.textContent = "Policy committed without deploying";
+            row.append(cell);
+            byId("placements").append(row);
+          }
+          const components = Object.entries(m.reward_components || {}),
+            maximum = Math.max(
+              1,
+              ...components.map(([, v]) => Math.abs(Number(v))),
+            );
+          byId("components").replaceChildren();
+          components.forEach(([key, v]) => {
+            const row = document.createElement("div");
+            row.className = "barrow";
+            const label = document.createElement("span");
+            label.textContent = key.replaceAll("_", " ");
+            const track = document.createElement("div");
+            track.className = "bar-track";
+            const bar = document.createElement("div");
+            bar.className = "bar";
+            bar.style.width = `${(Math.abs(Number(v)) / maximum) * 100}%`;
+            if (v < 0) bar.style.background = "var(--red)";
+            track.append(bar);
+            const val = document.createElement("span");
+            val.className = "value";
+            val.textContent = fmt(v, 2);
+            row.append(label, track, val);
+            byId("components").append(row);
+          });
+          draw();
+        }
+        try {
+          data = JSON.parse(byId("replay-data").textContent);
+          data.replays.forEach((r, i) => {
+            const opt = document.createElement("option");
+            opt.value = i;
+            opt.textContent = `Scenario ${i + 1} · ${r.split} · seed ${r.seed}`;
+            byId("scenario").append(opt);
+          });
+          byId("scenario").addEventListener("change", (e) =>
+            select(e.target.value),
+          );
+          byId("timeline").addEventListener("input", (e) => {
+            pause();
+            frameIndex = Number(e.target.value);
+            draw();
+          });
+          byId("restart").addEventListener("click", () => {
+            pause();
+            frameIndex = 0;
+            draw();
+          });
+          byId("play").addEventListener("click", () => {
+            if (timer !== null) {
+              pause();
+              return;
+            }
+            if (frameIndex === replay.frames.length - 1) frameIndex = 0;
+            byId("play").textContent = "Pause";
+            timer = setInterval(() => {
+              frameIndex = Math.min(frameIndex + 1, replay.frames.length - 1);
+              draw();
+              if (frameIndex === replay.frames.length - 1) pause();
+            }, 150);
+          });
+          byId("provenance").textContent =
+            `Checkpoint: ${data.checkpoint} · ${(data.weights_sha256 || "").slice(0,12)} · ${data.schema} · CPU NumPy policy · Synthetic sensor models; no real-world performance claim.`;
+          select(0);
+          new ResizeObserver(() => { if(replay) draw(); }).observe(byId("arena"));
+        } catch (error) {
+          byId("error").textContent = `Could not load replay: ${error.message}`;
+        }
+      })();
+    </script>
+  </body>
+</html>
