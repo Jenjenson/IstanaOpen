@@ -1,0 +1,130 @@
+{
+  "schema": "triad.ranking_pilot_protocol.v1",
+  "experiment": "ranking-v5-pilot",
+  "status": "predeclared_development_experiment_not_a_release",
+  "prior_publication": {
+    "path": "Results/anchored-v4-pilot/artifact-manifest.json",
+    "sha256": "e0842860986efe40b06e6d6b7a7f7210ccb5d6802037defc3ee414c7f075bab5",
+    "source_commit": "406a62edce45bc31717bdcad139bf67395e5891c"
+  },
+  "proposal_v3_weights_sha256": "a48d3c3a5b43e99dd4545cfb7321eb64077dceb09432a60658c2649dd19f21c0",
+  "training": {
+    "policy_seeds": [403, 404, 405],
+    "episodes": 1024,
+    "batch_size": 16,
+    "passes_per_batch": 4,
+    "profile": "mixed",
+    "hidden_size": 64,
+    "max_actions": 6,
+    "learning_rate": 0.002,
+    "temperature": 0.1,
+    "regularization": 0.01,
+    "max_grad_norm": 1.0,
+    "initialization": "exact_public_greedy_prior_plus_zero_residual",
+    "continuation": "frozen_public_greedy",
+    "behavior": "current_ranker_deterministic_before_branch_labels",
+    "endpoint": "fixed_no_selection_or_resume",
+    "scenario_seed_ranges": {
+      "403": {"start": 403000000, "count": 1024},
+      "404": {"start": 404000000, "count": 1024},
+      "405": {"start": 405000000, "count": 1024}
+    },
+    "empty_labels": "Retain every visited state in the audit dataset; omit exact all-tier-tie states from optimization. An entirely tied batch performs zero updates. No scenario filtering or replacement.",
+    "rationale": "Three fresh training seeds and 1024 live episodes per seed test reproducibility before scaling. Every visited state spends up to six additional full simulator rollouts. Four passes per fixed batch give at most 256 Adam updates per seed. This is a changed training objective, not a compute-matched v3 comparison."
+  },
+  "slate": {
+    "priority": ["STOP", "public greedy overall best", "current ranker deterministic best", "v3 best legal deployment", "public greedy best deployment at a different site from its best deployment", "one remaining sensor-balanced random deployment"],
+    "deduplication": "Keep first occurrence; fill remaining slots by stable public greedy utility until six or all legal actions exhausted.",
+    "randomness": "Independent per-case slate RNG. Uniform remaining sensor ID, then uniform remaining row within that ID. No policy RNG or live environment mutation.",
+    "outcome_labels": "Recreate exact training case and committed prefix per action, take the candidate, then complete with frozen public greedy. One paired simulator draw per alternative; no future truth enters inference."
+  },
+  "learning_objective": {
+    "prior": "3*marginal_coverage + marginal_early_coverage - .25*cost - .15*overlap; STOP prior zero. Cost feature is actual_cost/4, exactly as frozen public greedy.",
+    "residual": "Shared tanh(features@w1+b1)@wa, including STOP; zero wa initializes deterministic actions exactly to public greedy.",
+    "preference_priority": ["timely_fraction", "detection_fraction", "episode_return"],
+    "ties": "Only exact equality advances to the next tier; exact three-tier ties generate no pair.",
+    "pair_weights": ["abs(delta_timely)", ".1*abs(delta_detection)", ".01*min(abs(delta_return)/20,1)"],
+    "loss": "Total-weight-normalized pairwise logistic loss at temperature .1 plus .01*mean(residual^2) over all supplied slate rows.",
+    "physics_reward_features": "Unchanged published simulator, terminal reward, public feature schema, masks and curriculum. Private rollout outcomes are detached training targets only."
+  },
+  "validation": {
+    "stage": "validation",
+    "episodes_per_profile": 200,
+    "run_seeds": {"normal": 995300, "stress": 995301, "capability": 995302},
+    "scenario_seed_ranges": {
+      "normal": {"start": 1000995300000000, "count": 200},
+      "stress": {"start": 1000995301000000, "count": 200},
+      "capability": {"start": 1000995302000000, "count": 200}
+    },
+    "methods": ["ranker_403", "ranker_404", "ranker_405", "greedy_public", "balanced_v3", "robust_v2", "adaptive_v1", "anchored_later_stop"],
+    "bootstrap_samples": 2000,
+    "bootstrap_seed": 73043,
+    "confidence_interval": "First average the three ranker metrics for each scenario, then resample paired scenario differences within each profile and average profile means equally. Two-sided 95% percentile intervals; conditional on these three trained endpoints, not population training-seed uncertainty.",
+    "selection": "Evaluate all three fixed endpoints. No best-seed selection, ensemble action selection, early stopping, retraining or reserved final-test access."
+  },
+  "scale_gate": {
+    "comparators": ["greedy_public", "balanced_v3"],
+    "minimum_equal_profile_gain": 0.01,
+    "require_paired_ci_lower_above_zero": true,
+    "maximum_profile_point_decline": 0.01,
+    "maximum_individual_seed_point_decline": 0.01,
+    "require_equal_profile_detection_not_lower": true,
+    "require_equal_profile_all_threat_success_not_lower": true,
+    "require_equal_profile_mean_return_not_lower": true,
+    "interpretation": "All conditions must hold against both comparators. Primary metric is timely confirmed fraction. Profile point-decline guard applies to timely and detection fractions averaged across ranker seeds. Individual-seed guard applies to equal-profile timely fraction. Aggregate detection, all-threat success and original return must not be lower. Point guards are not statistical noninferiority. Passing supports further development, not automatic deployment or a final-tested robustness claim."
+  },
+  "reserved_final_tests_unopened": {
+    "normal": {"start": 2000000500000000, "count": 200},
+    "stress": {"start": 2000000501000000, "count": 200},
+    "capability": {"start": 2000000502000000, "count": 200}
+  },
+  "limitations": [
+    "Development experiment designed after inspecting already-consumed prior results. Fresh validation is a new development screen, not the reserved final test.",
+    "Single paired rollout per alternative is noisy; labels are not expected values or oracle optimal actions. Lexicographic sensing preferences change the learning objective, while reported episode reward stays unchanged.",
+    "Frozen greedy continuation differs from learned live continuation, so no monotonic policy-improvement or convergence guarantee applies.",
+    "Slate proposals cover at most six legal actions, not every sensor/site combination. Public v3 proposals are frozen references, not ranker initialization.",
+    "Three training seeds are reported separately. Scenario bootstrap intervals do not establish robustness over all possible training seeds.",
+    "Initial sequential planning on synthetic cases only. Timely confirmed sensing is not interception. No native Unreal, live sensor hardware, physical commands or mid-flight relocation validation is claimed."
+  ],
+  "training_implementation_sha256": {
+    "triad_rl/adaptive_env.py": "afbf0bdedb62ffeb07e416dfa8745378d7057f549d8b5f771cbfd599ae428cc8",
+    "triad_rl/adaptive_inputs.py": "fe011855192d1f5450f10955178f7ed6069cbed58bde090734b0407e474799b9",
+    "triad_rl/adaptive_policy.py": "bc3909894e3b4f418a0a2740fe5fd42c28023d9c1ed96e456c57e829fb06577d",
+    "triad_rl/balanced_policy.py": "a9c8b72521d890dd6cfcd40e4fdffd5970f13d5e29aaf11451656274fe327704",
+    "triad_rl/robust_scenarios.py": "e07cbe525f5997a91561ef3c1c52e62e618b58b5efc915c57e68f82a9d86e6ba",
+    "triad_rl/train_adaptive.py": "e356a4e46782a2fe93d54f7da1095ae4e34fd0664ccecdbde3561756297c66c9",
+    "triad_rl/train_robust.py": "79b870b2a00d46f93e8cc0544d5b85818a2ce8d88fbb9a807df0ac90a1f95e87",
+    "triad_rl/counterfactual_rollout.py": "6d659ec831b9ff906b295d7729d9613c4812c4577fe3220e184d1f741b1cd791",
+    "triad_rl/credit_lineage.py": "4c5596c333f5617fc3f1047b977066240b2d2dcf349d94ead6e1aa3b7ca96a02",
+    "triad_rl/train_credit_pilot.py": "a4a4b90558223bd9b63561680542a08415a62e07c2ce74c4a739e85f8894cde5",
+    "triad_rl/adaptive_evaluation.py": "01fd9293a699f25cfeaaff3ad6399b7ec1695a5e67ee6583efb3076ddb5e0910",
+    "triad_rl/placement_policy.py": "29fe2d3eb327ef25d0416b0c38324d7d31ebd7f7134727b3486afdf128d10607",
+    "triad_rl/anchored_lineage.py": "1b6e11e37c69292fd839d4db00db9d7b3ae5ab02d26191390b74d5fcdf213fa5",
+    "triad_rl/ranking_lineage.py": "e91a0f5833679ec29b4108d74215993e6f79696b1e9f607e3b4542203efc8b6d",
+    "triad_rl/ranking_policy.py": "b54405aefd8fff8717915226614b6692aded7b698d1e698e57e166fd9f5d8a6c",
+    "triad_rl/ranking_rollout.py": "14f1107fc302de8841655ae4b987567456e29482a6ac04fe785f78f7950a057b",
+    "triad_rl/train_ranking.py": "57f5cfcde18885c2c08340f4ae8e444731f86847360fb862bef5470fff4c834d"
+  },
+  "evaluation_implementation_sha256": {
+    "evaluate_robust.py": "e3f4b1d6fdc57e200af4b86a15d20185ee235618cf124d71b2bb4d0cc169c911",
+    "triad_rl/adaptive_env.py": "afbf0bdedb62ffeb07e416dfa8745378d7057f549d8b5f771cbfd599ae428cc8",
+    "triad_rl/adaptive_inputs.py": "fe011855192d1f5450f10955178f7ed6069cbed58bde090734b0407e474799b9",
+    "triad_rl/adaptive_policy.py": "bc3909894e3b4f418a0a2740fe5fd42c28023d9c1ed96e456c57e829fb06577d",
+    "triad_rl/adaptive_evaluation.py": "01fd9293a699f25cfeaaff3ad6399b7ec1695a5e67ee6583efb3076ddb5e0910",
+    "triad_rl/train_adaptive.py": "e356a4e46782a2fe93d54f7da1095ae4e34fd0664ccecdbde3561756297c66c9",
+    "triad_rl/robust_scenarios.py": "e07cbe525f5997a91561ef3c1c52e62e618b58b5efc915c57e68f82a9d86e6ba",
+    "triad_rl/train_robust.py": "79b870b2a00d46f93e8cc0544d5b85818a2ce8d88fbb9a807df0ac90a1f95e87",
+    "triad_rl/balanced_policy.py": "a9c8b72521d890dd6cfcd40e4fdffd5970f13d5e29aaf11451656274fe327704",
+    "triad_rl/counterfactual_rollout.py": "6d659ec831b9ff906b295d7729d9613c4812c4577fe3220e184d1f741b1cd791",
+    "triad_rl/credit_lineage.py": "4c5596c333f5617fc3f1047b977066240b2d2dcf349d94ead6e1aa3b7ca96a02",
+    "triad_rl/train_credit_pilot.py": "a4a4b90558223bd9b63561680542a08415a62e07c2ce74c4a739e85f8894cde5",
+    "triad_rl/placement_policy.py": "29fe2d3eb327ef25d0416b0c38324d7d31ebd7f7134727b3486afdf128d10607",
+    "triad_rl/anchored_lineage.py": "1b6e11e37c69292fd839d4db00db9d7b3ae5ab02d26191390b74d5fcdf213fa5",
+    "triad_rl/ranking_lineage.py": "e91a0f5833679ec29b4108d74215993e6f79696b1e9f607e3b4542203efc8b6d",
+    "triad_rl/ranking_policy.py": "b54405aefd8fff8717915226614b6692aded7b698d1e698e57e166fd9f5d8a6c",
+    "triad_rl/ranking_rollout.py": "14f1107fc302de8841655ae4b987567456e29482a6ac04fe785f78f7950a057b",
+    "triad_rl/train_ranking.py": "57f5cfcde18885c2c08340f4ae8e444731f86847360fb862bef5470fff4c834d",
+    "evaluate_ranking.py": "9a6f3c1c3bf33265935d05b26068f74291f19eb2cffec6a1868dffc00e604d92",
+    "triad_rl/evaluate_credit_pilot.py": "044b1196f5b6ece6e99fcd13680095d796d33dc9d2e4cfd8fcb1e72e4e278517"
+  }
+}

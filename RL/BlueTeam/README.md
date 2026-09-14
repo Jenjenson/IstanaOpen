@@ -34,6 +34,11 @@ credit. Its [completed results](ANCHORED_PILOT_RESULTS.md) show better sensing
 than the matched control but no demonstrated timely-sensing gain over v3; the fixed
 scaling gate failed and no new policy was promoted.
 
+The [rollout-guided ranking pilot](RANKING_PILOT.md) tests direct sensor/site
+preferences with a learnable correction to public greedy, including STOP.
+Its three-seed protocol keeps the original sensing physics and public inputs;
+this is a development experiment, not a promoted replacement.
+
 This package publishes the Python trainer, a trained checkpoint, recorded
 results, and selected native source from the TRIAD experiment. You can run the
 Python example immediately. Live Unreal training requires the original TRIAD
