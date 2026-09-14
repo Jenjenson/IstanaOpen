@@ -1,0 +1,108 @@
+{
+  "schema": "triad.credit_assignment_pilot_protocol.v1",
+  "experiment": "credit-v4-pilot",
+  "status": "predeclared_diagnostic_pilot_not_a_release",
+  "frozen_reference": {
+    "checkpoint": "Checkpoints/balanced-v3-candidate",
+    "weights_sha256": "a48d3c3a5b43e99dd4545cfb7321eb64077dceb09432a60658c2649dd19f21c0",
+    "selection_report": "Results/balanced-v3/selection.json",
+    "selection_report_sha256": "94d28d6b30fe33b0d23f1901db0912b65e8ff222bd00846f9558560cc4d9f58b",
+    "publication_manifest": "Results/balanced-v3/artifact-manifest.json",
+    "publication_manifest_sha256": "6c05b4004f1cc427bebb253a08afefe70bec68b821fb44d18737c285ab9a6e2a",
+    "source_commit": "b6b538d1a123f40b2046c1970116e9c3f6b81e62"
+  },
+  "training": {
+    "policy_seed": 401,
+    "scenario_seed_start": 401000000,
+    "episodes": 1024,
+    "batch_size": 16,
+    "learning_rate": 0.002,
+    "entropy_coef": 0.015,
+    "gamma": 1.0,
+    "max_grad_norm": 1.0,
+    "profile": "mixed",
+    "initialization": "Copy identical frozen v3 parameter arrays into fresh BalancedPolicy; zero Adam moments and update count; explicitly reset RNG after construction.",
+    "endpoint": "Fixed episode 1024; no internal validation, best checkpoint selection, or early stopping.",
+    "advantage_normalization": "Unchanged BalancedPolicy.update: raw return-to-go minus recorded value; for more than one transition and standard deviation above 1e-8, subtract batch mean and divide by standard deviation plus 1e-8; otherwise use raw advantages.",
+    "experience_pairing": "Identical scenario seeds and first-batch actor RNG. Later action trajectories and RNG draw counts can diverge after updates."
+  },
+  "arms": {
+    "shared_critic": {"baseline": "learned_critic", "value_coef": 0.5},
+    "no_critic_gradient": {"baseline": "learned_critic", "value_coef": 0.0},
+    "paired_stop": {"baseline": "paired_stop", "value_coef": 0.0}
+  },
+  "validation": {
+    "stage": "validation",
+    "episodes_per_profile": 200,
+    "run_seeds": {"normal": 995100, "stress": 995101, "capability": 995102},
+    "scenario_seed_ranges": {
+      "normal": {"start": 1000995100000000, "count": 200},
+      "stress": {"start": 1000995101000000, "count": 200},
+      "capability": {"start": 1000995102000000, "count": 200}
+    },
+    "methods": ["shared_critic", "no_critic_gradient", "paired_stop", "balanced_v3", "robust_v2", "adaptive_v1", "greedy_public"],
+    "bootstrap_samples": 2000,
+    "bootstrap_seed": 73041,
+    "confidence_interval": "Two-sided percentile 95%; 2.5th and 97.5th percentiles. Resample paired case indices independently within each profile and average three profile means with equal weights.",
+    "checkpoint_selection": "Only fixed last endpoints; initialized weights are identical to frozen balanced_v3."
+  },
+  "scale_gate": {
+    "primary_arm": "paired_stop",
+    "comparators": ["shared_critic", "balanced_v3"],
+    "primary_metric": "timely_confirmed_fraction = 1 - breached_fraction",
+    "minimum_equal_profile_gain": 0.01,
+    "require_paired_ci_lower_above_zero": true,
+    "maximum_profile_point_decline": 0.01,
+    "require_equal_profile_all_threat_success_not_lower": true,
+    "interpretation": "All conditions must hold against both comparators. This is a development screen for multi-seed replication, not promotion or statistical noninferiority. The no_critic_gradient arm is diagnostic only; compare paired_stop directly with it before attributing gains to the baseline. Cost or return improvements alone never pass."
+  },
+  "reserved_final_tests_unopened": {
+    "normal": {"start": 2000000500000000, "count": 200},
+    "stress": {"start": 2000000501000000, "count": 200},
+    "capability": {"start": 2000000502000000, "count": 200}
+  },
+  "diagnostics": [
+    "First-batch sampled trajectory equality across arms before updates.",
+    "Raw and normalized advantage, return-to-go, and baseline moments by first/later decision and STOP/deploy.",
+    "Actor-plus-entropy and weighted critic gradient norms, combined clipping, and numerical diagnostic timing.",
+    "Live episode and counterfactual branch counts, elapsed simulation/training time, sensing, cost, and scenario profile summaries.",
+    "Paired validation sensing, success, return, and cost differences including paired_stop versus no_critic_gradient."
+  ],
+  "limitations": [
+    "One training seed and 1024 live episodes per arm: scenario confidence intervals do not measure training-seed uncertainty.",
+    "The initial STOP return is constant -10.5; any later-state credit-assignment benefit does not remove first-placement scenario variance.",
+    "Raw STOP advantage zero can become nonzero after existing batch centering. Existing transition-count averaging and advantage normalization are retained, not claimed to be an unbiased estimator or a pure variance-only intervention.",
+    "With zero critic coefficient and fresh Adam, critic head arrays stay fixed but baseline predictions can drift as the shared actor encoder changes.",
+    "Paired STOP uses additional training-only simulated branch rollouts. It does not expose private reward, future truth, or branch state to actor observations.",
+    "Synthetic initial sequential sensor type/site planning only; timely confirmed sensing is not interception. Physics, reward, public observation, architecture, and inference contracts are unchanged.",
+    "A failed pilot is not proof that the method cannot work; a passing pilot requires multi-seed replication on separate development scenarios before any reserved final evaluation."
+  ],
+  "training_implementation_sha256": {
+    "triad_rl/adaptive_env.py": "afbf0bdedb62ffeb07e416dfa8745378d7057f549d8b5f771cbfd599ae428cc8",
+    "triad_rl/adaptive_inputs.py": "fe011855192d1f5450f10955178f7ed6069cbed58bde090734b0407e474799b9",
+    "triad_rl/adaptive_policy.py": "bc3909894e3b4f418a0a2740fe5fd42c28023d9c1ed96e456c57e829fb06577d",
+    "triad_rl/balanced_policy.py": "a9c8b72521d890dd6cfcd40e4fdffd5970f13d5e29aaf11451656274fe327704",
+    "triad_rl/robust_scenarios.py": "e07cbe525f5997a91561ef3c1c52e62e618b58b5efc915c57e68f82a9d86e6ba",
+    "triad_rl/train_adaptive.py": "e356a4e46782a2fe93d54f7da1095ae4e34fd0664ccecdbde3561756297c66c9",
+    "triad_rl/train_robust.py": "79b870b2a00d46f93e8cc0544d5b85818a2ce8d88fbb9a807df0ac90a1f95e87",
+    "triad_rl/counterfactual_rollout.py": "6d659ec831b9ff906b295d7729d9613c4812c4577fe3220e184d1f741b1cd791",
+    "triad_rl/credit_lineage.py": "4c5596c333f5617fc3f1047b977066240b2d2dcf349d94ead6e1aa3b7ca96a02",
+    "triad_rl/train_credit_pilot.py": "a4a4b90558223bd9b63561680542a08415a62e07c2ce74c4a739e85f8894cde5"
+  },
+  "evaluation_implementation_sha256": {
+    "evaluate_robust.py": "e3f4b1d6fdc57e200af4b86a15d20185ee235618cf124d71b2bb4d0cc169c911",
+    "triad_rl/adaptive_env.py": "afbf0bdedb62ffeb07e416dfa8745378d7057f549d8b5f771cbfd599ae428cc8",
+    "triad_rl/adaptive_inputs.py": "fe011855192d1f5450f10955178f7ed6069cbed58bde090734b0407e474799b9",
+    "triad_rl/adaptive_policy.py": "bc3909894e3b4f418a0a2740fe5fd42c28023d9c1ed96e456c57e829fb06577d",
+    "triad_rl/adaptive_evaluation.py": "01fd9293a699f25cfeaaff3ad6399b7ec1695a5e67ee6583efb3076ddb5e0910",
+    "triad_rl/train_adaptive.py": "e356a4e46782a2fe93d54f7da1095ae4e34fd0664ccecdbde3561756297c66c9",
+    "triad_rl/robust_scenarios.py": "e07cbe525f5997a91561ef3c1c52e62e618b58b5efc915c57e68f82a9d86e6ba",
+    "triad_rl/train_robust.py": "79b870b2a00d46f93e8cc0544d5b85818a2ce8d88fbb9a807df0ac90a1f95e87",
+    "triad_rl/balanced_policy.py": "a9c8b72521d890dd6cfcd40e4fdffd5970f13d5e29aaf11451656274fe327704",
+    "triad_rl/counterfactual_rollout.py": "6d659ec831b9ff906b295d7729d9613c4812c4577fe3220e184d1f741b1cd791",
+    "triad_rl/credit_lineage.py": "4c5596c333f5617fc3f1047b977066240b2d2dcf349d94ead6e1aa3b7ca96a02",
+    "triad_rl/train_credit_pilot.py": "a4a4b90558223bd9b63561680542a08415a62e07c2ce74c4a739e85f8894cde5",
+    "triad_rl/evaluate_credit_pilot.py": "044b1196f5b6ece6e99fcd13680095d796d33dc9d2e4cfd8fcb1e72e4e278517",
+    "triad_rl/placement_policy.py": "29fe2d3eb327ef25d0416b0c38324d7d31ebd7f7134727b3486afdf128d10607"
+  }
+}

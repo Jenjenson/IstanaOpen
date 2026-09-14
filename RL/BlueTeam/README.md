@@ -25,7 +25,8 @@ experimental candidate, not a final-tested replacement.
 
 The [credit-assignment pilot](CREDIT_PILOT.md) compares matched training runs
 with and without critic gradients and a training-only paired STOP baseline.
-Its sensing-first protocol is fixed before training; it does not replace v3.
+Its [completed results](CREDIT_PILOT_RESULTS.md) show a small sensing gain but
+higher cost and a failed predeclared scaling gate; it does not replace v3.
 
 This package publishes the Python trainer, a trained checkpoint, recorded
 results, and selected native source from the TRIAD experiment. You can run the

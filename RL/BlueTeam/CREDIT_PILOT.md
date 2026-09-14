@@ -5,6 +5,10 @@ This is a controlled training experiment, not a replacement for the published
 baseline is limiting useful sensor-placement learning. The public inputs, sensor
 physics, reward, actor architecture, action masks, and inference rule stay fixed.
 
+The [completed pilot results](CREDIT_PILOT_RESULTS.md) did not pass the predeclared
+sensing gate. The three endpoints and all paired evidence are archived; none is
+promoted as a replacement policy.
+
 ## What changes
 
 All arms copy the same selected v3 weights, reset Adam, reset the sampling RNG,
