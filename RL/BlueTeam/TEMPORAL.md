@@ -75,6 +75,24 @@ return and otherwise STOP. A future learned policy must be compared with this
 stronger control as well as the existing policies; a better forecast alone is
 not proof that reinforcement learning improved deployment.
 
+For an explicitly supplied temporal checkpoint, the standalone planner uses
+the same builder and applies each selected placement to a local copy of the
+snapshot before the next decision. From `RL/BlueTeam/Python`:
+
+```powershell
+python recommend_temporal.py --checkpoint <temporal-checkpoint-directory> `
+  --input ../Examples/public-snapshot.json `
+  --catalogue ../Examples/sensor-catalogue.json `
+  --config ../Examples/temporal-config.json --now 0 --output ../runs/temporal-plan.json
+```
+
+The configuration must match the checkpoint exactly. Supply your provider's
+clock through `--now` for fresh external data; zero is only this offline
+example's clock. The output names sensor IDs, positions, costs and STOP, plus
+clearly labelled forecast estimates. Existing output files are never replaced.
+Input/catalogue objects and the policy RNG are unchanged. New catalogue
+capabilities remain experimental until separately evaluated.
+
 ## First development probe
 
 Before sampling any new evaluation cases, `probe_temporal.py` scores the public
@@ -87,6 +105,60 @@ screen**. Source and input hashes are saved with its results.
 ```powershell
 python probe_temporal.py --output ../runs/temporal-v6-reused-probe.json
 ```
+
+The completed [raw probe](Results/temporal-v6-development/reused-probe.json)
+retains all 60 cases, input/source hashes, paired reference outcomes and means.
+With profiles weighted equally:
+
+| Method | Timely confirmation | Detection | Mean cost | Original return |
+|---|---:|---:|---:|---:|
+| Temporal public control (not RL) | 48.004% | 67.661% | 2.006 | 0.040 |
+| Existing public greedy | 47.615% | 64.927% | 2.121 | -0.081 |
+| Balanced v3 | 46.990% | 64.857% | 2.123 | -0.210 |
+
+Temporal-control timely confirmation changed by **-2.583 percentage points**
+on normal cases, **+0.417 pp** on stress and **+3.333 pp** on capability cases
+against existing greedy. The +0.389 pp aggregate difference is small and mixed;
+it does not establish generalization, statistical superiority or an RL gain.
+All three prior ranking endpoints remain in the raw report, not just the best.
+
+## Bounded learning pilot
+
+The [protocol](Results/temporal-v6-pilot/protocol.json) declares three independent
+512-episode training runs and a subsequent 600-case, three-profile development
+evaluation. The policy starts with exactly the temporal control's deterministic
+scores. A bounded shared neural correction can change both sensor/site choices
+and STOP; a separate linear value baseline learns original reward-to-go without
+changing the action network through critic gradients.
+
+Every fixed endpoint must be compared with **its own non-RL temporal control**,
+existing public greedy and v3, alongside the other published reference models.
+The gate requires a timely-sensing improvement without lower aggregate
+detection, all-threat success or return, and includes per-profile/seed guards.
+There is no best-seed selection, early stopping or automatic promotion.
+
+To reproduce the fixed pilot from `RL/BlueTeam/Python` (use new output
+directories, and expect substantially more work than the unit tests):
+
+```powershell
+python train_temporal.py --protocol ../Results/temporal-v6-pilot/protocol.json --seed 406 --output ../runs/temporal-v6/seed-406
+python train_temporal.py --protocol ../Results/temporal-v6-pilot/protocol.json --seed 407 --output ../runs/temporal-v6/seed-407
+python train_temporal.py --protocol ../Results/temporal-v6-pilot/protocol.json --seed 408 --output ../runs/temporal-v6/seed-408
+python evaluate_temporal.py --protocol ../Results/temporal-v6-pilot/protocol.json `
+  --run 406=../runs/temporal-v6/seed-406 --run 407=../runs/temporal-v6/seed-407 `
+  --run 408=../runs/temporal-v6/seed-408 --output ../runs/temporal-v6/evaluation
+```
+
+This driver intentionally enforces the published experiment, not arbitrary
+hyperparameters. Each run records all 512 episodes and 32 batch updates, saves
+`initialized/` and `last/`, and binds the raw records to the final checkpoint.
+The evaluator requires all three complete runs. A replay of these published
+seed slots is reproduction, not additional unseen evidence.
+
+Portable JSONL metrics remain the training evidence. The optional existing
+`track_adaptive.py` importer can send a completed run's events to a **local-only**
+Trackio dashboard from a separate environment; it does not sync to a cloud
+Space or affect the training process, optimizer or RNG.
 
 The three reserved final tests remain unopened. Native integration, physical
 deployment, real sensor calibration and mid-flight relocation are not implied

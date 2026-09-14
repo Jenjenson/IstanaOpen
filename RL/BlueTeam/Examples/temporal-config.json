@@ -1,0 +1,12 @@
+{
+  "objective_radius_m": 20.0,
+  "lead_time_s": 4.0,
+  "look_interval_s": 1.0,
+  "required_confirmations": 2,
+  "confirmation_window": 3,
+  "horizon_s": 96.0,
+  "prior_spawn_radius_m": 320.0,
+  "altitude_uncertainty_m": 10.0,
+  "max_hypotheses": 64,
+  "rf_persistent_weight": 0.5
+}
