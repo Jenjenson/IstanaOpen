@@ -97,7 +97,7 @@ with zero invalid actions. All five sensor types were used:
 
 C required **2,320 additional terminal branch rollouts** beyond its 1,024 live
 episodes. Observed rollout time was 131.28 seconds versus 35.52 for A and 35.11
-for B; complete process time was 161.54 versus 69.78 and 68.90 seconds. These were
+for B; total trainer elapsed time was 161.54 versus 69.78 and 68.90 seconds. These were
 concurrent local runs, not a controlled hardware benchmark or matched-compute
 comparison. Local Trackio imports retained all 64 training events per arm; no
 Hugging Face Space or cloud dashboard was created.
@@ -109,6 +109,15 @@ or the greedy baseline. It suggests a narrower follow-up question: can later-
 placement credit be improved while preserving a useful first-decision baseline
 and controlling the effect of batch centering? This is a hypothesis for a new,
 separately predeclared experiment, not justification for extending or promoting C.
+
+A read-only calculation from the matched first-batch moments also rules out a
+simple fix: using B's baseline for the first decision and C's for later decisions
+would still change the first STOP's normalized credit from +0.05986 to -0.37815,
+because global centering mixes both stages. A more controlled successor could
+anchor normalization to the ordinary learned-critic advantages before changing
+only later baselines. That would preserve first-decision credit coefficients on
+the same batch, not guarantee future stopping behavior. No such successor was
+trained here, and reduced scalar variance alone would not establish better RL.
 
 Exploratory layout groups help localize the tradeoff. Against frozen v3, C differed
 in the initial STOP/deploy choice in 52 stress cases: mean cost increased by 1.352
