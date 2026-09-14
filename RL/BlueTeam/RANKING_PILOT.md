@@ -7,6 +7,9 @@ real-world deployment.
 
 The [protocol](Results/ranking-v5-pilot/protocol.json) fixes the training budget,
 new scenario ranges, comparisons and decision rule before experiment runs.
+The [completed results](RANKING_PILOT_RESULTS.md) failed the fixed development
+gate: higher aggregate detection did not translate into stronger timely sensing
+or return. All three endpoints remain experimental.
 
 ## What changes
 
@@ -84,9 +87,22 @@ regenerate scenarios. A public-observation hash and selected feature rows do not
 independently prove the original full snapshot without that snapshot or a replay.
 
 Optional local training curves use `track_adaptive.py` with Trackio, without a
-cloud Space. JSONL and checkpoint artifacts remain authoritative. The existing
-[v3 offline demo](BALANCED_RESULTS.md) remains the published visual example until
-a new candidate has earned a justified presentation.
+cloud Space. JSONL and checkpoint artifacts remain authoritative.
+
+## See the decisions
+
+`demo_ranking.py` recreates exactly the first two already-scored cases per
+profile for every fixed endpoint: 18 examples, without selecting winners.
+Actions, layouts, scenario hashes and outcomes must match the archived reports.
+The offline viewer shows sensor types, placements, coverage, threats, detections
+and rewards. Its examples are labeled experimental; a replay is not evidence of
+policy promotion or live-device integration.
+The [published 18-example HTML](Results/ranking-v5-pilot/demo.html) can be
+downloaded and opened locally; GitHub's file page shows its source.
+
+```powershell
+python demo_ranking.py --protocol ../Results/ranking-v5-pilot/protocol.json --run 403=../runs/ranking-v5-pilot/seed-403 --run 404=../runs/ranking-v5-pilot/seed-404 --run 405=../runs/ranking-v5-pilot/seed-405 --evaluation ../runs/ranking-v5-pilot/evaluation --output ../runs/ranking-v5-demo.html
+```
 
 ## Simulated and external inputs
 

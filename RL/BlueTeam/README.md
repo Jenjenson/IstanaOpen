@@ -37,7 +37,9 @@ scaling gate failed and no new policy was promoted.
 The [rollout-guided ranking pilot](RANKING_PILOT.md) tests direct sensor/site
 preferences with a learnable correction to public greedy, including STOP.
 Its three-seed protocol keeps the original sensing physics and public inputs;
-this is a development experiment, not a promoted replacement.
+the [completed results and 18-example replay](RANKING_PILOT_RESULTS.md) show
+higher detection but lower timely sensing and return than public greedy. The
+fixed development gate failed; no endpoint was selected or promoted.
 
 This package publishes the Python trainer, a trained checkpoint, recorded
 results, and selected native source from the TRIAD experiment. You can run the
