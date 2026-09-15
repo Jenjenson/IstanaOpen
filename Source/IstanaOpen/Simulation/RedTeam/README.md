@@ -33,7 +33,7 @@ No Blueprint subclass is required, although the native actor can be extended in 
 | Seed (inherited) | 12345 | Repeatable group layout and member placement |
 
 Distances use centimeters: the defaults create 36 drones in three groups centered
-30–60 meters from the objective, each with a 4-meter spread radius. Min/max radii
+30â€“60 meters from the objective, each with a 4-meter spread radius. Min/max radii
 apply to centers, not every member. Set min=max for a fixed-distance ring. Height is
 relative to the marker, not terrain-following; a ground-level marker may require a
 positive spawn height offset so the spread sphere fits in free air.
@@ -119,5 +119,19 @@ Editor and game Development builds passed. See [validation](../../../../Docs/VAL
 and the [test source](../Tests/IstanaSwarmTests.cpp) for scope and reproduction.
 
 This is a kinematic scene spawner and scripted objective follower. It does not implement
-motor dynamics, sensors, a learned policy, training, rewards or an episode coordinator.
+motor dynamics, sensors, a learned policy or a training algorithm. Agent mode provides
+an episode clock and optional evaluator hook, without defining task rewards.
 The shared `IIstanaPolicyInterface` and schema-1 no-op action payload are unchanged.
+
+## Agent placement and optimization
+
+Set Placement Source = Agent Placement to wait for agent-supplied world-space swarm centers.
+Seeded Layout remains the default with the original layout generator. The agent API validates
+and commits complete placements atomically, reports actual seeded member positions, and
+advances only explicitly requested fixed steps.
+
+See the [agent guide](../../../../Docs/RED_TEAM_AGENT.md) for native/Blueprint providers and
+the runtime loopback bridge with its external Python client.
+[Optimization results](../../../../Docs/SWARM_OPTIMIZATION_RESULTS.md) cover measured changes
+and synchronous-planning limits. The [original plan](../../../../Docs/SWARM_OPTIMIZATION_AND_RL_PLAN.md)
+records design constraints.

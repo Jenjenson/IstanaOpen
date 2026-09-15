@@ -125,3 +125,16 @@ and predefined-obstacle removal. They use transient managers and leave existing 
 unsaved. The later 13-test native run above validates the partial-path change. No new
 packaged release, manual play session, large-map navigation benchmark, or physical
 flight-fidelity validation is claimed by these results.
+
+## Red-team optimization and agent API (15 September 2026)
+
+Editor and Game Development builds passed. The final native suite passed **17 tests,
+0 failures**, including unchanged original assertions, exact source-reference state/route
+replay, explicit placement, blocked placement atomicity, provider integration, and a real
+external Python client exercising reset/place/step/retry/reconnect/timeout.
+The local report is Saved/Automation/SwarmFinalRegression/index.json.
+
+See [optimization results](SWARM_OPTIMIZATION_RESULTS.md) for the 42-case lightweight
+solver matrix, completed real-level cases, raw data, numerical comparison scope and
+remaining synchronous planning spikes. See [agent setup](RED_TEAM_AGENT.md) for use.
+These checks do not imply a trained policy, packaged deployment or GPU/FPS improvement.

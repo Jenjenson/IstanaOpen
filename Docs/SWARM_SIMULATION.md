@@ -174,3 +174,17 @@ Saved/Automation. Automated checks do not substitute for manual graphics testing
 The example map retains the name `Content/Simulation/Maps/SyntheticSwarmArena`; this
 name does not imply a simulation boundary. The architectural viewer still starts at
 `Content/Maps/Istana`. Neither map is automatically edited by these code changes.
+
+## Optimization and agent placement
+
+The solver removes discarded A* edge queries, caches exact overlap results only within
+one synchronous path search, reuses state storage, and stages only affected navigation
+routes. Large populations use an exact spatial broad phase in original accumulation order;
+small populations retain the faster direct scan. Work counters and Istana_* CPU trace
+scopes expose planning, collision, visuals and debug costs.
+
+Red-team Agent Placement accepts externally selected world-space centers with an explicit
+fixed-step episode clock. See the [agent guide](RED_TEAM_AGENT.md),
+[implementation results](SWARM_OPTIMIZATION_RESULTS.md), and original
+[plan](SWARM_OPTIMIZATION_AND_RL_PLAN.md). Navigation remains synchronous; equivalent
+asynchronous planning requires a synchronized collision snapshot.

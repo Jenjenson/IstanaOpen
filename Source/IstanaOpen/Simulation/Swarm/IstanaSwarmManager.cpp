@@ -9,6 +9,8 @@
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/SpectatorPawn.h"
 #include "DrawDebugHelpers.h"
+#include "Simulation/Swarm/IstanaSwarmProfiling.h"
+#include "ProfilingDebugging/CpuProfilerTrace.h"
 #include "InputCoreTypes.h"
 #include "UObject/ConstructorHelpers.h"
 
@@ -37,12 +39,12 @@ AIstanaDroneVisual::AIstanaDroneVisual()
 void AIstanaDroneVisual::ApplyState(const FIstanaDroneState& State)
 {
     SetActorHiddenInGame(!State.bActive);
-    SetActorLocation(State.PositionCm);
-    if (!State.VelocityCmPerSecond.IsNearlyZero())
+    if (State.VelocityCmPerSecond.IsNearlyZero()) SetActorLocation(State.PositionCm);
+    else
     {
         FRotator Heading = State.VelocityCmPerSecond.Rotation();
         Heading.Pitch = FMath::Clamp(Heading.Pitch, -20.0, 20.0);
-        SetActorRotation(Heading);
+        SetActorLocationAndRotation(State.PositionCm, Heading);
     }
 }
 
@@ -75,33 +77,19 @@ void AIstanaSwarmManager::BeginPlay()
 bool AIstanaSwarmManager::InitializeSimulation(const TArray<FIstanaSwarmConfig>& Configs,
     const FIstanaSwarmSettings& InSettings, int32 InSeed, double InFixedStepSeconds, FGuid InRunId, FString& Error)
 {
-    FIstanaSwarmSimulation::FCollisionQuery Query;
-    if (bUseWorldCollision)
-    {
-        if (!GetWorld() || !GetWorld()->GetPhysicsScene())
-        { Error = TEXT("World collision requires an initialized physics scene."); return false; }
-        const TWeakObjectPtr<UWorld> World = GetWorld();
-        const TWeakObjectPtr<AIstanaSwarmManager> Manager = this;
-        const ECollisionChannel Channel = ObstacleTraceChannel;
-        const bool bComplex = bTraceComplexObstacles;
-        Query = [World, Manager, Channel, bComplex](const FVector& Start, const FVector& End, double Radius)
-        {
-            if (!World.IsValid()) return true;
-            FCollisionQueryParams Params(SCENE_QUERY_STAT(IstanaSwarmNavigation), bComplex);
-            if (Manager.IsValid()) Params.AddIgnoredActor(Manager.Get());
-            const FCollisionShape Shape = FCollisionShape::MakeSphere(float(Radius));
-            if (World->OverlapBlockingTestByChannel(Start, FQuat::Identity, Channel, Shape, Params)) return true;
-            FHitResult Hit;
-            return World->SweepSingleByChannel(Hit, Start, End, FQuat::Identity, Channel, Shape, Params);
-        };
-    }
-    if (!Simulation.Initialize(Configs, InSettings, InSeed, InFixedStepSeconds, InRunId, Error, MoveTemp(Query))) return false;
+    if (!PrepareSimulation(Simulation, Configs, InSettings, InSeed, InFixedStepSeconds, InRunId, Error)) return false;
     AccumulatorSeconds = 0;
     DroppedWallSeconds = 0;
     LastObjective.Reset();
     bHadObjective = false;
     bHasObjectiveAttempt = false;
     ObjectiveStatus.Reset();
+    DebugLabels.Reset(); DebugColors.Reset();
+    for (const auto& State : Simulation.GetStates())
+    {
+        DebugLabels.Add(FString::Printf(TEXT("G%d / D%d"), State.GroupId, State.DroneId));
+        DebugColors.Add(FLinearColor::MakeFromHSV8(uint8(State.GroupId * 67), 200, 255).ToFColor(true));
+    }
     ClearVisuals();
     if (bSpawnVisuals)
     {
@@ -115,6 +103,53 @@ bool AIstanaSwarmManager::InitializeSimulation(const TArray<FIstanaSwarmConfig>&
     }
     RefreshVisuals();
     return true;
+}
+
+bool AIstanaSwarmManager::PrepareSimulation(FIstanaSwarmSimulation& Candidate,
+    const TArray<FIstanaSwarmConfig>& Configs, const FIstanaSwarmSettings& InSettings,
+    int32 InSeed, double InFixedStepSeconds, FGuid InRunId, FString& Error)
+{
+    TRACE_CPUPROFILER_EVENT_SCOPE(Istana_Spawn);
+    CSV_SCOPED_TIMING_STAT(IstanaSwarm, Spawn);
+    FIstanaSwarmSimulation::FCollisionQuery Query;
+    FIstanaSwarmSimulation::FCollisionBatch Batch;
+    if (bUseWorldCollision)
+    {
+        if (!GetWorld() || !GetWorld()->GetPhysicsScene())
+        { Error = TEXT("World collision requires an initialized physics scene."); return false; }
+        const TWeakObjectPtr<UWorld> World = GetWorld();
+        const TWeakObjectPtr<AIstanaSwarmManager> Manager = this;
+        const ECollisionChannel Channel = ObstacleTraceChannel;
+        const bool bComplex = bTraceComplexObstacles;
+        // Exact start/radius memoization exists only during a synchronous path search.
+        // No frame, movement sweep, or later search can reuse stale collision results.
+        struct FOverlapMemo { bool bActive = false; TMap<TPair<FVector, double>, bool> Values; };
+        const auto Memo = MakeShared<FOverlapMemo>();
+        Batch = [Memo](bool bActive) { Memo->bActive = bActive; Memo->Values.Reset(); };
+        Query = [World, Manager, Channel, bComplex, Memo](const FVector& Start, const FVector& End, double Radius)
+        {
+            TRACE_CPUPROFILER_EVENT_SCOPE(Istana_Collision);
+            if (!World.IsValid()) return true;
+            FCollisionQueryParams Params(SCENE_QUERY_STAT(IstanaSwarmNavigation), bComplex);
+            if (Manager.IsValid()) Params.AddIgnoredActor(Manager.Get());
+            const FCollisionShape Shape = FCollisionShape::MakeSphere(float(Radius));
+            bool bOverlap;
+            const TPair<FVector, double> Key(Start, Radius);
+            const bool* Cached = Memo->bActive ? Memo->Values.Find(Key) : nullptr;
+            if (Cached) bOverlap = *Cached;
+            else
+            {
+                TRACE_CPUPROFILER_EVENT_SCOPE(Istana_Overlap);
+                bOverlap = World->OverlapBlockingTestByChannel(Start, FQuat::Identity, Channel, Shape, Params);
+                if (Memo->bActive) Memo->Values.Add(Key, bOverlap);
+            }
+            if (bOverlap) return true;
+            TRACE_CPUPROFILER_EVENT_SCOPE(Istana_Sweep);
+            FHitResult Hit;
+            return World->SweepSingleByChannel(Hit, Start, End, FQuat::Identity, Channel, Shape, Params);
+        };
+    }
+    return Candidate.Initialize(Configs, InSettings, InSeed, InFixedStepSeconds, InRunId, Error, MoveTemp(Query), MoveTemp(Batch));
 }
 
 bool AIstanaSwarmManager::ResetSimulation(FString& Error)
@@ -242,6 +277,7 @@ void AIstanaSwarmManager::UpdateObjective()
 
 void AIstanaSwarmManager::Tick(float DeltaSeconds)
 {
+    CSV_SCOPED_TIMING_STAT(IstanaSwarm, ManagerTick);
     Super::Tick(DeltaSeconds);
     if (Simulation.IsInitialized() && bAutoAdvance && !bPaused && FMath::IsFinite(DeltaSeconds) && DeltaSeconds > 0)
     {
@@ -257,10 +293,13 @@ void AIstanaSwarmManager::Tick(float DeltaSeconds)
         }
     }
     if (bDrawDebug && Simulation.IsInitialized()) DrawDiagnostics();
+    CSV_CUSTOM_STAT(IstanaSwarm, DroppedWallSeconds, DroppedWallSeconds, ECsvCustomStatOp::Set);
 }
 
 void AIstanaSwarmManager::RefreshVisuals()
 {
+    TRACE_CPUPROFILER_EVENT_SCOPE(Istana_Visuals);
+    CSV_SCOPED_TIMING_STAT(IstanaSwarm, Visuals);
     const TArray<FIstanaDroneState>& States = Simulation.GetStates();
     for (int32 Index = 0; Index < Visuals.Num() && Index < States.Num(); ++Index)
         if (IsValid(Visuals[Index])) Visuals[Index]->ApplyState(States[Index]);
@@ -287,21 +326,25 @@ void AIstanaSwarmManager::Destroyed()
 TArray<FIstanaDroneState> AIstanaSwarmManager::GetDroneStates() const { return Simulation.GetStates(); }
 TArray<FIstanaSwarmGroupStatus> AIstanaSwarmManager::GetGroupStatuses() const { return Simulation.GetGroupStatuses(); }
 FIstanaSwarmDiagnostics AIstanaSwarmManager::GetDiagnostics() const { return Simulation.GetDiagnostics(); }
+FIstanaSwarmWorkCounters AIstanaSwarmManager::GetWorkCounters() const { return Simulation.GetWorkCounters(); }
 FGuid AIstanaSwarmManager::GetRunId() const { return Simulation.GetRunId(); }
 void AIstanaSwarmManager::TogglePaused() { bPaused = !bPaused; AccumulatorSeconds = 0; }
 void AIstanaSwarmManager::ToggleDebug() { bDrawDebug = !bDrawDebug; }
 
 void AIstanaSwarmManager::DrawDiagnostics() const
 {
+    TRACE_CPUPROFILER_EVENT_SCOPE(Istana_Debug);
+    CSV_SCOPED_TIMING_STAT(IstanaSwarm, Debug);
+    const auto Statuses = Simulation.GetGroupStatuses();
     const FIstanaSwarmSettings& S = Simulation.GetSettings();
     for (const FIstanaDroneState& State : Simulation.GetStates())
     {
         if (!State.bActive) continue;
-        const FColor Color = FLinearColor::MakeFromHSV8(uint8(State.GroupId * 67), 200, 255).ToFColor(true);
+        const FColor Color = DebugColors[State.DroneId];
         DrawDebugDirectionalArrow(GetWorld(), State.PositionCm, State.PositionCm + State.VelocityCmPerSecond * 0.4, 20, Color);
-        DrawDebugString(GetWorld(), State.PositionCm + FVector(0, 0, 35), FString::Printf(TEXT("G%d / D%d"), State.GroupId, State.DroneId), nullptr, Color, 0);
+        DrawDebugString(GetWorld(), State.PositionCm + FVector(0, 0, 35), DebugLabels[State.DroneId], nullptr, Color, 0);
     }
-    for (const FIstanaSwarmGroupStatus& Group : Simulation.GetGroupStatuses())
+    for (const FIstanaSwarmGroupStatus& Group : Statuses)
     {
         FBox GroupBounds(ForceInit);
         bool bFirst = true;
@@ -320,7 +363,7 @@ void AIstanaSwarmManager::DrawDiagnostics() const
     {
         const FIstanaSwarmDiagnostics& D = Simulation.GetDiagnostics();
         int32 BlockedGroups = 0;
-        for (const FIstanaSwarmGroupStatus& Group : GetGroupStatuses())
+        for (const FIstanaSwarmGroupStatus& Group : Statuses)
             if (Group.bNavigationBlocked) ++BlockedGroups;
         GEngine->AddOnScreenDebugMessage(uint64(GetUniqueID()), 0, FColor::White,
             FString::Printf(TEXT("SWARM %s | %d drones | %.1fs | blocked groups %d | overlaps %lld | emergency stops %lld | SPACE pause, R reset, V debug\n%s"),
