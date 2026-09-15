@@ -116,3 +116,16 @@ struct ISTANAOPEN_API FIstanaSwarmDiagnostics
     UPROPERTY(BlueprintReadOnly, Category="Diagnostics") double PeakSpeedCmPerSecond = 0.0;
     UPROPERTY(BlueprintReadOnly, Category="Diagnostics") double PeakAccelerationCmPerSecondSquared = 0.0;
 };
+
+
+/** Work counters are separate from physical diagnostics and never affect simulation decisions. */
+USTRUCT(BlueprintType)
+struct ISTANAOPEN_API FIstanaSwarmWorkCounters
+{
+    GENERATED_BODY()
+    UPROPERTY(BlueprintReadOnly) int64 PathSearches = 0;
+    UPROPERTY(BlueprintReadOnly) int64 ExpandedNodes = 0;
+    UPROPERTY(BlueprintReadOnly) int64 CollisionQueries = 0;
+    UPROPERTY(BlueprintReadOnly) int64 NeighborCandidates = 0;
+    UPROPERTY(BlueprintReadOnly) int64 DiagnosticPairs = 0;
+};

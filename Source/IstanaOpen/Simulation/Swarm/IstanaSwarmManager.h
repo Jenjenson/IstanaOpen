@@ -69,16 +69,19 @@ public:
         const FIstanaSwarmSettings& InSettings, int32 InSeed, double InFixedStepSeconds, FGuid InRunId, FString& Error);
     UFUNCTION(BlueprintCallable, Category="Istana|Swarm") bool SubmitCommand(const FIstanaSwarmCommand& Command, FString& Error);
     // Explicit single-step also works while paused. Turn off bAutoAdvance for coordinator ownership.
-    UFUNCTION(BlueprintCallable, Category="Istana|Swarm") void AdvanceOneStep();
+    UFUNCTION(BlueprintCallable, Category="Istana|Swarm") virtual void AdvanceOneStep();
     UFUNCTION(BlueprintPure, Category="Istana|Swarm") TArray<FIstanaDroneState> GetDroneStates() const;
     UFUNCTION(BlueprintPure, Category="Istana|Swarm") TArray<FIstanaSwarmGroupStatus> GetGroupStatuses() const;
     UFUNCTION(BlueprintPure, Category="Istana|Swarm") FIstanaSwarmDiagnostics GetDiagnostics() const;
     UFUNCTION(BlueprintPure, Category="Istana|Swarm") FGuid GetRunId() const;
+    UFUNCTION(BlueprintPure, Category="Istana|Swarm") FIstanaSwarmWorkCounters GetWorkCounters() const;
     UFUNCTION(BlueprintCallable, Category="Istana|Swarm") void TogglePaused();
     UFUNCTION(BlueprintCallable, Category="Istana|Swarm") void ToggleDebug();
-    UFUNCTION(BlueprintCallable, Category="Istana|Swarm") void RestartDemo();
+    UFUNCTION(BlueprintCallable, Category="Istana|Swarm") virtual void RestartDemo();
 
 protected:
+    bool PrepareSimulation(FIstanaSwarmSimulation& Candidate, const TArray<FIstanaSwarmConfig>& Configs,
+        const FIstanaSwarmSettings& InSettings, int32 InSeed, double InStep, FGuid InRun, FString& Error);
     virtual void BeginPlay() override;
     virtual void EndPlay(const EEndPlayReason::Type Reason) override;
 private:
@@ -89,6 +92,8 @@ private:
     bool CommandAllGroups(EIstanaSwarmCommandType Type, const FVector& Position, FString& Error);
     FIstanaSwarmSimulation Simulation;
     UPROPERTY(Transient) TArray<TObjectPtr<AIstanaDroneVisual>> Visuals;
+    TArray<FString> DebugLabels;
+    TArray<FColor> DebugColors;
     double AccumulatorSeconds = 0.0;
     TWeakObjectPtr<ATargetPoint> LastObjective;
     FVector LastObjectivePosition = FVector::ZeroVector;

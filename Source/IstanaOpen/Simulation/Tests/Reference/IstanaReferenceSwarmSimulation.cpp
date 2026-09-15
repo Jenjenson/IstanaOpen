@@ -1,10 +1,7 @@
-#include "Simulation/Swarm/IstanaSwarmSimulation.h"
+// Reference algorithm from 12870cc; controlled floating-point mode and test accessor only.
+#if WITH_DEV_AUTOMATION_TESTS
+#include "Simulation/Tests/Reference/IstanaReferenceSwarmSimulation.h"
 #include <queue>
-#include "Simulation/Swarm/IstanaSwarmProfiling.h"
-CSV_DEFINE_CATEGORY(IstanaSwarm, true);
-#include "Simulation/Swarm/IstanaSwarmSpatialIndex.h"
-#include "ProfilingDebugging/CpuProfilerTrace.h"
-#include "Misc/ScopeExit.h"
 
 // Stable arithmetic across compiler optimization/layout changes.
 #if defined(_MSC_VER)
@@ -13,14 +10,14 @@ CSV_DEFINE_CATEGORY(IstanaSwarm, true);
 
 namespace
 {
-    bool Finite(const FVector& V)
+    bool FiniteReference(const FVector& V)
     {
         return FMath::IsFinite(V.X) && FMath::IsFinite(V.Y) && FMath::IsFinite(V.Z);
     }
-    bool Positive(double V) { return FMath::IsFinite(V) && V > 0; }
-    bool Nonnegative(double V) { return FMath::IsFinite(V) && V >= 0; }
+    bool PositiveReference(double V) { return FMath::IsFinite(V) && V > 0; }
+    bool NonnegativeReference(double V) { return FMath::IsFinite(V) && V >= 0; }
 
-    FVector LimitTurn(const FVector& Previous, const FVector& Next, double MaxRadians)
+    FVector LimitTurnReference(const FVector& Previous, const FVector& Next, double MaxRadians)
     {
         if (Previous.IsNearlyZero() || Next.IsNearlyZero()) return Next;
         const FVector From = Previous.GetSafeNormal();
@@ -38,33 +35,27 @@ namespace
     }
 }
 
-bool FIstanaSwarmSimulation::IsFreePosition(const FVector& P) const
+bool FIstanaReferenceSwarmSimulation::IsFreePosition(const FVector& P) const
 {
     return IsSegmentFree(P, P, 0);
 }
 
-bool FIstanaSwarmSimulation::SegmentHitsObstacle(const FVector& Start, const FVector& End) const
+bool FIstanaReferenceSwarmSimulation::SegmentHitsObstacle(const FVector& Start, const FVector& End) const
 {
     return !IsSegmentFree(Start, End, 0);
 }
 
-bool FIstanaSwarmSimulation::IsSegmentFree(const FVector& Start, const FVector& End, double Padding) const
+bool FIstanaReferenceSwarmSimulation::IsSegmentFree(const FVector& Start, const FVector& End, double Padding) const
 {
-    ++Work.CollisionQueries;
-    if (!Finite(Start) || !Finite(End)) return false;
+    if (!FiniteReference(Start) || !FiniteReference(End)) return false;
     const double Radius = Settings.DroneRadiusCm + Padding;
     return !CollisionQuery || !CollisionQuery(Start, End, Radius);
 }
 
-bool FIstanaSwarmSimulation::FindPath(const FVector& Start, const FVector& End, TArray<FVector>& Path, bool bAllowPartial) const
+bool FIstanaReferenceSwarmSimulation::FindPath(const FVector& Start, const FVector& End, TArray<FVector>& Path, bool bAllowPartial) const
 {
-    TRACE_CPUPROFILER_EVENT_SCOPE(Istana_FindPath);
-    CSV_SCOPED_TIMING_STAT(IstanaSwarm, FindPath);
-    ++Work.PathSearches;
-    if (CollisionBatch) CollisionBatch(true);
-    ON_SCOPE_EXIT { if (CollisionBatch) CollisionBatch(false); };
     Path.Reset();
-    if (!Finite(End) || !IsFreePosition(Start)) return false;
+    if (!FiniteReference(End) || !IsFreePosition(Start)) return false;
     const bool bEndFree = IsFreePosition(End);
     if (!bAllowPartial && !bEndFree) return false;
     if (bEndFree && Start.Equals(End, UE_SMALL_NUMBER)) { Path.Add(End); return true; }
@@ -127,7 +118,6 @@ bool FIstanaSwarmSimulation::FindPath(const FVector& Start, const FVector& End, 
         Open.pop();
         if (Nodes[Index].Closed) continue;
         Nodes[Index].Closed = true;
-        ++Work.ExpandedNodes;
         // Copy before Add can reallocate Nodes.
         const FNode Current = Nodes[Index];
         const FVector P = Position(Current.Key);
@@ -146,15 +136,11 @@ bool FIstanaSwarmSimulation::FindPath(const FVector& Start, const FVector& End, 
                 {
                     if (!X && !Y && !Z) continue;
                     const FIntVector Key = Current.Key + FIntVector(X, Y, Z);
-                    const int32* Existing = Lookup.Find(Key);
-                    if (Existing && Nodes[*Existing].Closed) continue;
-                    if (!Existing && Nodes.Num() >= Settings.MaxNavigationNodes) continue;
+                    if (const int32* Existing = Lookup.Find(Key))
+                        if (Nodes[*Existing].Closed) continue;
                     const FVector Next = Position(Key);
-                    const double Cost = Current.Cost + FVector::Dist(P, Next);
-                    // Add would discard this edge regardless of collision. Preserve node insertion,
-                    // heap ordering and budgets while avoiding a query with no possible effect.
-                    if (Existing && Nodes[*Existing].Cost <= Cost) continue;
-                    if (IsSegmentFree(P, Next, Padding)) Add(Key, Cost, Index);
+                    if (IsSegmentFree(P, Next, Padding))
+                        Add(Key, Current.Cost + FVector::Dist(P, Next), Index);
                 }
     }
     if (Found == INDEX_NONE && bAllowPartial) Found = Closest;
@@ -177,7 +163,7 @@ bool FIstanaSwarmSimulation::FindPath(const FVector& Start, const FVector& End, 
     return true;
 }
 
-FVector FIstanaSwarmSimulation::Centroid(int32 GroupId) const
+FVector FIstanaReferenceSwarmSimulation::Centroid(int32 GroupId) const
 {
     FVector Sum = FVector::ZeroVector;
     int32 Count = 0;
@@ -188,35 +174,34 @@ FVector FIstanaSwarmSimulation::Centroid(int32 GroupId) const
     return Count ? Sum / Count : FVector::ZeroVector;
 }
 
-FVector FIstanaSwarmSimulation::Target(const FGroup& Group) const
+FVector FIstanaReferenceSwarmSimulation::Target(const FGroup& Group) const
 {
     return Group.Mode == EIstanaSwarmCommandType::FollowWaypoints && Group.Waypoints.IsValidIndex(Group.WaypointIndex)
         ? Group.Waypoints[Group.WaypointIndex] : Group.HoldTarget;
 }
 
-bool FIstanaSwarmSimulation::Initialize(const TArray<FIstanaSwarmConfig>& Configs, const FIstanaSwarmSettings& InSettings,
-    int32 Seed, double InFixedStepSeconds, const FGuid& InRunId, FString& Error, FCollisionQuery InCollisionQuery, FCollisionBatch InCollisionBatch)
+bool FIstanaReferenceSwarmSimulation::Initialize(const TArray<FIstanaSwarmConfig>& Configs, const FIstanaSwarmSettings& InSettings,
+    int32 Seed, double InFixedStepSeconds, const FGuid& InRunId, FString& Error, FCollisionQuery InCollisionQuery)
 {
     Error.Reset();
-    if (!InRunId.IsValid() || !Positive(InFixedStepSeconds) || InFixedStepSeconds > 0.1)
+    if (!InRunId.IsValid() || !PositiveReference(InFixedStepSeconds) || InFixedStepSeconds > 0.1)
     { Error = TEXT("A valid RunId and timestep in (0, 0.1] seconds are required."); return false; }
     const FIstanaSwarmSettings& S = InSettings;
-    if (!Positive(S.DroneRadiusCm)
-        || !Positive(S.MaxSpeedCmPerSecond) || !Positive(S.MaxAccelerationCmPerSecondSquared)
-        || !Positive(S.CruiseSpeedCmPerSecond) || S.CruiseSpeedCmPerSecond > S.MaxSpeedCmPerSecond
-        || !Positive(S.MaxTurnDegreesPerSecond) || S.MaxTurnDegreesPerSecond > 360
-        || !Positive(S.ResponseSeconds) || !Positive(S.ArrivalRadiusCm)
-        || !Positive(S.NeighborRadiusCm) || !Positive(S.SpacingCm)
+    if (!PositiveReference(S.DroneRadiusCm)
+        || !PositiveReference(S.MaxSpeedCmPerSecond) || !PositiveReference(S.MaxAccelerationCmPerSecondSquared)
+        || !PositiveReference(S.CruiseSpeedCmPerSecond) || S.CruiseSpeedCmPerSecond > S.MaxSpeedCmPerSecond
+        || !PositiveReference(S.MaxTurnDegreesPerSecond) || S.MaxTurnDegreesPerSecond > 360
+        || !PositiveReference(S.ResponseSeconds) || !PositiveReference(S.ArrivalRadiusCm)
+        || !PositiveReference(S.NeighborRadiusCm) || !PositiveReference(S.SpacingCm)
         || S.SpacingCm < 2 * S.DroneRadiusCm || S.SpacingCm > S.NeighborRadiusCm
-        || !Nonnegative(S.SeparationWeight) || !Nonnegative(S.AlignmentWeight) || !Nonnegative(S.CohesionWeight)
-        || !Positive(S.NavigationCellSizeCm) || S.NavigationCellSizeCm < 25 || !Nonnegative(S.NavigationClearanceCm)
+        || !NonnegativeReference(S.SeparationWeight) || !NonnegativeReference(S.AlignmentWeight) || !NonnegativeReference(S.CohesionWeight)
+        || !PositiveReference(S.NavigationCellSizeCm) || S.NavigationCellSizeCm < 25 || !NonnegativeReference(S.NavigationClearanceCm)
         || S.MaxNavigationNodes < 100 || S.MaxNavigationNodes > 100000
         || S.MaxDrones < 1 || S.MaxDrones > 256 || S.SpawnAttemptsPerDrone < 1 || S.SpawnAttemptsPerDrone > 10000)
     { Error = TEXT("Invalid swarm settings: check finite positive motion limits, navigation settings, spacing, weights and population limits."); return false; }
-    FIstanaSwarmSimulation Candidate;
+    FIstanaReferenceSwarmSimulation Candidate;
     Candidate.Settings = S;
     Candidate.CollisionQuery = MoveTemp(InCollisionQuery);
-    Candidate.CollisionBatch = MoveTemp(InCollisionBatch);
     Candidate.FixedStepSeconds = InFixedStepSeconds;
     Candidate.RunId = InRunId;
     TArray<FIstanaSwarmConfig> Sorted = Configs;
@@ -227,7 +212,7 @@ bool FIstanaSwarmSimulation::Initialize(const TArray<FIstanaSwarmConfig>& Config
     {
         if (Config.GroupId < 0 || Config.GroupId == PreviousGroup || Config.DroneCount < 1
             || Config.DroneCount > S.MaxDrones - Candidate.States.Num()
-            || !Finite(Config.SpawnOriginCm) || !Nonnegative(Config.SpawnRadiusCm)
+            || !FiniteReference(Config.SpawnOriginCm) || !NonnegativeReference(Config.SpawnRadiusCm)
             || (Config.MovementPresetId != TEXT("Stationary") && Config.MovementPresetId != TEXT("Boids")))
         { Error = TEXT("Invalid group: IDs must be unique; check counts, spawn region, and MovementPresetId (Stationary or Boids)."); return false; }
         PreviousGroup = Config.GroupId;
@@ -254,9 +239,7 @@ bool FIstanaSwarmSimulation::Initialize(const TArray<FIstanaSwarmConfig>& Config
                 State.DroneId = Candidate.States.Num();
                 State.GroupId = Group.Id;
                 State.PositionCm = Position;
-                Group.Members.Add(Candidate.States.Num());
                 Candidate.States.Add(State);
-                Candidate.StateGroups.Add(Candidate.Groups.Num());
                 bPlaced = true;
                 break;
             }
@@ -274,9 +257,8 @@ bool FIstanaSwarmSimulation::Initialize(const TArray<FIstanaSwarmConfig>& Config
     return true;
 }
 
-bool FIstanaSwarmSimulation::SubmitCommand(const FIstanaSwarmCommand& Command, FString& Error)
+bool FIstanaReferenceSwarmSimulation::SubmitCommand(const FIstanaSwarmCommand& Command, FString& Error)
 {
-    TRACE_CPUPROFILER_EVENT_SCOPE(Istana_Command);
     Error.Reset();
     if (!bInitialized || Command.RunId != RunId || Command.DecisionStep != Diagnostics.ExecutedSteps)
     { Error = TEXT("Command must address the initialized run and current simulation step."); return false; }
@@ -291,23 +273,23 @@ bool FIstanaSwarmSimulation::SubmitCommand(const FIstanaSwarmCommand& Command, F
         { Error = TEXT("A route requires 1 to 256 waypoints."); return false; }
         for (const FVector& Point : Command.WaypointsCm)
         {
-            if (!Finite(Point))
+            if (!FiniteReference(Point))
             { Error = TEXT("Waypoints must have finite coordinates."); return false; }
             if (!Command.bAllowPartialPath && !IsFreePosition(Point))
             { Error = TEXT("Strict waypoints must be clear of level collision."); return false; }
             for (int32 Index = 0; Index < States.Num(); ++Index)
             {
-                if (States[Index].GroupId == Group->Id && (!Finite(Point + FormationOffsets[Index])
+                if (States[Index].GroupId == Group->Id && (!FiniteReference(Point + FormationOffsets[Index])
                     || (!Command.bAllowPartialPath && !IsFreePosition(Point + FormationOffsets[Index]))))
                 { Error = TEXT("A waypoint cannot accommodate this group's formation offsets."); return false; }
             }
         }
         // Strict scripted routes validate all legs. Objective routes accept the intent;
         // unavailable paths are retried independently by each drone during stepping.
-        TMap<int32, FNavigationRoute> Proposed;
-        for (int32 Index : Group->Members)
+        TArray<FNavigationRoute> Proposed = NavigationRoutes;
+        for (int32 Index = 0; Index < States.Num(); ++Index)
         {
-            if (!States[Index].bActive) continue;
+            if (States[Index].GroupId != Group->Id || !States[Index].bActive) continue;
             FVector Start = States[Index].PositionCm;
             for (int32 Waypoint = 0; Waypoint < Command.WaypointsCm.Num(); ++Waypoint)
             {
@@ -321,7 +303,7 @@ bool FIstanaSwarmSimulation::SubmitCommand(const FIstanaSwarmCommand& Command, F
                 }
                 if (Waypoint == 0)
                 {
-                    Proposed.Add(Index, FNavigationRoute());
+                    Proposed[Index] = FNavigationRoute();
                     Proposed[Index].Goal = End;
                     Proposed[Index].bBlocked = !bFoundPath;
                     Proposed[Index].bPartialPath = bFoundPath && !Path.Last().Equals(End, 0.01);
@@ -338,7 +320,7 @@ bool FIstanaSwarmSimulation::SubmitCommand(const FIstanaSwarmCommand& Command, F
                 { Error = TEXT("No route found for the closing leg of the loop."); return false; }
             }
         }
-        for (auto& Entry : Proposed) NavigationRoutes[Entry.Key] = MoveTemp(Entry.Value);
+        NavigationRoutes = MoveTemp(Proposed);
         Group->Waypoints = Command.WaypointsCm;
         Group->WaypointIndex = 0;
         Group->bLoop = Command.bLoop;
@@ -363,12 +345,12 @@ bool FIstanaSwarmSimulation::SubmitCommand(const FIstanaSwarmCommand& Command, F
         Group->Mode = Command.Type;
         break;
     case EIstanaSwarmCommandType::SetCruiseSpeed:
-        if (!Positive(Command.CruiseSpeedCmPerSecond) || Command.CruiseSpeedCmPerSecond > Settings.MaxSpeedCmPerSecond)
+        if (!PositiveReference(Command.CruiseSpeedCmPerSecond) || Command.CruiseSpeedCmPerSecond > Settings.MaxSpeedCmPerSecond)
         { Error = TEXT("Cruise speed must be positive and no greater than MaxSpeed."); return false; }
         Group->CruiseSpeed = Command.CruiseSpeedCmPerSecond;
         break;
     case EIstanaSwarmCommandType::SetSpacing:
-        if (!Positive(Command.SpacingCm) || Command.SpacingCm < 2 * Settings.DroneRadiusCm || Command.SpacingCm > Settings.NeighborRadiusCm)
+        if (!PositiveReference(Command.SpacingCm) || Command.SpacingCm < 2 * Settings.DroneRadiusCm || Command.SpacingCm > Settings.NeighborRadiusCm)
         { Error = TEXT("Spacing must be between drone diameter and neighbor radius."); return false; }
         Group->Spacing = Command.SpacingCm;
         break;
@@ -378,7 +360,7 @@ bool FIstanaSwarmSimulation::SubmitCommand(const FIstanaSwarmCommand& Command, F
     return true;
 }
 
-void FIstanaSwarmSimulation::Step()
+void FIstanaReferenceSwarmSimulation::Step()
 {
     if (!bInitialized) return;
     const double Dt = FixedStepSeconds;
@@ -387,8 +369,8 @@ void FIstanaSwarmSimulation::Step()
     {
         if (Group.Mode != EIstanaSwarmCommandType::FollowWaypoints) continue;
         bool bAllArrived = true;
-        for (int32 Index : Group.Members)
-            if (States[Index].bActive)
+        for (int32 Index = 0; Index < States.Num(); ++Index)
+            if (States[Index].bActive && States[Index].GroupId == Group.Id)
                 bAllArrived &= !NavigationRoutes[Index].bBlocked && !NavigationRoutes[Index].bPartialPath
                     && FVector::Dist(States[Index].PositionCm, Target(Group) + FormationOffsets[Index]) <= Settings.ArrivalRadiusCm;
         if (bAllArrived)
@@ -403,28 +385,19 @@ void FIstanaSwarmSimulation::Step()
             }
         }
     }
-    TRACE_CPUPROFILER_EVENT_SCOPE(Istana_Step);
-    CSV_SCOPED_TIMING_STAT(IstanaSwarm, Step);
-    NextStates = States;
-    FIstanaSwarmSpatialIndex Neighbors;
-    const bool bUseSpatial = States.Num() >= 192;
-    if (bUseSpatial) Neighbors.Build(States, Settings.NeighborRadiusCm);
-    TArray<int32> Candidates;
-    if (!bUseSpatial) for (int32 I = 0; I < States.Num(); ++I) Candidates.Add(I);
+    TArray<FIstanaDroneState> Next = States;
     for (int32 Index = 0; Index < States.Num(); ++Index)
     {
         const FIstanaDroneState& State = States[Index];
         if (!State.bActive) continue;
-        const FGroup& Group = Groups[StateGroups[Index]];
+        const FGroup& Group = *Groups.FindByPredicate([&](const FGroup& G) { return G.Id == State.GroupId; });
         FVector Separation = FVector::ZeroVector;
         FVector NeighborVelocity = FVector::ZeroVector;
         FVector NeighborCenter = FVector::ZeroVector;
         int32 NeighborCount = 0;
-        if (bUseSpatial) Neighbors.Candidates(State.PositionCm, Candidates);
-        for (int32 OtherIndex : Candidates)
+        for (int32 OtherIndex = 0; OtherIndex < States.Num(); ++OtherIndex)
         {
             if (OtherIndex == Index || !States[OtherIndex].bActive) continue;
-            ++Work.NeighborCandidates;
             const FIstanaDroneState& Other = States[OtherIndex];
             const FVector Away = State.PositionCm - Other.PositionCm;
             const double Distance = Away.Size();
@@ -483,7 +456,7 @@ void FIstanaSwarmSimulation::Step()
         const FVector Acceleration = ((Desired - State.VelocityCmPerSecond) / Settings.ResponseSeconds)
             .GetClampedToMaxSize(Settings.MaxAccelerationCmPerSecondSquared);
         FVector Velocity = (State.VelocityCmPerSecond + Acceleration * Dt).GetClampedToMaxSize(Settings.MaxSpeedCmPerSecond);
-        Velocity = LimitTurn(State.VelocityCmPerSecond, Velocity, FMath::DegreesToRadians(Settings.MaxTurnDegreesPerSecond) * Dt);
+        Velocity = LimitTurnReference(State.VelocityCmPerSecond, Velocity, FMath::DegreesToRadians(Settings.MaxTurnDegreesPerSecond) * Dt);
         FVector Position = State.PositionCm + Velocity * Dt;
         if (SegmentHitsObstacle(State.PositionCm, Position))
         {
@@ -493,8 +466,8 @@ void FIstanaSwarmSimulation::Step()
             Navigation.Points.Reset();
             Navigation.bBlocked = true;
         }
-        NextStates[Index].PositionCm = Position;
-        NextStates[Index].VelocityCmPerSecond = Velocity;
+        Next[Index].PositionCm = Position;
+        Next[Index].VelocityCmPerSecond = Velocity;
         const double Speed = Velocity.Size();
         const double ActualAcceleration = (Velocity - State.VelocityCmPerSecond).Size() / Dt;
         Diagnostics.PeakSpeedCmPerSecond = FMath::Max(Diagnostics.PeakSpeedCmPerSecond, Speed);
@@ -503,21 +476,15 @@ void FIstanaSwarmSimulation::Step()
         Diagnostics.AccelerationViolationSteps += ActualAcceleration > Settings.MaxAccelerationCmPerSecondSquared + 0.001 ? 1 : 0;
         Diagnostics.TotalPathLengthCm += FVector::Dist(Position, State.PositionCm);
     }
-    Swap(States, NextStates);
-    double PairRadius = 2 * Settings.DroneRadiusCm;
-    for (const FGroup& Group : Groups) PairRadius = FMath::Max(PairRadius, Group.Spacing);
-    if (bUseSpatial) Neighbors.Build(States, PairRadius);
+    States = MoveTemp(Next);
     for (int32 A = 0; A < States.Num(); ++A)
     {
         if (!States[A].bActive) continue;
-        const FGroup& GroupA = Groups[StateGroups[A]];
-        if (bUseSpatial) Neighbors.Candidates(States[A].PositionCm, Candidates);
-        for (int32 B : Candidates)
+        const FGroup& GroupA = *Groups.FindByPredicate([&](const FGroup& G) { return G.Id == States[A].GroupId; });
+        for (int32 B = A + 1; B < States.Num(); ++B)
         {
-            if (B <= A) continue;
             if (!States[B].bActive) continue;
-            ++Work.DiagnosticPairs;
-            const FGroup& GroupB = Groups[StateGroups[B]];
+            const FGroup& GroupB = *Groups.FindByPredicate([&](const FGroup& G) { return G.Id == States[B].GroupId; });
             const double Distance = FVector::Dist(States[A].PositionCm, States[B].PositionCm);
             Diagnostics.SpacingViolationPairSteps += Distance < FMath::Max(GroupA.Spacing, GroupB.Spacing) ? 1 : 0;
             Diagnostics.OverlapPairSteps += Distance < 2 * Settings.DroneRadiusCm ? 1 : 0;
@@ -527,7 +494,7 @@ void FIstanaSwarmSimulation::Step()
     Diagnostics.SimulatedSeconds = Diagnostics.ExecutedSteps * Dt;
 }
 
-TArray<FIstanaSwarmGroupStatus> FIstanaSwarmSimulation::GetGroupStatuses() const
+TArray<FIstanaSwarmGroupStatus> FIstanaReferenceSwarmSimulation::GetGroupStatuses() const
 {
     TArray<FIstanaSwarmGroupStatus> Results;
     for (const FGroup& Group : Groups)
@@ -539,8 +506,8 @@ TArray<FIstanaSwarmGroupStatus> FIstanaSwarmSimulation::GetGroupStatuses() const
         Status.WaypointIndex = Group.Waypoints.IsEmpty() ? INDEX_NONE : Group.WaypointIndex;
         Status.bRouteCompleted = Group.bRouteCompleted;
         Status.Mode = Group.Mode;
-        for (int32 Index : Group.Members)
-            if (States[Index].bActive)
+        for (int32 Index = 0; Index < States.Num(); ++Index)
+            if (States[Index].GroupId == Group.Id && States[Index].bActive)
             {
                 Status.bNavigationBlocked |= NavigationRoutes[Index].bBlocked;
                 Status.bHasPartialPath |= NavigationRoutes[Index].bPartialPath;
@@ -551,7 +518,7 @@ TArray<FIstanaSwarmGroupStatus> FIstanaSwarmSimulation::GetGroupStatuses() const
 }
 
 #if WITH_DEV_AUTOMATION_TESTS
-FString FIstanaSwarmSimulation::GetNavigationFingerprint() const
+FString FIstanaReferenceSwarmSimulation::GetNavigationFingerprint() const
 {
     FString Result;
     auto Append = [&](const FVector& P) { Result += FString::Printf(TEXT("%.17g,%.17g,%.17g;"), P.X, P.Y, P.Z); };
@@ -564,7 +531,7 @@ FString FIstanaSwarmSimulation::GetNavigationFingerprint() const
 }
 #endif
 
-int64 FIstanaSwarmSimulation::GetNextCommandSequence(int32 GroupId) const
+int64 FIstanaReferenceSwarmSimulation::GetNextCommandSequence(int32 GroupId) const
 {
     const FGroup* Group = Groups.FindByPredicate([GroupId](const FGroup& G) { return G.Id == GroupId; });
     return Group && Group->LastSequence < MAX_int64 ? Group->LastSequence + 1 : INDEX_NONE;
@@ -572,4 +539,5 @@ int64 FIstanaSwarmSimulation::GetNextCommandSequence(int32 GroupId) const
 
 #if defined(_MSC_VER)
 #pragma float_control(pop)
+#endif
 #endif

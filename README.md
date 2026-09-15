@@ -143,9 +143,11 @@ The simulation foundation is implemented as Blueprint-accessible C++ value types
 reusable Data Assets, validation functions, and a no-op policy interface.
 A separate [synthetic swarm module](Docs/SWARM_SIMULATION.md) now implements
 seeded multi-swarm spawning, boid movement, level-collision pathfinding and shared
-objective following through `ARedTeamManager`. Sensor behavior, the
-operator panel, optimization, and RL remain future work. The existing architectural
-viewer still runs as before.
+objective following through `ARedTeamManager`. The red team also supports
+[agent-controlled placement](Docs/RED_TEAM_AGENT.md) and an external Python runtime bridge.
+Behavior-preserving optimizations and measured limits are described in
+[optimization results](Docs/SWARM_OPTIMIZATION_RESULTS.md). Sensors, the operator panel
+and a trained policy remain future work. The architectural viewer still runs as before.
 
 Start with the **[shared contracts usage guide](Docs/SIMULATION_CONTRACTS.md)** for
 field definitions, C++ and Blueprint examples, ownership, validation, and tests.
@@ -243,9 +245,10 @@ navigation uses level objects that block the selected collision channel.
 
 See the [Red Team Manager README](Source/IstanaOpen/Simulation/RedTeam/README.md) for
 setup and lifecycle, the [swarm guide](Docs/SWARM_SIMULATION.md) for navigation tuning,
-and [validation](Docs/VALIDATION.md#swarm-and-red-team-validation-12-september-2026)
-for the successful editor/game builds and 13-test automation run. Learning, sensors,
-rewards and full episode coordination remain future work.
+and [agent integration](Docs/RED_TEAM_AGENT.md) for explicit placement, fixed-step episodes
+and the runtime bridge. See [validation](Docs/VALIDATION.md) and
+[optimization results](Docs/SWARM_OPTIMIZATION_RESULTS.md) for measured scope and limits.
+Learning, sensors, task rewards and full-world episode coordination remain future work.
 
 ## Blue Team reinforcement learning
 
