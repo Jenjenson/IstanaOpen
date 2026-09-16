@@ -1,0 +1,46 @@
+# syntax=docker/dockerfile:1.7
+#
+# OPTIONAL Unreal Engine build/test image — NOT part of the reproducible path.
+#
+# ── Read this before using it ──────────────────────────────────────────────
+# 1. ENTITLEMENT REQUIRED. The base image is Epic's official container, which is
+#    only pullable after linking your GitHub account to an Epic Games account
+#    and joining the EpicGames organisation. It cannot be mirrored or
+#    redistributed, and the Unreal Engine EULA governs its use. There is no way
+#    to make this step "run anywhere"; that is a licensing constraint, not a
+#    packaging one.
+#
+#      docker login ghcr.io -u <github-user> -p <github-pat-with-read:packages>
+#
+# 2. UNVERIFIED ON LINUX. This project has only ever been built and tested on
+#    Windows (UE 5.5.4, Win64 Development). Docs/VALIDATION.md records the 17
+#    passing native tests from that Windows host. A Linux build is plausible but
+#    has never been run; treat failures here as expected work, not as a
+#    regression in the project.
+#
+# 3. THE PROJECT IS MOUNTED, NOT COPIED. Content/ and SourceAssets/ are excluded
+#    from the root .dockerignore so the Python image stays small and LFS-free.
+#    Unreal needs them, so compose bind-mounts the repository at /workspace and
+#    the build runs at container start. This also keeps multi-gigabyte
+#    Intermediate/ and Binaries/ output on the host instead of in image layers.
+#
+#    Run `git lfs pull` on the host first, or the .uasset files are pointers.
+
+ARG UE_IMAGE=ghcr.io/epicgames/unreal-engine:dev-5.5
+FROM ${UE_IMAGE}
+
+# Engine root differs between Epic's tags; override if yours is elsewhere.
+ARG UE_ROOT=/home/ue4/UnrealEngine
+ENV UE_ROOT=${UE_ROOT} \
+    PROJECT=/workspace/IstanaOpen.uproject \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8
+
+USER root
+COPY docker/unreal-build.sh /usr/local/bin/unreal-build
+RUN chmod +x /usr/local/bin/unreal-build && mkdir -p /workspace && chown ue4:ue4 /workspace
+USER ue4
+
+WORKDIR /workspace
+ENTRYPOINT ["/usr/local/bin/unreal-build"]
+CMD ["all"]

@@ -11,3 +11,9 @@
 
 # The live Blue RL checkpoint fingerprints these exact configuration bytes.
 RL/BlueTeam/DefaultTrainingConfig.json text eol=lf
+
+# Container entrypoints run under Linux; a CRLF shebang breaks them. These are
+# new tooling files, not provenance-hashed source or scanned assets.
+*.sh text eol=lf
+Dockerfile text eol=lf
+docker/Dockerfile.unreal text eol=lf

@@ -6,12 +6,17 @@ then run this script during PIE or in a packaged development game. No editor Pyt
 import argparse
 import json
 import math
+import os
 import socket
+
+# The bridge listens on loopback by default. A containerised client cannot reach
+# the host's loopback, so the address is overridable; the default is unchanged.
+DEFAULT_HOST = os.environ.get("ISTANA_REDTEAM_HOST", "127.0.0.1")
 
 
 class RedTeamClient:
-    def __init__(self, port=8765, timeout=120):
-        self.socket = socket.create_connection(("127.0.0.1", port), timeout)
+    def __init__(self, port=8765, timeout=120, host=DEFAULT_HOST):
+        self.socket = socket.create_connection((host, port), timeout)
         self.stream = self.socket.makefile("rb")
         self.request_id = 0
         self.context = None
@@ -83,8 +88,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--steps", type=int, default=100)
+    parser.add_argument("--host", default=DEFAULT_HOST,
+                        help="Bridge address; override when running in a container "
+                             "(default: %(default)s, or $ISTANA_REDTEAM_HOST)")
     args = parser.parse_args()
-    with RedTeamClient(args.port) as client:
+    with RedTeamClient(args.port, host=args.host) as client:
         context = client.reset()
         print("Placement:", client.place(scripted_centers(context)))
         for _ in range(args.steps):

@@ -1,0 +1,50 @@
+# Build context exclusions for the reproducible Python/RL image.
+#
+# The two large binary trees below are Git LFS content needed only by Unreal.
+# Excluding them means `docker build` works from a plain `git clone` WITHOUT
+# `git lfs pull`, and keeps the image small. The Unreal image does not COPY the
+# project at all; it bind-mounts it (see docker/Dockerfile.unreal).
+Content/
+SourceAssets/
+
+# Large LFS screenshots; not used by any Python test or tool.
+Docs/Evidence/*.png
+
+# Version control and CI metadata.
+.git/
+.gitattributes
+.github/
+
+# Unreal and IDE build products.
+Binaries/
+Build/
+Intermediate/
+Saved/
+DerivedDataCache/
+Releases/
+.vs/
+.vsconfig
+*.sln
+*.suo
+*.pdb
+
+# Python caches and local environments.
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+**/.pytest_cache/
+**/.venv/
+**/.mypy_cache/
+**/*.egg-info/
+# setuptools output; lowercase, so distinct from Unreal's Build/ on Linux.
+**/build/
+
+# Local run outputs and generated deliverables.
+runs/
+Deliverables/
+**/ci_artifacts/
+
+# Docker files themselves do not need to be in the image payload layer.
+docker-compose.yml
