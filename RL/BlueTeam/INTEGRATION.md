@@ -5,8 +5,11 @@
 The new [adaptive experiment](ADAPTIVE.md) is also self-contained: randomized
 training, external-format observation inference, paired evaluation and offline
 replay. Its `triad.sensor_input.v1` adapter is a backend-neutral planning
-boundary, not a native Unreal or physical-sensor connection. The live commands
-below refer only to the preserved TRIAD v4 experiment.
+boundary, not a physical-sensor connection. An experimental Istana native adapter
+and a working local replay console are now included; see
+[Blue + Red simulation console](../../Docs/BLUE_TEAM_LIVE.md) for setup and the
+native validation results. The live commands below refer only
+to the preserved TRIAD v4 experiment.
 
 The Python dry-run, policy, checkpoint inspection, and Python tests are
 self-contained. The live client speaks TRIAD's `triad.rl_training.v4` contract
@@ -29,7 +32,8 @@ supported setup procedure.
 | TRIAD Remote Control client | Included; requires a compatible live TRIAD manager |
 | TRIAD native manager/model/types | Selected reference source only |
 | Istana Open Red Team Manager | Existing separate swarm implementation |
-| Blue-to-Istana policy adapter, sensor runtime, rewards and episode coordinator | Integration work still required |
+| Blue-to-Istana policy adapter, synthetic sensor runtime, rewards and episode coordinator | Experimental integration; native builds, tests and Istana headless smoke episodes passed |
+| Local simulation console | All 18 published replays available; live controls require compiled native integration |
 
 ## Use an existing TRIAD host
 

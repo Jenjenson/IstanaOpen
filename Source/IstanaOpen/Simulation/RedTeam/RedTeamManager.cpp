@@ -1,4 +1,5 @@
 #include "Simulation/RedTeam/RedTeamManager.h"
+#include "Simulation/BlueTeam/BlueTeamCoordinator.h"
 #include "Engine/TargetPoint.h"
 #include "Misc/CommandLine.h"
 #include "Misc/Parse.h"
@@ -132,6 +133,7 @@ bool ARedTeamManager::BeginPlacementEpisode(int32 EpisodeSeed, FRedTeamPlacement
     // Validate movement/clock/world availability before advertising a policy context.
     FIstanaSwarmSimulation ConfigurationProbe;
     if (!PrepareSimulation(ConfigurationProbe, {}, Movement, EpisodeSeed, FixedStepSeconds, FGuid::NewGuid(), Error)) return false;
+    if (IsValid(BlueCoordinator) && !BlueCoordinator->ValidateConfiguration(FixedStepSeconds, Error)) return false;
     bAutoAdvance = false; bEnableDemoKeyboard = false;
     PlacementContext.RunId = FGuid::NewGuid(); ++PlacementContext.Revision;
     PlacementContext.WorldRevision = PlacementWorldRevision;
@@ -150,6 +152,7 @@ bool ARedTeamManager::BeginPlacementEpisode(int32 EpisodeSeed, FRedTeamPlacement
     EpisodePhase = ERedTeamEpisodePhase::AwaitingPlacement;
     SpawnStatus = TEXT("Awaiting agent placement; previous simulation is frozen.");
     Context = PlacementContext;
+    if (IsValid(BlueCoordinator)) BlueCoordinator->BeginEpisode(Context);
     if (UObject* Policy = PlacementPolicy.GetObject())
     {
         IRedTeamPlacementPolicy::Execute_ResetPlacementPolicy(Policy, Context);
@@ -233,6 +236,7 @@ FRedTeamPlacementResult ARedTeamManager::SubmitPlacement(const FRedTeamPlacement
         SpawnedGroups = Groups; Result.AcceptedGroups = Groups; Result.InitialStates = GetDroneStates();
         Result.bAccepted = true; bFollowObjective = true; bAutoAdvance = false;
         EpisodePhase = ERedTeamEpisodePhase::Running;
+        if (IsValid(BlueCoordinator)) BlueCoordinator->CaptureInitialStates(Result.InitialStates);
         SpawnStatus = TEXT("Agent placement accepted; explicit fixed-step clock.");
     }
     // Invalid/stale context traffic cannot poison the current episode's request sequence.
@@ -264,10 +268,14 @@ bool ARedTeamManager::AdvanceEpisode(int32 Steps, FRedTeamEpisodeObservation& Ob
     if (PlacementSource != ERedTeamPlacementSource::AgentPlacement || EpisodePhase != ERedTeamEpisodePhase::Running
         || GetRunId() != PlacementContext.RunId || Steps < 1 || Steps > 1000 || bEpisodeStep)
     { Error = TEXT("step: requires a running episode and 1..1000 fixed steps, without reentrant stepping."); Observation = GetEpisodeObservation(); return false; }
+    if (IsValid(BlueCoordinator) && !BlueCoordinator->CanAdvance(Error))
+    { Observation = GetEpisodeObservation(); return false; }
     for (int32 I = 0; I < Steps && EpisodePhase == ERedTeamEpisodePhase::Running; ++I)
     {
         bEpisodeStep = true; Super::AdvanceOneStep();
-        Observation = GetEpisodeObservation(); EvaluateEpisode(Observation); bEpisodeStep = false;
+        Observation = GetEpisodeObservation(); EvaluateEpisode(Observation);
+        if (IsValid(BlueCoordinator)) BlueCoordinator->Evaluate(Observation);
+        bEpisodeStep = false;
         if (EpisodePhase == ERedTeamEpisodePhase::Cancelled)
         { Observation.bTruncated = true; Observation.Reason = EpisodeReason; }
         if (Observation.bTerminated || Observation.bTruncated)

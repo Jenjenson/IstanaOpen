@@ -1,5 +1,6 @@
 #include "Simulation/RedTeam/RedTeamAgentBridge.h"
 #include "Simulation/RedTeam/RedTeamManager.h"
+#include "Simulation/BlueTeam/BlueTeamCoordinator.h"
 #include "Sockets.h"
 #include "SocketSubsystem.h"
 #include "IPAddress.h"
@@ -112,6 +113,18 @@ FString ARedTeamAgentBridge::HandleRequest(const FString& Line)
         else if (Manager->BeginPlacementEpisode(int32(Seed), Context, Error))
             Response->SetObjectField(TEXT("context"), FJsonObjectConverter::UStructToJsonObject(Context));
     }
+    else if (Op == TEXT("blue_context") || Op == TEXT("blue_observe") || Op == TEXT("blue_deploy"))
+    {
+        auto* Blue = Manager->BlueCoordinator.Get();
+        if (!IsValid(Blue)) Error = TEXT("Blue coordinator unavailable; start Istana with -IstanaBlueLive.");
+        else if (Op == TEXT("blue_context")) Response->SetObjectField(TEXT("context"), Blue->ContextJson());
+        else if (Op == TEXT("blue_deploy"))
+        {
+            const TSharedPtr<FJsonObject>* Action = nullptr;
+            if (!Request->TryGetObjectField(TEXT("action"), Action)) Error = TEXT("Blue deployment requires an action object.");
+            else Response->SetObjectField(TEXT("result"), Blue->DeployJson(**Action, Error));
+        }
+    }
     else if (Op == TEXT("context"))
         Response->SetObjectField(TEXT("context"), FJsonObjectConverter::UStructToJsonObject(Manager->GetPlacementContext()));
     else if (Op == TEXT("place"))
@@ -146,7 +159,9 @@ FString ARedTeamAgentBridge::HandleRequest(const FString& Line)
     else if (Op == TEXT("observe"))
         Response->SetObjectField(TEXT("observation"), FJsonObjectConverter::UStructToJsonObject(Manager->GetEpisodeObservation()));
     else if (Op == TEXT("cancel")) Manager->CancelEpisode(TEXT("External agent cancelled episode"));
-    else Error = TEXT("Unknown op; use reset/context/place/step/observe/cancel.");
+    else Error = TEXT("Unknown op; use reset/context/place/step/observe/cancel/blue_context/blue_deploy/blue_observe.");
+    if (IsValid(Manager) && IsValid(Manager->BlueCoordinator))
+        Response->SetObjectField(TEXT("blueObservation"), Manager->BlueCoordinator->ObservationJson());
     Response->SetBoolField(TEXT("ok"), Error.IsEmpty());
     if (!Error.IsEmpty()) Response->SetStringField(TEXT("error"), Error);
     LastRequest = Id; LastPayload = Line; LastResponse = Encode(Response);

@@ -31,6 +31,16 @@ The scene includes a newly authored palace exterior, formal landscape,
 scanned vegetation, 4K architectural materials, and surrounding buildings and
 roads derived from OpenStreetMap.
 
+## Sensor simulation console (experimental)
+
+The [Blue + Red console](Docs/BLUE_TEAM_LIVE.md) provides local browser playback
+of 18 published synthetic sensor-placement evaluations, including sensor ranges,
+drone paths, timeline controls and results. These recorded cases are not live
+Istana runs. Experimental live Unreal telemetry controls are also included;
+the integration has passed native builds, 18 native tests and live headless
+smoke episodes on the Istana map. Use the source project's live launcher,
+not the older landscape-only downloadable release.
+
 ## Controls
 
 | Control | Action |

@@ -30,6 +30,7 @@ class ISTANAOPEN_API AIstanaGameMode : public AGameModeBase
     GENERATED_BODY()
 public:
     AIstanaGameMode();
+    virtual void StartPlay() override;
 };
 
 UCLASS()
