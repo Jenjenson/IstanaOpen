@@ -5,6 +5,8 @@
 #include "Simulation/RedTeam/RedTeamPlacementPolicy.h"
 #include "RedTeamManager.generated.h"
 
+class ABlueTeamCoordinator;
+
 /** Placeable multi-swarm spawner. All groups share ObjectiveTarget and one solver/clock. */
 UCLASS(BlueprintType, Blueprintable, meta=(DisplayName="Red Team Manager"))
 class ISTANAOPEN_API ARedTeamManager : public AIstanaSwarmManager
@@ -12,6 +14,9 @@ class ISTANAOPEN_API ARedTeamManager : public AIstanaSwarmManager
     GENERATED_BODY()
 public:
     ARedTeamManager();
+
+    UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category="Red Team|Blue Integration")
+    TObjectPtr<ABlueTeamCoordinator> BlueCoordinator;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Red Team|Spawning", meta=(ClampMin="1", ClampMax="256"))
     int32 NumberOfSwarms = 3;

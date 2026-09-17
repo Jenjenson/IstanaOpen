@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Istana · Simulation console</title><link rel="stylesheet" href="/style.css"></head>
+<body>
+<header class="topbar"><a class="brand" href="/" aria-label="Istana console home"><span class="brand-mark">I</span><span>ISTANA<span class="brand-sub">SIMULATION LAB</span></span></a><div class="top-context">RED + BLUE <span>/</span> SENSOR PLACEMENT</div><span id="connection" class="connection"><i></i>Replay ready</span></header>
+<main>
+ <section class="intro"><div><p class="eyebrow">Observe. Compare. Understand.</p><h1>The simulation, in view.</h1><p class="subtitle">Follow the threats. Inspect the sensing. See what the policy chose.</p></div><div class="mode-switch" role="group" aria-label="Data source"><button id="recorded-mode" aria-pressed="true">Recorded replay</button><button id="live-mode" aria-pressed="false">Live Unreal</button></div></section>
+ <div id="error" role="alert" hidden></div>
+ <section class="workspace">
+  <aside class="controls">
+   <div class="section-heading"><span class="section-num">01</span><h2>Episode</h2></div>
+   <div id="recorded-controls">
+    <label for="profile">Scenario conditions</label><select id="profile"><option value="normal">Normal</option><option value="stress">Stress</option><option value="capability">Varied capabilities</option></select>
+    <label for="policy">Trained checkpoint</label><select id="policy"><option value="406">Temporal · seed 406</option><option value="407">Temporal · seed 407</option><option value="408">Temporal · seed 408</option></select>
+    <label for="case">Recorded case</label><select id="case"><option value="1">Case 01</option><option value="2">Case 02</option></select>
+    <p class="helper">All three checkpoints and all 18 published cases are available, including failures.</p>
+   </div>
+   <div id="live-controls" hidden>
+    <p class="helper live-note">Connect to the compiled Istana project running with <code>-IstanaBlueLive</code>. The scene runs in Unreal; this view shows its telemetry.</p>
+    <button id="connect" class="secondary full">Connect to Unreal</button>
+    <label for="live-policy">Blue planner</label><select id="live-policy"><option value="406">Temporal · seed 406</option><option value="407">Temporal · seed 407</option><option value="408">Temporal · seed 408</option><option value="greedy">Greedy · non-RL</option></select>
+    <p class="helper">Greedy adds the legal sensor/site with the greatest predicted marginal return, then repeats within budget. Selection applies when you plan a new episode.</p>
+    <label for="seed">Episode seed</label><input id="seed" type="number" step="1" value="12345" min="-2147483648" max="2147483647">
+    <button id="plan" class="primary full" disabled>Plan new episode</button>
+    <p id="active-policy" class="helper">No active planner.</p>
+    <p id="surface-status" class="helper">Surface support is checked by Unreal before deployment.</p>
+    <p class="helper">Blue commits its initial layout, then scripted Red swarms are placed. Pause freezes the simulation clock.</p>
+   </div>
+   <div class="separator"></div>
+   <div class="section-heading"><span class="section-num">02</span><h2>Blue deployment</h2><span id="sensor-count" class="count">—</span></div>
+   <div id="sensors" class="sensor-list"></div>
+   <div class="budget-row"><span>Deployment cost</span><strong id="cost">—</strong></div><div class="budget-track"><span id="budget-bar"></span></div><p class="helper">Synthetic catalogue units</p>
+   <div class="separator"></div>
+   <div class="layer-heading">Map layers</div>
+   <label class="check"><input id="ranges" type="checkbox" checked><span>Sensor ranges</span></label>
+   <label class="check"><input id="trails" type="checkbox" checked><span>Threat paths</span></label>
+   <label class="check"><input id="sites" type="checkbox"><span>Approved sites</span></label>
+  </aside>
+  <section class="stage" aria-label="Simulation viewer">
+   <div class="stage-header"><div><span id="source-badge" class="source-badge">RECORDED</span><h2 id="episode-title">Loading episode…</h2></div><div class="stage-clock"><span>SIMULATION TIME</span><strong id="clock">00:00.0</strong></div></div>
+   <div class="map-container"><canvas id="map" role="img" aria-label="Top-down view of sensor positions, coverage and drone movement"></canvas><div class="map-label"><span class="crosshair">+</span><span id="coordinates">Objective-relative metres</span></div><div id="empty" hidden><h3>Connect your Unreal scene</h3><p>Build the integration and launch Istana with<br><code>-IstanaBlueLive</code>, then connect from the left panel.</p><span>Recorded replays are available now.</span></div><div class="map-key"><span><i class="key-threat"></i>Red threat</span><span><i class="key-sensor"></i>Blue sensor</span><span><i class="key-detected"></i>Detected / track</span><span><i class="key-zone"></i>Objective</span></div></div>
+   <div class="transport"><button id="play" class="primary">Play replay</button><button id="step" class="icon-button" aria-label="Advance one frame">Step →</button><button id="restart" class="icon-button">Restart</button><div class="scrubber"><label class="sr-only" for="timeline">Replay timeline</label><input id="timeline" type="range" min="0" max="1" value="0"><span id="progress">0 / 0 frames</span></div><label class="speed-label" for="speed">Speed<select id="speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select></label></div>
+   <div class="telemetry"><div><span id="threats-label">Threats</span><strong id="threat-count">—</strong></div><div><span id="detected-label">Detected so far</span><strong id="detected-count">—</strong></div><div><span>Confirmed tracks</span><strong id="confirmed-count">—</strong></div><div><span id="outcome-label">Recorded final result</span><strong id="outcome">—</strong></div></div>
+  </section>
+ </section>
+ <section class="details"><div class="detail-panel"><div class="section-heading"><span class="section-num">03</span><h2>What happened</h2><span id="event-count" class="count">0</span></div><div id="events" class="events" aria-live="off"></div></div><div class="detail-panel result-panel"><div class="section-heading"><span class="section-num">04</span><h2>Episode results</h2><span id="results-tag">RECORDED FINAL</span></div><div class="result-grid"><div><span>Detected</span><strong id="result-detected">—</strong></div><div><span>Confirmed</span><strong id="result-confirmed">—</strong></div><div><span>Timely confirmation</span><strong id="result-timely">—</strong></div><div><span>Total return</span><strong id="result-return">—</strong></div></div><p id="result-note" class="helper">Synthetic sensing outcomes. Confirmation before the deadline is the objective; no interception is simulated.</p></div></section>
+ <footer><span><i class="footer-dot"></i><span id="provenance">Published temporal-v6 evidence · 18 recorded cases</span></span><span>Observer view can show simulation truth. Blue receives public observations only.</span></footer>
+</main><script src="/app.js"></script></body></html>

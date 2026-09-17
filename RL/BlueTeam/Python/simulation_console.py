@@ -1,0 +1,247 @@
+"""Local visual console for published replays and the optional Unreal bridge.
+
+Run from any directory with the project's Python environment. No cloud service.
+The HTTP controller owns one serial bridge session. Blue plans receive only the
+public snapshot; the observer display separately shows simulator drone truth.
+"""
+from __future__ import annotations
+
+import argparse
+from copy import deepcopy
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+import json
+from pathlib import Path
+import re
+import secrets
+import threading
+
+from triad_rl.istana_live import IstanaLiveClient, make_plan, scripted_red_centers
+
+ROOT = Path(__file__).resolve().parent
+ASSETS = ROOT / "console"
+BLUE_ROOT = ROOT.parent
+
+
+def load_replays(path=None):
+    page = (Path(path) if path else BLUE_ROOT / "Results/temporal-v6-demo.html").read_text(encoding="utf-8")
+    match = re.search(r'<script id="replay-data" type="application/json">(.*?)</script>', page, re.S)
+    if not match:
+        raise ValueError("Published replay data is missing")
+    result = json.loads(match[1])
+    if not result.get("replays") or any(not r.get("frames") for r in result["replays"]):
+        raise ValueError("Published replay has no frames")
+    return result["replays"]
+
+
+def replay_view(replay):
+    """Read archived evidence; never resimulate, filter cases or infer new results."""
+    return {"mode": "recorded", "label": f"Temporal {replay['temporal_seed']} · {replay['profile']} · case {replay['case_index']}",
+            "coordinateLabel": "Synthetic evaluation arena · objective-relative metres",
+            "catalogue": replay["catalogue"], "placements": replay["placements"],
+            "sites": replay["scenario"]["public"]["sites"],
+            "budget": replay["scenario"]["public"]["budget_total"],
+            "objectiveRadius": replay["scenario"].get("objective_radius", 20),
+            "frames": replay["frames"], "metrics": replay["metrics"],
+            "decisions": replay["decisions"], "seed": replay["seed"],
+            "weather": replay["scenario"]["public"]["weather"],
+            "policy": f"Experimental temporal checkpoint {replay['temporal_seed']}",
+            "outcome": replay["metrics"]["outcome"],
+            "audit": {"recorded": True, "live_unreal": False, "policy_truth_access": False}}
+
+
+class ConsoleState:
+    def __init__(self, bridge_port=8765, client_factory=IstanaLiveClient, planner=make_plan):
+        self.bridge_port, self.client_factory, self.planner = bridge_port, client_factory, planner
+        self.lock = threading.RLock()
+        self.client = None
+        self.view = None
+        self.context = None
+        self.error = ""
+
+    def close(self):
+        if self.client is not None:
+            self.client.close()
+        self.client = None
+
+    def status(self):
+        with self.lock:
+            return {"connected": self.client is not None and not self.client.closed,
+                    "episode": self.view is not None, "error": self.error,
+                    "bridgePort": self.bridge_port}
+
+    def frame(self, red, blue):
+        origin = self.context["worldOriginCm"]
+        threats = []
+        for drone in red.get("drones", []):
+            p = drone["positionCm"]
+            threats.append({"id": f"drone-{drone['droneId']}",
+                "position": [(p[k] - origin[k]) / 100 for k in ("x", "y", "z")],
+                "active": drone.get("bActive", True), "observer_truth": True})
+        return {"time": blue["elapsedSeconds"], "threats": threats, "detections": [],
+                "tracks": blue["publicSnapshot"]["tracks"], "completedSteps": blue["completedSteps"]}
+
+    def action(self, operation, payload):
+        with self.lock:
+            try:
+                if operation == "connect":
+                    if self.client is None or self.client.closed:
+                        self.close()
+                        self.client = self.client_factory(self.bridge_port, timeout=10.)
+                    # A transport connection alone does not imply Blue is present.
+                    reply = self.client.request("blue_context")
+                    if reply["context"].get("coordinateSystem") != "unreal_xy_relative_m_z_up":
+                        raise ValueError("Unreal does not expose the Blue integration contract")
+                    self.error = ""
+                    return self.status()
+                if operation == "disconnect":
+                    self.close()
+                    self.view = self.context = None
+                    self.error = ""
+                    return self.status()
+                if self.client is None or self.client.closed:
+                    raise ConnectionError("Start the compiled Unreal project with -IstanaBlueLive, then connect.")
+                if operation == "reset":
+                    seed = payload.get("seed", 12345)
+                    if type(seed) is not int or not -(2**31) <= seed < 2**31:
+                        raise ValueError("Episode seed must be a signed 32-bit integer")
+                    policy = payload.get("policy", "406")
+                    if policy not in ("406", "407", "408", "greedy", "control"):
+                        raise ValueError("Select checkpoint 406, 407, 408, or greedy placement")
+                    greedy = policy in ("greedy", "control")  # retain the old API alias
+                    self.view = self.context = None
+                    red_context = self.client.reset(seed)
+                    self.context = self.client.get_blue_context()
+                    checkpoint = None if greedy else BLUE_ROOT / f"Results/temporal-v6-pilot/training/seed-{policy}/last"
+                    plan = self.planner(self.context, checkpoint=checkpoint, temporal_public_control=greedy)
+                    self.client.deploy(plan["placements"])
+                    placed = self.client.place_red(scripted_red_centers(red_context))
+                    blue = self.client.observe_blue()
+                    self.view = {"mode": "live", "label": "Istana · live episode", "seed": seed,
+                        "coordinateLabel": "Istana top-down telemetry · objective-relative XY metres",
+                        "catalogue": self.context["catalogue"],
+                        "placements": blue["publicSnapshot"]["placements"],
+                        "sites": self.context["publicSnapshot"]["sites"],
+                        "blockedSites": self.context["publicSnapshot"].get("blocked_sites", []),
+                        "surfaceMounted": self.context.get("placementRule") == "static_surface_mast_v1",
+                        "budget": self.context["publicSnapshot"]["budget_total"],
+                        "objectiveRadius": self.context["temporalConfig"]["objective_radius_m"],
+                        "weather": self.context["publicSnapshot"]["weather"],
+                        "policy": "Greedy placement (non-RL)" if greedy else f"Experimental temporal checkpoint {policy}",
+                        "decisions": plan["recommendation"]["decisions"],
+                        "frames": [self.frame({"drones": placed["initialStates"]}, blue)],
+                        "metrics": None, "outcome": "running", "ended": False,
+                        "audit": {"live_unreal": True, "red_control": "scripted centers", "policy_truth_access": False}}
+                elif operation == "step":
+                    if self.view is None:
+                        raise ValueError("Plan an episode before stepping")
+                    if not self.view["ended"]:
+                        # Each request advances a bounded half-second (10 x 50ms by default).
+                        response = self.client.step(10)
+                        blue = response["blueObservation"]
+                        self.view["frames"].append(self.frame(response["observation"], blue))
+                        self.view["ended"] = bool(blue["terminated"] or blue["truncated"])
+                        self.view["outcome"] = blue["reason"] if self.view["ended"] else "running"
+                        self.view["metrics"] = ({**blue["metrics"], "return": blue["reward"]}
+                                                if blue["metricsAvailable"] else None)
+                else:
+                    raise ValueError("Unknown console action")
+                self.error = ""
+                return deepcopy(self.view)
+            except Exception as exc:
+                self.error = ("Unreal is not listening on the local bridge. Build and launch the project with -IstanaBlueLive, then reconnect."
+                              if isinstance(exc, ConnectionRefusedError) else str(exc))
+                # Ambiguous mutations or a failed reset cannot be resumed with stale UI state.
+                self.close()
+                self.view = self.context = None
+                if isinstance(exc, ConnectionRefusedError):
+                    raise ConnectionError(self.error) from exc
+                raise
+
+
+def make_server(port=9048, bridge_port=8765, *, state=None, replays=None):
+    state = state or ConsoleState(bridge_port)
+    replays = replays if replays is not None else load_replays()
+    token = secrets.token_urlsafe(32)
+
+    class Handler(BaseHTTPRequestHandler):
+        def log_message(self, *_):
+            pass
+
+        def valid_host(self):
+            expected = self.server.server_address[1]
+            return self.headers.get("Host") in (f"127.0.0.1:{expected}", f"localhost:{expected}")
+
+        def reply(self, value, code=200, content_type="application/json"):
+            raw = value if isinstance(value, bytes) else json.dumps(value, allow_nan=False).encode()
+            self.send_response(code)
+            self.send_header("Content-Type", content_type)
+            self.send_header("Content-Length", str(len(raw)))
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("X-Content-Type-Options", "nosniff")
+            self.send_header("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none'")
+            self.end_headers()
+            self.wfile.write(raw)
+
+        def do_GET(self):
+            if not self.valid_host():
+                return self.reply({"error": "Invalid local host"}, 403)
+            if self.path == "/api/session":
+                return self.reply({"token": token, "status": state.status(), "replays": [
+                    {"id": i, "profile": r["profile"], "policy": r["temporal_seed"], "case": r["case_index"],
+                     "outcome": r["metrics"]["outcome"]} for i, r in enumerate(replays)]})
+            if self.path == "/api/status":
+                return self.reply(state.status())
+            match = re.fullmatch(r"/api/replay/(\d+)", self.path)
+            if match and int(match[1]) < len(replays):
+                return self.reply(replay_view(replays[int(match[1])]))
+            static = {"/": ("index.html", "text/html; charset=utf-8"),
+                      "/app.js": ("app.js", "text/javascript; charset=utf-8"),
+                      "/style.css": ("style.css", "text/css; charset=utf-8")}
+            if self.path in static:
+                name, mime = static[self.path]
+                return self.reply((ASSETS / name).read_bytes(), content_type=mime)
+            self.reply({"error": "Not found"}, 404)
+
+        def do_POST(self):
+            allowed_origin = {f"http://127.0.0.1:{self.server.server_address[1]}", f"http://localhost:{self.server.server_address[1]}"}
+            if (not self.valid_host() or self.headers.get("Origin") not in allowed_origin
+                    or self.headers.get("X-Console-Token") != token):
+                return self.reply({"error": "Local session required"}, 403)
+            match = re.fullmatch(r"/api/action/(connect|disconnect|reset|step)", self.path)
+            if not match:
+                return self.reply({"error": "Unknown action"}, 404)
+            try:
+                size = int(self.headers.get("Content-Length", "0"))
+                if not 0 < size <= 4096 or self.headers.get_content_type() != "application/json":
+                    raise ValueError("Expected a small JSON object")
+                payload = json.loads(self.rfile.read(size))
+                if not isinstance(payload, dict):
+                    raise ValueError("Expected a JSON object")
+                result = state.action(match[1], payload)
+                self.reply(result)
+            except (ValueError, KeyError, RuntimeError, OSError) as error:
+                self.reply({"error": str(error)}, 400)
+
+    server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
+    server.console_state = state
+    return server
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--port", type=int, default=9048)
+    parser.add_argument("--bridge-port", type=int, default=8765)
+    args = parser.parse_args(argv)
+    server = make_server(args.port, args.bridge_port)
+    print(f"Istana simulation console: http://127.0.0.1:{server.server_port}", flush=True)
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        server.console_state.close()
+        server.server_close()
+
+
+if __name__ == "__main__":
+    main()

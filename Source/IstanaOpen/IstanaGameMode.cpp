@@ -7,6 +7,7 @@
 #include "Engine/Canvas.h"
 #include "Engine/Engine.h"
 #include "Engine/StaticMeshActor.h"
+#include "Engine/TargetPoint.h"
 #include "Engine/World.h"
 #include "EngineUtils.h"
 #include "GameFramework/GameUserSettings.h"
@@ -23,6 +24,9 @@
 #include "Serialization/JsonSerializer.h"
 #include "Serialization/JsonWriter.h"
 #include "UnrealClient.h"
+#include "Simulation/BlueTeam/BlueTeamCoordinator.h"
+#include "Simulation/RedTeam/RedTeamAgentBridge.h"
+#include "Simulation/RedTeam/RedTeamManager.h"
 
 AIstanaPlantingGroup::AIstanaPlantingGroup()
 {
@@ -39,6 +43,56 @@ AIstanaGameMode::AIstanaGameMode()
     DefaultPawnClass = AIstanaCameraPawn::StaticClass();
     PlayerControllerClass = AIstanaPlayerController::StaticClass();
     HUDClass = AIstanaHUD::StaticClass();
+}
+
+void AIstanaGameMode::StartPlay()
+{
+    // Configure actors before their BeginPlay so the external episode owns the clock.
+    // This is an opt-in runtime setup; the saved landscape stays usable as a viewer.
+    if (FParse::Param(FCommandLine::Get(), TEXT("IstanaBlueLive")))
+    {
+        TArray<ARedTeamManager*> Managers;
+        for (TActorIterator<ARedTeamManager> It(GetWorld()); It; ++It) Managers.Add(*It);
+        int32 Port = 8765;
+        FParse::Value(FCommandLine::Get(), TEXT("IstanaBluePort="), Port);
+        if (Managers.Num() != 1 || !IsValid(Managers[0]->ObjectiveTarget) || Port < 1024 || Port > 65535
+            || FParse::Param(FCommandLine::Get(), TEXT("IstanaSwarmProfile")))
+        {
+            UE_LOG(LogTemp, Error, TEXT("IstanaBlueLive requires exactly one RedTeamManager with an objective, a valid port, and no swarm profiling override."));
+            // A rejected setup must not silently run a seeded scenario.
+            for (auto* Manager : Managers) { Manager->bAutoInitialize = false; Manager->bAutoAdvance = false; }
+        }
+        else
+        {
+            auto* Manager = Managers[0];
+            Manager->PlacementSource = ERedTeamPlacementSource::AgentPlacement;
+            Manager->bAutoInitialize = false;
+            Manager->bAutoAdvance = false;
+            Manager->bEnableDemoKeyboard = false;
+            auto* Coordinator = Manager->BlueCoordinator.Get();
+            if (!IsValid(Coordinator)) Coordinator = GetWorld()->SpawnActor<ABlueTeamCoordinator>();
+            if (IsValid(Coordinator))
+            {
+                Coordinator->Manager = Manager;
+                Manager->BlueCoordinator = Coordinator;
+                ARedTeamAgentBridge* Bridge = nullptr;
+                for (TActorIterator<ARedTeamAgentBridge> It(GetWorld()); It; ++It)
+                    if (It->Manager == Manager) { Bridge = *It; break; }
+                if (!Bridge) Bridge = GetWorld()->SpawnActor<ARedTeamAgentBridge>();
+                if (Bridge)
+                {
+                    Bridge->Manager = Manager;
+                    Bridge->Port = Port;
+                    Bridge->IdleTimeoutSeconds = 300;
+                    Bridge->bStartOnBeginPlay = true;
+                    UE_LOG(LogTemp, Display, TEXT("IstanaBlueLive configured on 127.0.0.1:%d; awaiting Python planner."), Port);
+                }
+                else UE_LOG(LogTemp, Error, TEXT("IstanaBlueLive could not create the loopback bridge."));
+            }
+            else UE_LOG(LogTemp, Error, TEXT("IstanaBlueLive could not create the Blue coordinator."));
+        }
+    }
+    Super::StartPlay();
 }
 
 AIstanaCameraPawn::AIstanaCameraPawn()
