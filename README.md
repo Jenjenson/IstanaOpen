@@ -41,6 +41,100 @@ the integration has passed native builds, 18 native tests and live headless
 smoke episodes on the Istana map. Use the source project's live launcher,
 not the older landscape-only downloadable release.
 
+### Set up the browser interface and live 3D simulation (Windows)
+
+The **browser is the control/telemetry interface**; a **separate Unreal window
+renders the 3D scene**. For this live mode use the current Git repository, not
+the September 10 source ZIP or landscape-only Windows release.
+
+**Install once:**
+
+- Git and Git LFS, for the source and real map/mesh/texture assets.
+- Unreal Engine **5.5.4** through Epic Games Launcher.
+- Visual Studio **2022 Build Tools** (or Visual Studio 2022) with C++ build tools:
+  **MSVC v143 VS 2022 C++ x64/x86 build tools v14.38**, **Windows 11 SDK
+  10.0.22621.0**, **.NET Framework 4.8 SDK**, and **.NET Framework 4.8 targeting
+  pack**. In Visual Studio Installer, use **Modify → Individual components**
+  to find these. VS Code is optional; it does not replace the compiler.
+
+No separate Python installation is needed for this route: the setup script
+uses Unreal's bundled Python and creates an isolated environment. Internet is
+needed for the initial downloads/dependency installation; the simulation then
+runs locally. Docker is not required for the browser + 3D workflow.
+
+**1. Get the current project and build it.** In PowerShell, for a fresh checkout:
+
+```powershell
+git lfs install
+git clone https://github.com/Jenjenson/IstanaOpen.git
+cd IstanaOpen
+git lfs pull
+powershell -ExecutionPolicy Bypass -File .\Tools\setup_blue_python.ps1
+powershell -ExecutionPolicy Bypass -File .\Tools\build.ps1 -Target Editor
+```
+
+The repository's default branch is `codex/istana-open`. If you already have a
+checkout, update that checkout instead of cloning again. Run all commands below
+from the folder containing `IstanaOpen.uproject`. Close the project's Unreal
+window before rebuilding. If the engine is not discovered, pass
+`-EngineRoot 'D:\Epic Games\UE_5.5'` (using your actual path) to the setup,
+build and live-scene scripts.
+
+**2. Start the browser server.** Keep this PowerShell window open:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\Tools\start_simulation_console.ps1
+```
+
+Open **[http://127.0.0.1:9048/](http://127.0.0.1:9048/)** in your browser.
+Recorded replay mode works without launching the 3D scene. It shows archived
+synthetic evaluations, not a live Unreal simulation.
+
+**3. Start the live 3D scene.** Open another PowerShell window in the project
+folder and run:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\Tools\start_blue_live.ps1
+```
+
+Wait for the Istana scene to finish loading; first-time shader compilation can
+take several minutes. The launcher starts the compiled project with the live
+bridge on **127.0.0.1:8765**. Do not launch a second scene on the same port.
+
+**4. Deploy and run from the browser:**
+
+1. Choose **Live Unreal → Connect to Unreal**.
+2. Under **Blue planner**, choose a trained checkpoint (406/407/408) or
+   **Greedy · non-RL**. Greedy chooses the legal sensor/site with the greatest
+   predicted marginal return, repeating within the budget.
+3. Click **Plan new episode**. This places Blue sensors and scripted Red drones
+   in the Unreal scene. An empty scene before this step is expected.
+4. Click **Run episode**, **Pause**, or **Step** to control the shared simulation
+   clock. Changing the planner only takes effect on **Plan new episode**.
+
+In Unreal, press **1** for a closer palace view or **3** for an aerial view;
+use **WASD + mouse** to explore and **E/Q** to move up/down. Sensors have cyan
+labels and visible masts resting on supported ground/roofs. Unsupported sites,
+steep slopes and narrow edges are excluded. Drone markers are grouped and
+labelled; these are simple simulation visuals, not detailed hardware models.
+
+**Common fixes:**
+
+- **Browser does not load:** keep the console-server terminal running; check
+  that port 9048 is free. Stop that server with Ctrl+C when finished.
+- **Cannot connect to Unreal:** use `start_blue_live.ps1`, wait for the map to
+  load, then reconnect. The old packaged viewer does not include the bridge.
+- **No drones/sensors:** click **Plan new episode**, then **Run episode**.
+  If the planner chose STOP, check the deployment panel for an empty layout.
+- **Connection timed out after pausing:** the bridge has a five-minute idle
+  timeout. Reconnect and plan a new episode.
+- **Build fails:** check the four Visual Studio components above and inspect
+  `Saved/BuildLogs`. Runtime logs are in `Saved/Logs/BlueLive.log`.
+
+The live Red controller is scripted, not learned. Sensor capabilities/rewards
+are synthetic, and sensing does not model terrain occlusion. See the
+[live integration guide](Docs/BLUE_TEAM_LIVE.md) for validation and limitations.
+
 ## Controls
 
 | Control | Action |
@@ -268,8 +362,9 @@ and recorded evaluation results. Its new [adaptive experiment](RL/BlueTeam/ADAPT
 adds randomized threats/weather, joint sensor/site decisions, a shared external
 input contract, held-out baseline comparisons and an offline replay demo.
 Start with its Unreal-free quickstart. Live
-training requires the separate original TRIAD host; integration with Istana
-Open's Red Team Manager and policy interface is still pending. See the
+training requires the separate original TRIAD host. The experimental live
+Istana adapter now connects initial Blue placement to the Red Team Manager;
+it does not implement joint Red/Blue training. See the
 [integration guide](RL/BlueTeam/INTEGRATION.md) and
 [experiment results](RL/BlueTeam/RESULTS.md).
 
@@ -295,7 +390,9 @@ Unreal is **not** part of that reproducible path. An optional, entitlement-gated
 image ([docker/Dockerfile.unreal](docker/Dockerfile.unreal)) builds the native
 modules and runs the automation suite for users who already have access to
 Epic's container registry; it has never been verified on Linux. The interactive
-packaged viewer stays a Windows desktop application — use the release ZIP above.
+packaged viewer stays a Windows desktop application. For the integrated live
+browser + 3D simulation, use the [Windows setup guide above](#set-up-the-browser-interface-and-live-3d-simulation-windows),
+not the older landscape-only release. The Docker services do not launch that UI.
 
 ## Fidelity and data
 

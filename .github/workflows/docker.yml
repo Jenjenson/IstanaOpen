@@ -69,12 +69,17 @@ jobs:
       - name: End-to-end smoke pipeline
         run: |
           mkdir -p runs
-          docker run --rm --network none -v "$PWD/runs:/workspace/runs" \
+          # A bind mount retains host ownership; image UID 1000 does not own
+          # the GitHub runner's directory. Use the runner's unprivileged UID/GID
+          # for output-producing commands, without chmod 777 or running as root.
+          docker run --rm --network none --user "$(id -u):$(id -g)" \
+            -v "$PWD/runs:/workspace/runs" istana-rl:ci exec test -w /workspace/runs
+          docker run --rm --network none --user "$(id -u):$(id -g)" -v "$PWD/runs:/workspace/runs" \
             istana-rl:ci smoke
 
       - name: Layout recommendation from a public snapshot
         run: |
-          docker run --rm --network none -v "$PWD/runs:/workspace/runs" \
+          docker run --rm --network none --user "$(id -u):$(id -g)" -v "$PWD/runs:/workspace/runs" \
             istana-rl:ci recommend
 
       - name: Confirm the image runs unprivileged
