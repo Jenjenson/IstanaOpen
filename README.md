@@ -273,6 +273,30 @@ Open's Red Team Manager and policy interface is still pending. See the
 [integration guide](RL/BlueTeam/INTEGRATION.md) and
 [experiment results](RL/BlueTeam/RESULTS.md).
 
+## Run in Docker
+
+The Python side of this project — trainer, planner, evaluators, the 64-module
+test suite and the published evidence — runs in one CPU-only container with no
+GPU, network, account or API key. It builds from a plain clone; `git lfs pull`
+is not required, because the image excludes `Content/` and `SourceAssets/`.
+
+```bash
+docker compose run --rm test      # full suite, offline (--network none in CI)
+docker compose run --rm smoke     # train -> evaluate -> replay -> plan
+docker compose run --rm plan      # layout recommendation into ./runs
+```
+
+Dependencies are pinned to the versions the published experiments recorded, and
+the image fixes `PYTHONHASHSEED` and single-threaded BLAS so float reduction
+order matches those runs. See [docker/README.md](docker/README.md) for commands,
+reproducibility notes and the cross-platform last-bit float caveat.
+
+Unreal is **not** part of that reproducible path. An optional, entitlement-gated
+image ([docker/Dockerfile.unreal](docker/Dockerfile.unreal)) builds the native
+modules and runs the automation suite for users who already have access to
+Epic's container registry; it has never been verified on Linux. The interactive
+packaged viewer stays a Windows desktop application — use the release ZIP above.
+
 ## Fidelity and data
 
 The palace is a modeled interpretation of the publicly visible exterior,

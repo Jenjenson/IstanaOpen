@@ -1,0 +1,87 @@
+# Istana Open — container services.
+#
+#   docker compose run --rm test          # full suite, incl. published-artifact checks
+#   docker compose run --rm smoke         # end-to-end train/evaluate/replay/plan
+#   docker compose run --rm plan          # layout recommendation from a public snapshot
+#   docker compose run --rm rl            # interactive shell
+#
+# Outputs land in ./runs on the host. Nothing here needs a GPU, a network, an
+# account or an API key.
+
+x-rl-common: &rl-common
+  build:
+    context: .
+    dockerfile: Dockerfile
+    args:
+      # Switch to docker/constraints-current.txt to build against newer NumPy.
+      CONSTRAINTS: docker/constraints.txt
+  image: istana-rl:local
+  init: true
+  # Deterministic reductions; matches the recorded experiment conditions.
+  environment:
+    OMP_NUM_THREADS: "1"
+    OPENBLAS_NUM_THREADS: "1"
+    MKL_NUM_THREADS: "1"
+    PYTHONHASHSEED: "0"
+  volumes:
+    - ./runs:/workspace/runs
+
+services:
+  # Interactive shell. Default service for ad-hoc work.
+  rl:
+    <<: *rl-common
+    command: ["shell"]
+    stdin_open: true
+    tty: true
+
+  # Full test suite: policy, environment, transport, and byte-exact verification
+  # of the archived experiment artifacts. Runs entirely offline.
+  test:
+    <<: *rl-common
+    command: ["test"]
+
+  # Mirrors .github/workflows/blue-team-rl.yml end to end.
+  smoke:
+    <<: *rl-common
+    command: ["smoke"]
+
+  # Plan a sensor layout from the bundled public snapshot. Writes
+  # runs/temporal-plan.json. Produces a recommendation, never a device command.
+  plan:
+    <<: *rl-common
+    command: ["recommend"]
+
+  # Render an offline HTML replay into ./runs.
+  demo:
+    <<: *rl-common
+    command: ["demo-adaptive", "--checkpoint", "../Checkpoints/adaptive-v1",
+              "--episodes", "2", "--output", "/workspace/runs/adaptive-demo.html"]
+
+  # Drives a RedTeamAgentBridge running in Unreal ON THE HOST (PIE or a packaged
+  # development game). The bridge binds loopback, so the container reaches it via
+  # host.docker.internal; extra_hosts makes that work on Linux too.
+  redteam-client:
+    <<: *rl-common
+    command: ["redteam-client", "--host", "host.docker.internal",
+              "--port", "8765", "--steps", "100"]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # ── Optional, entitlement-gated. Not part of the reproducible path. ──────────
+  # Requires `docker login ghcr.io` with an Epic-linked GitHub account, and
+  # `git lfs pull` on the host first. Never verified on Linux; see
+  # docker/Dockerfile.unreal. Enable with: docker compose --profile unreal ...
+  unreal:
+    profiles: ["unreal"]
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.unreal
+      args:
+        UE_IMAGE: ghcr.io/epicgames/unreal-engine:dev-5.5
+    image: istana-unreal:local
+    init: true
+    # The whole repository, including Content/ and SourceAssets/, which the
+    # Python image deliberately excludes. Build output stays on the host.
+    volumes:
+      - .:/workspace
+    command: ["all"]
