@@ -19,7 +19,7 @@ namespace
     TSharedPtr<FJsonValue> String(const FString& Value) { return MakeShared<FJsonValueString>(Value); }
     FValues VectorArray(const FVector& Value) { return {Number(Value.X), Number(Value.Y), Number(Value.Z)}; }
     FValues VectorArray(const FVector2D& Value) { return {Number(Value.X), Number(Value.Y)}; }
-    FString Encode(const TSharedRef<FJsonObject>& Object)
+    FString EncodeBlueContext(const TSharedRef<FJsonObject>& Object)
     {
         FString Text;
         FJsonSerializer::Serialize(Object, TJsonWriterFactory<TCHAR, TCondensedJsonPrintPolicy<TCHAR>>::Create(&Text));
@@ -119,7 +119,7 @@ FString ABlueTeamCoordinator::ConfigurationSignature() const
     const auto Snapshot = Object->GetObjectField(TEXT("publicSnapshot"));
     for (const TCHAR* Key : {TEXT("timestamp"), TEXT("placements"), TEXT("budget_remaining"), TEXT("tracks"), TEXT("done"), TEXT("fresh_track_fraction")})
         Snapshot->RemoveField(Key);
-    return Encode(Object);
+    return EncodeBlueContext(Object);
 }
 
 void ABlueTeamCoordinator::BeginEpisode(const FRedTeamPlacementContext& Context)
