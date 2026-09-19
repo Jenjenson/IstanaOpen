@@ -57,7 +57,7 @@ jobs:
           cache-dependency-path: RL/BlueTeam/Python/pyproject.toml
 
       - name: Install package and test dependencies
-        run: python -m pip install ".[test]"
+        run: python -m pip install ".[test,media]"
 
       - name: Test policy, environment, transport, and published artifacts
         run: python -m pytest tests -q
