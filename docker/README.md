@@ -1,9 +1,13 @@
 # Running Istana Open in containers
 
 Everything that *can* be made reproducible-anywhere is in one CPU-only image:
-the Blue Team RL trainer and planner, the full 64-module test suite, the
+the Blue Team RL trainer and planner, the full 66-module test suite, the
 published experiment evidence, and the standard-library project tools. It needs
 no GPU, no network, no account and no API key.
+
+It builds and runs natively on **linux/amd64 and linux/arm64**, so Apple Silicon
+needs no emulation and no extra flags. See
+[Architectures](#architectures-amd64-and-arm64).
 
 Unreal Engine is the exception, and the reason is licensing rather than
 packaging. It is handled separately and honestly in [Unreal](#unreal-engine-optional-and-entitlement-gated).
@@ -13,11 +17,11 @@ packaging. It is handled separately and honestly in [Unreal](#unreal-engine-opti
 | Component | Container status | Notes |
 | --- | --- | --- |
 | `triad_rl` trainer, planner, evaluators | **Fully containerised** | CPU-only NumPy/Gymnasium/PettingZoo |
-| Test suite (64 modules) | **Fully containerised** | Includes byte-exact verification of archived artifacts; passes with `--network none` |
+| Test suite (66 modules, 1,682 checks) | **Fully containerised** | Includes byte-exact verification of archived artifacts; passes with `--network none` |
 | Published evidence (`Results/`, `Checkpoints/`, `Examples/`) | **Baked into the image** | ~184 MB, so verification works offline |
 | Offline HTML replays | **Fully containerised** | Rendered into `./runs` |
 | Stdlib tools (geometry, benchmarks, release verify, red-team client) | **Fully containerised** | Some need the repo bind-mounted; see below |
-| Unreal C++ build and automation tests | **Optional, entitlement-gated** | Epic base image; never verified on Linux |
+| Unreal C++ build and automation tests | **Optional, entitlement-gated** | Epic base image; amd64 only; never verified on Linux |
 | Packaged Unreal viewer (the interactive 3-D app) | **Not containerised** | Windows DX11/DX12 GPU application; use the [release ZIP](../README.md#download-and-run-on-windows) |
 
 ## Quick start
@@ -53,7 +57,7 @@ On Windows PowerShell, replace `$PWD` with `${PWD}`.
 | `versions` | Interpreter and resolved dependency versions |
 | `recommend` | Temporal planner on the bundled public snapshot → `runs/temporal-plan.json` |
 | `recommend-adaptive` | Same via the `adaptive-v1` checkpoint |
-| `train-adaptive`, `train-robust`, `train-balanced`, `train` | Trainers |
+| `train`, `train-adaptive`, `train-robust`, `train-balanced`, `train-temporal` | Trainers |
 | `evaluate`, `evaluate-adaptive` | Evaluators |
 | `demo-adaptive`, `demo-balanced`, `demo-temporal` | Offline HTML replays |
 | `benchmarks`, `geometry`, `verify`, `audit` | Project tools |
@@ -69,6 +73,53 @@ docker run --rm -v "$PWD/runs:/workspace/runs" istana-rl \
 
 Write outputs under `/workspace/runs`; the rest of the filesystem is not a mount
 and the container runs as an unprivileged user (`istana`, uid 1000).
+
+Docker Desktop on macOS and Windows maps bind-mount ownership for you. On Linux,
+a host uid other than 1000 cannot write into `./runs`, so declare your own ids:
+
+```bash
+export ISTANA_UID=$(id -u) ISTANA_GID=$(id -g)   # picked up by docker-compose.yml
+docker compose run --rm smoke
+```
+
+With plain `docker run`, pass `--user "$(id -u):$(id -g)"`. The entrypoint
+redirects `HOME` to `/tmp` when the uid has no passwd entry, so an arbitrary id
+works.
+
+## Architectures: amd64 and arm64
+
+`python:3.11-slim-bookworm` publishes both architectures, and every pin in
+[`constraints.txt`](constraints.txt) has a manylinux wheel for `x86_64` and
+`aarch64`, so the same Dockerfile produces a native image on either. Nothing in
+the quick start changes on an Apple Silicon Mac.
+
+The build passes `--only-binary=:all:` deliberately. The image carries no
+compiler, so if a wheel ever disappears for one architecture we want pip to name
+the package rather than fail halfway through a source build.
+
+Two caveats:
+
+1. **The optional Unreal image is amd64-only.** Epic publishes no arm64 tag, and
+   emulating a full engine build is not a practical path. Build the native
+   modules on an x86-64 machine, or on Windows with `Tools/build.ps1`.
+2. **The archived numbers were generated on x86-64.** The suite passes on arm64,
+   but floating-point reduction order is not guaranteed identical across
+   architectures, and this project's own evidence shows how small those
+   differences can be while still changing a hash (see below). If you are
+   checking artifact hashes rather than behaviour, pin the architecture:
+
+   ```bash
+   DOCKER_DEFAULT_PLATFORM=linux/amd64 docker compose run --rm test
+   ```
+
+   On an arm64 host that runs under emulation and is several times slower.
+   For everyday use, run natively.
+
+To build both architectures at once, for a registry:
+
+```bash
+docker buildx build --platform linux/amd64,linux/arm64 -t <registry>/istana-rl:1.0 --push .
+```
 
 ## Reproducibility
 
@@ -153,9 +204,10 @@ Three caveats, stated plainly:
    is only pullable by accounts linked to an Epic Games account and admitted to
    the EpicGames GitHub organisation. It cannot be mirrored or redistributed.
    No packaging work can remove that constraint.
-2. **The Linux build is unverified.** This project has only ever been built and
-   tested on Windows — `Docs/VALIDATION.md` records the 17 passing native tests
-   from that host. Nobody has run a Linux build. Treat failures as new work.
+2. **It is amd64-only, and the Linux build is unverified.** Epic publishes no
+   arm64 tag. Beyond that, this project has only ever been built and tested on
+   Windows — `Docs/VALIDATION.md` records the 18 passing native tests from that
+   host. Nobody has run a Linux build. Treat failures as new work.
 3. **The project is mounted, not copied.** Unreal needs the LFS trees the Python
    image excludes, and its `Intermediate/`/`Binaries/` output is multi-gigabyte.
    Compose bind-mounts the repository at `/workspace` and builds at container
@@ -168,16 +220,25 @@ than it removes. Use the packaged release ZIP.
 ## Troubleshooting
 
 **Build fails resolving `numpy==2.4.6`.** That pin matches the archived
-experiments. If no wheel exists for your platform or Python minor version, build
-with `--build-arg CONSTRAINTS=docker/constraints-current.txt` and accept
-last-bit numeric drift from the archived artifacts.
+experiments. Because the build uses `--only-binary=:all:`, pip will say plainly
+that no wheel exists for your platform or Python minor version rather than
+attempting a source build. Rebuild with
+`--build-arg CONSTRAINTS=docker/constraints-current.txt` and accept last-bit
+numeric drift from the archived artifacts.
 
 **`entrypoint.sh: no such file or directory`.** CRLF line endings on the script.
 `.gitattributes` forces `*.sh` to LF; re-clone or run
 `git add --renormalize . && git checkout -- docker/`.
 
-**Permission denied writing output.** Write under `/workspace/runs` and make sure
-the host `./runs` directory is writable by uid 1000, or pass `--user "$(id -u)"`.
+**Permission denied writing output.** Write under `/workspace/runs`, and on Linux
+export `ISTANA_UID`/`ISTANA_GID` (or pass `--user "$(id -u):$(id -g)"`) so the
+container writes as you. See [Commands](#commands).
+
+**`exec format error`, or the wrong architecture after switching platforms.**
+Compose reuses the `istana-rl:local` tag, so an image built for the other
+architecture can linger. Force a rebuild with `docker compose build --no-cache`,
+and confirm with `docker compose run --rm rl versions`, which prints the
+architecture it is actually running on.
 
 **Tests fail on published artifacts after you edited `RL/BlueTeam/Results/`.**
 Expected — those tests verify archived bytes. Restore them with

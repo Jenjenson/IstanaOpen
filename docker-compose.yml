@@ -7,6 +7,19 @@
 #
 # Outputs land in ./runs on the host. Nothing here needs a GPU, a network, an
 # account or an API key.
+#
+# ARCHITECTURE. Everything below builds and runs natively on linux/amd64 and
+# linux/arm64, so Apple Silicon needs no emulation and no extra flags. The one
+# exception is the optional `unreal` service: Epic publishes that base image for
+# amd64 only. See docker/README.md.
+#
+# FILE OWNERSHIP. The image runs as uid 1000. On Linux hosts whose own uid is
+# not 1000, bind-mounted ./runs would be unwritable, so export your own ids
+# before running a command that writes:
+#
+#   export ISTANA_UID=$(id -u) ISTANA_GID=$(id -g)
+#
+# Docker Desktop on macOS and Windows maps ownership for you; leave them unset.
 
 x-rl-common: &rl-common
   build:
@@ -23,6 +36,8 @@ x-rl-common: &rl-common
     OPENBLAS_NUM_THREADS: "1"
     MKL_NUM_THREADS: "1"
     PYTHONHASHSEED: "0"
+  # Defaults to the image's own user. Linux hosts override it; see above.
+  user: "${ISTANA_UID:-1000}:${ISTANA_GID:-1000}"
   volumes:
     - ./runs:/workspace/runs
 
@@ -73,6 +88,8 @@ services:
   # docker/Dockerfile.unreal. Enable with: docker compose --profile unreal ...
   unreal:
     profiles: ["unreal"]
+    # Epic ships this base image for amd64 only; on arm64 hosts the pull fails.
+    platform: linux/amd64
     build:
       context: .
       dockerfile: docker/Dockerfile.unreal

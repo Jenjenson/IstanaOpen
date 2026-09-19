@@ -13,12 +13,18 @@
 #      docker login ghcr.io -u <github-user> -p <github-pat-with-read:packages>
 #
 # 2. UNVERIFIED ON LINUX. This project has only ever been built and tested on
-#    Windows (UE 5.5.4, Win64 Development). Docs/VALIDATION.md records the 17
+#    Windows (UE 5.5.4, Win64 Development). Docs/VALIDATION.md records the 18
 #    passing native tests from that Windows host. A Linux build is plausible but
 #    has never been run; treat failures here as expected work, not as a
 #    regression in the project.
 #
-# 3. THE PROJECT IS MOUNTED, NOT COPIED. Content/ and SourceAssets/ are excluded
+# 3. AMD64 ONLY. Epic publishes this image for linux/amd64. On Apple Silicon or
+#    any other arm64 host there is no arm64 tag to pull, and emulating a full
+#    engine build under QEMU is not a practical path. Build the native modules
+#    on an x86-64 machine, or on Windows with Tools/build.ps1. The Python image
+#    at the repository root has no such restriction and runs natively on arm64.
+#
+# 4. THE PROJECT IS MOUNTED, NOT COPIED. Content/ and SourceAssets/ are excluded
 #    from the root .dockerignore so the Python image stays small and LFS-free.
 #    Unreal needs them, so compose bind-mounts the repository at /workspace and
 #    the build runs at container start. This also keeps multi-gigabyte

@@ -5,7 +5,8 @@ name: Container
 #   2. The full test suite, including byte-exact published-artifact checks,
 #      passes inside the container with no network access.
 #   3. The documented end-to-end pipeline runs to completion.
-#   4. The same Dockerfile assembles on arm64 as well as amd64.
+#   4. The same Dockerfile produces a native arm64 image, and the tests that
+#      could plausibly differ by architecture still pass there.
 #
 # The Unreal image is intentionally not built here: its base image requires an
 # Epic entitlement that CI cannot hold. See docker/Dockerfile.unreal.
@@ -96,9 +97,9 @@ jobs:
           if-no-files-found: ignore
 
   arm64:
-    name: Build (linux/arm64)
+    name: Build and verify (linux/arm64)
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
         with:
@@ -112,8 +113,6 @@ jobs:
       - name: Set up Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Emulated NumPy execution is slow, so this job proves the image assembles
-      # and imports on arm64 rather than re-running the whole suite.
       - name: Build image
         uses: docker/build-push-action@v6
         with:
@@ -124,5 +123,25 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Import check
-        run: docker run --rm --platform linux/arm64 istana-rl:ci-arm64 versions
+      - name: Report interpreter and architecture
+        run: |
+          out=$(docker run --rm --platform linux/arm64 istana-rl:ci-arm64 versions)
+          echo "$out"
+          echo "$out" | grep -q aarch64 || { echo "expected an aarch64 image"; exit 1; }
+
+      # The whole suite under QEMU would take hours. These are the tests that
+      # could plausibly differ by architecture: they re-verify archived artifacts
+      # and checkpoint lineage byte for byte, so if float reduction order on
+      # aarch64 moved a published number, they are what catches it.
+      - name: Published-artifact verification, network disabled
+        run: |
+          docker run --rm --network none --platform linux/arm64 istana-rl:ci-arm64 \
+            test -q -k "published or lineage or publication or bundle or portability or confirmation"
+
+      - name: Layout recommendation from a public snapshot
+        run: |
+          mkdir -p runs
+          docker run --rm --network none --platform linux/arm64 \
+            --user "$(id -u):$(id -g)" -v "$PWD/runs:/workspace/runs" \
+            istana-rl:ci-arm64 recommend
+          test -s runs/temporal-plan.json || { echo "no plan written"; exit 1; }
