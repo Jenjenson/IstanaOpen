@@ -8,6 +8,8 @@
 class ARedTeamManager;
 class FJsonObject;
 class UStaticMeshComponent;
+class UStaticMesh;
+class UMaterialInterface;
 
 /** Synthetic capabilities in metres. These are not calibrated physical sensors. */
 USTRUCT(BlueprintType)
@@ -39,8 +41,19 @@ class ISTANAOPEN_API ABlueSensorMarker : public AActor
 public:
     ABlueSensorMarker();
     void SetMastHeight(double HeightM);
+    void ConfigureSensor(const FString& ProfileId, double HeightM);
 private:
-    UPROPERTY() TObjectPtr<UStaticMeshComponent> Body;
+    UStaticMeshComponent* Part(UStaticMesh* Mesh, UMaterialInterface* Material,
+        const FVector& Position, const FVector& SizeCm, const FRotator& Rotation = FRotator::ZeroRotator);
+    void Strut(const FVector& A, const FVector& B, double DiameterCm);
+    UPROPERTY() TObjectPtr<UStaticMesh> CubeMesh;
+    UPROPERTY() TObjectPtr<UStaticMesh> CylinderMesh;
+    UPROPERTY() TObjectPtr<UStaticMesh> SphereMesh;
+    UPROPERTY() TObjectPtr<UMaterialInterface> MetalMaterial;
+    UPROPERTY() TObjectPtr<UMaterialInterface> PaintMaterial;
+    UPROPERTY() TObjectPtr<UMaterialInterface> LensMaterial;
+    UPROPERTY() TObjectPtr<UMaterialInterface> RubberMaterial;
+    UPROPERTY(Transient) TArray<TObjectPtr<UStaticMeshComponent>> Parts;
 };
 
 /** Optional initial-layout Blue evaluator using the Red manager's one fixed-step clock. */
@@ -80,6 +93,8 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Blue Team|Weather") double RFNoise = .1;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Blue Team|Presentation") bool bSpawnSensorMarkers = true;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Blue Team|Presentation") bool bDrawCoverage = true;
+    // Observer-only capture overlays; never part of the public policy snapshot.
+    UPROPERTY(Transient) bool bCapturePresentation = false;
 
     bool ValidateConfiguration(double FixedStep, FString& Error) const;
     void BeginEpisode(const FRedTeamPlacementContext& Context);

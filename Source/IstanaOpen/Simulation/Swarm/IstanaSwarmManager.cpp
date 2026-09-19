@@ -1,5 +1,7 @@
 #include "Simulation/Swarm/IstanaSwarmManager.h"
 #include "Components/StaticMeshComponent.h"
+#include "Components/SceneComponent.h"
+#include "Materials/MaterialInterface.h"
 #include "Components/InputComponent.h"
 #include "Engine/Engine.h"
 #include "Engine/StaticMesh.h"
@@ -17,23 +19,56 @@
 AIstanaDroneVisual::AIstanaDroneVisual()
 {
     PrimaryActorTick.bCanEverTick = false;
-    Body = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Body"));
-    SetRootComponent(Body);
+    SetRootComponent(CreateDefaultSubobject<USceneComponent>(TEXT("VisualRoot")));
     static ConstructorHelpers::FObjectFinder<UStaticMesh> Cube(TEXT("/Engine/BasicShapes/Cube.Cube"));
-    Body->SetStaticMesh(Cube.Object);
-    Body->SetRelativeScale3D(FVector(0.20, 0.20, 0.08));
-    Body->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-    Body->SetCanEverAffectNavigation(false);
-    // Cosmetic cross silhouette. No motor model or physics bodies.
-    for (int32 Index = 0; Index < 2; ++Index)
+    static ConstructorHelpers::FObjectFinder<UStaticMesh> Sphere(TEXT("/Engine/BasicShapes/Sphere.Sphere"));
+    static ConstructorHelpers::FObjectFinder<UStaticMesh> Cylinder(TEXT("/Engine/BasicShapes/Cylinder.Cylinder"));
+    static ConstructorHelpers::FObjectFinder<UMaterialInterface> Paint(TEXT("/Game/Open/Materials/M_white.M_white"));
+    static ConstructorHelpers::FObjectFinder<UMaterialInterface> Metal(TEXT("/Game/Open/Materials/M_metal.M_metal"));
+    static ConstructorHelpers::FObjectFinder<UMaterialInterface> Dark(TEXT("/Game/Open/Materials/M_urbanroof.M_urbanroof"));
+    static ConstructorHelpers::FObjectFinder<UMaterialInterface> Glass(TEXT("/Game/Open/Materials/M_glass.M_glass"));
+    // Generic cosmetic quadcopter. No collision, navigation, motor physics,
+    // simulation clock, sensing, random numbers or solver inputs are changed.
+    int32 PartIndex = 0;
+    auto Part = [&](UStaticMesh* Mesh, UMaterialInterface* Material, const FVector& Position,
+                    const FVector& Size, const FRotator& Rotation = FRotator(0,0,0))
     {
-        UStaticMeshComponent* Arm = CreateDefaultSubobject<UStaticMeshComponent>(Index == 0 ? TEXT("ArmX") : TEXT("ArmY"));
-        Arm->SetupAttachment(Body);
-        Arm->SetStaticMesh(Cube.Object);
-        Arm->SetRelativeScale3D(Index == 0 ? FVector(2, 0.2, 0.5) : FVector(0.2, 2, 0.5));
-        Arm->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-        Arm->SetCanEverAffectNavigation(false);
+        auto* Component = CreateDefaultSubobject<UStaticMeshComponent>(*FString::Printf(TEXT("DronePart%d"), PartIndex++));
+        Component->SetupAttachment(RootComponent);
+        Component->SetStaticMesh(Mesh);
+        Component->SetMaterial(0, Material);
+        Component->SetRelativeLocationAndRotation(Position, Rotation);
+        Component->SetRelativeScale3D(Size / 100.);
+        Component->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+        Component->SetCanEverAffectNavigation(false);
+        Component->bReceivesDecals = false;
+        return Component;
+    };
+    Body = Part(Sphere.Object, Paint.Object, FVector(0,0,1), FVector(28,20,10));
+    Part(Sphere.Object, Dark.Object, FVector(0,0,-2), FVector(25,18,7));
+    Part(Cube.Object, Dark.Object, FVector(-3,0,5), FVector(12,11,2));
+    for (double X : {-20.,20.}) for (double Y : {-20.,20.})
+    {
+        const double Yaw = FMath::RadiansToDegrees(FMath::Atan2(Y, X));
+        Part(Cube.Object, Dark.Object, FVector(X*.55,Y*.55,0), FVector(28,3,2.5), FRotator(0,Yaw,0));
+        Part(Cylinder.Object, Metal.Object, FVector(X,Y,2), FVector(5.5,5.5,5));
+        Part(Cylinder.Object, Dark.Object, FVector(X,Y,5), FVector(6,6,2));
+        DisplayRotors.Add(Part(Sphere.Object, Dark.Object, FVector(X,Y,6.5), FVector(27,2.8,.7), FRotator(0,Yaw+25,0)));
+        Part(Cylinder.Object, Metal.Object, FVector(X,Y,7), FVector(2,2,1.5));
+        Part(Cube.Object, Metal.Object, FVector(X*.55,Y*.55,-7), FVector(1.5,1.5,12));
     }
+    for (double Y : {-11.,11.})
+        Part(Sphere.Object, Dark.Object, FVector(0,Y,-13), FVector(34,2.8,2.8));
+    // Rounded camera gimbal and inset lens provide a recognizable front.
+    Part(Sphere.Object, Paint.Object, FVector(12,0,-6), FVector(8,9,8));
+    Part(Cylinder.Object, Dark.Object, FVector(16,0,-6), FVector(5.5,5.5,3), FRotator(90,0,0));
+    Part(Cylinder.Object, Glass.Object, FVector(17.6,0,-6), FVector(4,4,.4), FRotator(90,0,0));
+}
+
+void AIstanaDroneVisual::AnimateDisplayRotors(double PresentationSeconds)
+{
+    for (int32 Index = 0; Index < DisplayRotors.Num(); ++Index)
+        DisplayRotors[Index]->SetRelativeRotation(FRotator(0, PresentationSeconds*937 + Index*37, 0));
 }
 
 void AIstanaDroneVisual::ApplyState(const FIstanaDroneState& State)

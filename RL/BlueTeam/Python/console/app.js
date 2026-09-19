@@ -2,6 +2,7 @@
 const $ = id => document.getElementById(id);
 let token='', catalog=[], view=null, frameIndex=0, mode='recorded', playing=false, busy=false, connected=false;
 let elapsed=0, lastWall=0, liveWall=0, loadSequence=0;
+let nativeImage=null;
 const fmt=(v,n=1)=>Number.isFinite(v)?v.toFixed(n):'—';
 const pct=v=>Number.isFinite(v)?`${Math.round(v*100)}%`:'—';
 function timeText(seconds){return `${String(Math.floor(seconds/60)).padStart(2,'0')}:${(seconds%60).toFixed(1).padStart(4,'0')}`;}
@@ -51,7 +52,7 @@ function results(){
  $('detected-label').textContent=mode==='recorded'?'Detected so far':'Public tracks';
  $('result-note').textContent=mode==='recorded'?'Synthetic sensing outcomes. Timely confirmation means detection before the deadline; no interception is simulated.':'Live metrics appear when the native episode ends. Synthetic analytical sensors; terrain occlusion is not modeled.';
 }
-function setView(data){view=data;frameIndex=0;elapsed=0;$('empty').hidden=true;$('timeline').max=view.frames.length-1;$('timeline').value=0;$('episode-title').textContent=view.label;$('coordinates').textContent=view.coordinateLabel;sensorDetails();results();render();controls();}
+function setView(data){view=data;nativeImage=null;if(data.nativePreview){const image=new Image();image.onload=()=>{if(view===data){nativeImage=image;render();}};image.src=data.nativePreview.image;}$('map').setAttribute('aria-label',data.nativePreview?'Native Unreal sensor placement preview':'Top-down simulation view');document.body.classList.toggle('native-preview',Boolean(data.nativePreview));frameIndex=0;elapsed=0;$('empty').hidden=true;$('timeline').max=view.frames.length-1;$('timeline').value=0;$('episode-title').textContent=view.label;$('coordinates').textContent=view.coordinateLabel;sensorDetails();results();render();controls();}
 async function loadReplay(){
  pause();const seq=++loadSequence;const row=catalog.find(r=>r.profile===$('profile').value&&String(r.policy)===$('policy').value&&String(r.case)===$('case').value);
  if(!row)return showError('This recorded case is unavailable.');
@@ -94,6 +95,7 @@ function draw(frame){
  const canvas=$('map'),bounds=canvas.getBoundingClientRect(),dpr=window.devicePixelRatio||1;
  canvas.width=Math.round(bounds.width*dpr);canvas.height=Math.round(bounds.height*dpr);const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
  const w=bounds.width,h=bounds.height;ctx.fillStyle='#0b141e';ctx.fillRect(0,0,w,h);
+ if(view?.nativePreview){if(nativeImage){const s=Math.min(w/1920,h/1080),ox=(w-1920*s)/2,oy=(h-1080*s)/2;ctx.drawImage(nativeImage,ox,oy,1920*s,1080*s);for(const a of view.nativePreview.anchors){const x=ox+a.x*s,y=oy+a.y*s;ctx.strokeStyle='#9fffe3';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x,y+2,12,6,0,0,Math.PI*2);ctx.stroke();ctx.font='12px Segoe UI';ctx.fillStyle='#ccfff0';ctx.fillText('Sensor',x+16,y-10);}}return;}
  const pts=view?view.frames.flatMap(f=>f.threats.map(t=>t.position)).concat(view.placements.map(p=>p.position)):[];
  let extent=120;for(const p of pts)extent=Math.max(extent,Math.abs(p[0]),Math.abs(p[1]));extent*=1.25;
  const scale=Math.min(w-70,h-105)/(extent*2),cx=w/2,cy=h/2+1;
@@ -122,7 +124,7 @@ async function liveAction(op,payload={}){
  if(busy)return;busy=true;controls();showError('');
  try{const result=await api(`/api/action/${op}`,payload);
   if(op==='connect'||op==='disconnect'){connected=result.connected;if(op==='disconnect'){view=null;await switchMode('live');}}
-  else if(op==='reset'){setView(result);}
+  else if(op==='reset'||op==='preview'){setView(result);}
   else if(op==='step'){view=result;frameIndex=view.frames.length-1;results();render();if(view.ended)pause();}
  }catch(e){pause();connected=false;view=null;showError(`${e.message} ${mode==='live'?'Recorded replays remain available.':''}`);$('empty').hidden=false;sensorDetails();results();render();}
  finally{busy=false;connectionStatus();controls();}
@@ -141,11 +143,13 @@ for(const id of ['profile','policy','case'])$(id).addEventListener('change',load
 for(const id of ['ranges','trails','sites'])$(id).addEventListener('change',()=>render());
 $('recorded-mode').onclick=()=>switchMode('recorded');$('live-mode').onclick=()=>switchMode('live');
 $('connect').onclick=()=>{pause();liveAction(connected?'disconnect':'connect');};
-$('plan').onclick=()=>{pause();liveAction('reset',{seed:Number($('seed').value),policy:$('live-policy').value});};
+$('plan').onclick=()=>{pause();liveAction($('live-policy').value.startsWith('saved-')?'preview':'reset',{seed:Number($('seed').value),policy:$('live-policy').value});};
+$('live-policy').onchange=()=>{$('plan').textContent=$('live-policy').value.startsWith('saved-')?'Apply saved layout':'Plan new episode';};
+$('presentation').onchange=()=>{document.body.classList.toggle('presentation',$('presentation').checked);$('live-policy').size=$('presentation').checked?9:1;render();};
 $('play').onclick=()=>{if(playing)return pause();if(!view)return;if(mode==='recorded'&&frameIndex===view.frames.length-1){frameIndex=0;render();}elapsed=view.frames[frameIndex].time;lastWall=0;liveWall=0;playing=true;controls();};
 $('step').onclick=()=>{pause();if(mode==='live')liveAction('step');else if(view){frameIndex=Math.min(frameIndex+1,view.frames.length-1);render();}};
 $('restart').onclick=()=>{pause();frameIndex=0;elapsed=0;render();};
 $('timeline').oninput=()=>{pause();frameIndex=Number($('timeline').value);render();};
 new ResizeObserver(()=>draw(view?.frames[frameIndex])).observe($('map').parentElement);
-api('/api/session').then(async session=>{token=session.token;catalog=session.replays;connected=session.status.connected;await loadReplay();connectionStatus();}).catch(e=>showError(e.message));
+api('/api/session').then(async session=>{token=session.token;catalog=session.replays;connected=session.status.connected;if(session.savedModels?.length){const group=document.createElement('optgroup');group.label='Archived native layouts (no inference)';for(const model of session.savedModels){const option=document.createElement('option');option.value=model.id;option.textContent=model.label;group.append(option);}$('live-policy').append(group);}await loadReplay();connectionStatus();}).catch(e=>showError(e.message));
 controls();requestAnimationFrame(animate);

@@ -1,0 +1,21 @@
+/* Optional recording layout for the existing console, not a separate interface. */
+.presentation .telemetry,.presentation .details,.presentation .budget-row,
+.presentation .budget-track,.presentation .stage-clock,.presentation .sensor-row small,
+.presentation .transport,.presentation .layer-heading,.presentation .controls>.check,
+.presentation .controls>.helper,.presentation #live-controls>.helper,
+.presentation #seed,.presentation label[for=seed]{display:none}
+.presentation #live-controls>#active-policy,.presentation #live-controls>#surface-status{display:block}
+.presentation .intro{margin-bottom:12px;padding-top:0}
+.presentation .intro .subtitle,.presentation .intro .eyebrow{display:none}
+.presentation main{padding-top:16px}
+.presentation .map-container{height:580px;flex:none}
+.presentation .controls{padding:18px}
+.presentation .separator{margin:16px 0}
+.native-preview .map-key{display:none}
+.native-preview .map-label{background:#0b141ecc;padding:4px 8px}
+.presentation footer{display:none}
+.presentation #live-policy{height:214px;padding:4px;font-size:12px}
+.presentation #live-policy option{padding:4px}
+.presentation #live-policy optgroup{font-size:11px}
+.presentation #surface-status{font-size:10px;margin:5px 0}
+.presentation .sensor-row{margin:8px 0}

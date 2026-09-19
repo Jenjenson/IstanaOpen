@@ -1,4 +1,5 @@
 #include "Simulation/BlueTeam/BlueTeamCoordinator.h"
+#include "Simulation/BlueTeam/BlueWarningTime.h"
 #include "Simulation/RedTeam/RedTeamManager.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SceneComponent.h"
@@ -39,25 +40,6 @@ namespace
         Object->SetObjectField(TEXT("ranges"), Ranges); Object->SetObjectField(TEXT("strengths"), Strengths);
         return Object;
     }
-}
-
-ABlueSensorMarker::ABlueSensorMarker()
-{
-    PrimaryActorTick.bCanEverTick = false;
-    SetRootComponent(CreateDefaultSubobject<USceneComponent>(TEXT("SurfaceMount")));
-    Body = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SensorBody")); Body->SetupAttachment(RootComponent);
-    static ConstructorHelpers::FObjectFinder<UStaticMesh> Cylinder(TEXT("/Engine/BasicShapes/Cylinder.Cylinder"));
-    Body->SetStaticMesh(Cylinder.Object); Body->SetRelativeScale3D(FVector(.8, .8, 1.5));
-    Body->SetCollisionEnabled(ECollisionEnabled::NoCollision); Body->SetCanEverAffectNavigation(false);
-}
-
-void ABlueSensorMarker::SetMastHeight(double HeightM)
-{
-    // The primitive is 100 cm tall, centred on its origin. Its bottom, not its
-    // centre, rests on the sampled surface; the sensing point is at the top.
-    const double HeightCm = FMath::Max(1., HeightM * 100.);
-    Body->SetRelativeScale3D(FVector(.8, .8, HeightCm / 100.));
-    Body->SetRelativeLocation(FVector(0, 0, HeightCm / 2.));
 }
 
 ABlueTeamCoordinator::ABlueTeamCoordinator()
@@ -290,7 +272,13 @@ TSharedRef<FJsonObject> ABlueTeamCoordinator::DeployJson(const FJsonObject& Acti
         {
             const auto* Profile = Catalogue.FindByPredicate([&](const auto& P) { return P.Id == Placement.ProfileId; });
             auto* Marker = GetWorld()->SpawnActor<ABlueSensorMarker>(SiteSurfacesCm[Placement.SiteId], FRotator::ZeroRotator);
-            if (Marker) { Marker->SetMastHeight(Profile->HeightM); Markers.Add(Marker); }
+            if (Marker)
+            {
+                Marker->ConfigureSensor(Profile->Id, Profile->HeightM);
+                // Cosmetic outward heading only: sensing remains the same radial model.
+                Marker->SetActorRotation(FRotator(0, FMath::RadiansToDegrees(FMath::Atan2(ApprovedSitesM[Placement.SiteId].Y, ApprovedSitesM[Placement.SiteId].X)), 0));
+                Markers.Add(Marker);
+            }
         }
     Result->SetBoolField(TEXT("accepted"), true); Result->SetBoolField(TEXT("committed"), true);
     Result->SetNumberField(TEXT("cost"), Cost);
@@ -498,6 +486,31 @@ TSharedRef<FJsonObject> ABlueTeamCoordinator::ObservationJson() const
     if (bMetrics)
     {
         double Detected = 0, Confirmed = 0, Timely = 0, Breached = 0, Entered = 0;
+        double WarningSum = 0, EarliestDetection = -1, EarliestArrival = -1;
+        FValues WarningRows;
+        TArray<int32> Ids; Evidence.GetKeys(Ids); Ids.Sort();
+        for (int32 Id : Ids)
+        {
+            const auto& Item = Evidence[Id];
+            if (Item.FirstDetection >= 0 && (EarliestDetection < 0 || Item.FirstDetection < EarliestDetection)) EarliestDetection = Item.FirstDetection;
+            if (Item.ZoneEntry >= 0 && (EarliestArrival < 0 || Item.ZoneEntry < EarliestArrival)) EarliestArrival = Item.ZoneEntry;
+            const double Warning = BlueWarningSeconds(Item.FirstDetection, Item.ZoneEntry);
+            WarningSum += Warning;
+            auto Row = MakeShared<FJsonObject>(); Row->SetNumberField(TEXT("droneId"), Id);
+            auto Time = [&](const TCHAR* Key, double Value)
+            { Row->SetField(Key, Value >= 0 ? TSharedPtr<FJsonValue>(Number(Value)) : TSharedPtr<FJsonValue>(MakeShared<FJsonValueNull>())); };
+            Time(TEXT("firstDetectionSeconds"), Item.FirstDetection);
+            Time(TEXT("firstConfirmationSeconds"), Item.FirstConfirmation);
+            Time(TEXT("zoneEntrySeconds"), Item.ZoneEntry);
+            Time(TEXT("warningSeconds"), Item.ZoneEntry >= 0 ? Warning : -1);
+            WarningRows.Add(MakeShared<FJsonValueObject>(Row));
+        }
+        // Terminal evaluator truth only; NEVER included in publicSnapshot or planning inputs.
+        Object->SetArrayField(TEXT("warningEvidenceForEvaluationOnly"), WarningRows);
+        Object->SetStringField(TEXT("warningEndpoint"), TEXT("first entry into the 20m-default objective zone; not physical impact"));
+        Metrics->SetNumberField(TEXT("objective_zone_radius_m"), ObjectiveRadiusM);
+        Metrics->SetNumberField(TEXT("mean_drone_warning_seconds_lower_bound"), WarningSum / Evidence.Num());
+        Metrics->SetNumberField(TEXT("team_warning_seconds_lower_bound"), BlueWarningSeconds(EarliestDetection, EarliestArrival));
         for (const auto& Pair : Evidence)
         {
             const auto& Item = Pair.Value; Detected += Item.FirstDetection >= 0; Confirmed += Item.FirstConfirmation >= 0;
@@ -521,7 +534,27 @@ void ABlueTeamCoordinator::EndPlay(const EEndPlayReason::Type Reason) { ClearMar
 void ABlueTeamCoordinator::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
-    if (!bDrawCoverage || !GetWorld() || !IsValid(Manager) || Manager->GetPlacementContext().RunId != RunId) return;
+    if (!GetWorld() || !IsValid(Manager) || Manager->GetPlacementContext().RunId != RunId) return;
+    if (bCapturePresentation)
+    {
+        // Small observer-truth markers keep real drone meshes legible from the
+        // overview camera. Colors encode native first-hit/zone-entry evidence.
+        for (const auto& Drone : Manager->GetEpisodeObservation().Drones)
+        {
+            const auto* Item = Evidence.Find(Drone.DroneId);
+            const FColor Color = Item && Item->ZoneEntry >= 0 ? FColor(145,150,165)
+                : Item && Item->FirstDetection >= 0 ? FColor(255,204,80) : FColor(255,65,85);
+            DrawDebugPoint(GetWorld(), Drone.PositionCm, 10, Color, false, -1, 1);
+        }
+        for (const auto& Placement : Placements)
+        {
+            const auto* Profile = Catalogue.FindByPredicate([&](const auto& P) { return P.Id == Placement.ProfileId; });
+            DrawDebugPoint(GetWorld(), SiteWorldCm(Placement.SiteId, *Profile), 15, FColor(65,190,255), false, -1, 1);
+        }
+        DrawDebugCircle(GetWorld(), OriginWorldCm, ObjectiveRadiusM * 100, 96, FColor(255,170,65), false, -1, 1, 5, FVector(1,0,0), FVector(0,1,0), false);
+        return;
+    }
+    if (!bDrawCoverage) return;
     for (const auto& Placement : Placements)
     {
         const auto* Profile = Catalogue.FindByPredicate([&](const auto& P) { return P.Id == Placement.ProfileId; });

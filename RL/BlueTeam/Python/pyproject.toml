@@ -15,6 +15,7 @@ dependencies = [
 
 [project.optional-dependencies]
 test = ["pytest>=8,<9"]
+media = ["Pillow>=10,<13", "imageio-ffmpeg>=0.6,<0.7"]
 
 [tool.setuptools]
 packages = ["triad_rl"]

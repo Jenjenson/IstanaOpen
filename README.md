@@ -2,6 +2,10 @@
 
 Explore an offline reconstruction of Singapore's Istana and its surroundings.
 
+**New computer?** Use the [complete source setup below](#set-up-the-browser-interface-and-live-3d-simulation-windows)
+for the sensor/drone simulation and interface. The older downloadable EXE is a
+landscape viewer, not the current integrated simulation.
+
 ## Download and run on Windows
 
 1. Download **[IstanaOpen-Windows-2026-09-10.zip](https://github.com/Jenjenson/IstanaOpen/releases/download/v1.0.0/IstanaOpen-Windows-2026-09-10.zip)**
@@ -44,31 +48,57 @@ not the older landscape-only downloadable release.
 ### Set up the browser interface and live 3D simulation (Windows)
 
 The **browser is the control/telemetry interface**; a **separate Unreal window
-renders the 3D scene**. For this live mode use the current Git repository, not
+renders the running 3D scene**. Capture mode also supports native 3D saved-layout
+previews directly inside the original interface. For these modes use the current Git repository, not
 the September 10 source ZIP or landscape-only Windows release.
 
 **Install once:**
 
-- Git and Git LFS, for the source and real map/mesh/texture assets.
-- Unreal Engine **5.5.4** through Epic Games Launcher.
+- **64-bit Windows**, tested on Windows 11; PowerShell and a modern desktop
+  browser (Edge/Chrome). The integrated Windows workflow is not validated on
+  macOS/Linux or Windows ARM.
+- [Git for Windows](https://git-scm.com/downloads/win) and
+  [Git LFS](https://git-lfs.com/), for source and map/mesh/texture assets.
+- Unreal Engine **5.5.4** through [Epic Games Launcher](https://www.unrealengine.com/download).
+  Select the 5.5 engine line in Library; do not upgrade the project to another
+  engine version for this setup. Keep the Windows engine components and bundled
+  Python. The tested default install is `C:\Program Files\Epic Games\UE_5.5`.
 - Visual Studio **2022 Build Tools** (or Visual Studio 2022) with C++ build tools:
   **MSVC v143 VS 2022 C++ x64/x86 build tools v14.38**, **Windows 11 SDK
   10.0.22621.0**, **.NET Framework 4.8 SDK**, and **.NET Framework 4.8 targeting
   pack**. In Visual Studio Installer, use **Modify → Individual components**
   to find these. VS Code is optional; it does not replace the compiler.
+- In Build Tools select **Desktop development with C++**, then verify those
+  individual components. For the full Visual Studio IDE, **Game development
+  with C++** is also useful. Use the 2022 installer, not simply the newest major
+  release offered on the download homepage; Microsoft's
+  [2022 release history](https://learn.microsoft.com/en-us/visualstudio/releases/2022/release-history)
+  links the 2022 installers. Epic's [UE 5.5 toolchain guide](https://dev.epicgames.com/documentation/en-us/unreal-engine/setting-up-visual-studio-development-environment-for-cplusplus-projects-in-unreal-engine?application_version=5.5)
+  documents compatible versions. UE's build uses bundled .NET 8; the **.NET
+  Framework 4.8 SDK and targeting pack are separate components**, not replaced
+  by installing the .NET 8 runtime.
+- A GPU/driver capable of running UE 5.5's Windows renderer. This project was
+  tested with **32 GB RAM / 12 GB VRAM**; these are reference machine specs,
+  not established minimums. Check installer disk estimates and leave substantial
+  additional SSD space for assets, shader caches, builds and video frames.
+  Native capture still needs a working GPU even though it has no visible window.
 
 No separate Python installation is needed for this route: the setup script
 uses Unreal's bundled Python and creates an isolated environment. Internet is
 needed for the initial downloads/dependency installation; the simulation then
 runs locally. Docker is not required for the browser + 3D workflow.
+Neither Node/npm, CUDA, PyTorch, AirSim, ROS, Cesium nor cloud/API credentials
+are required by this workflow. Epic sign-in is needed to download the engine;
+GitHub credentials are only needed for private access or pushing changes.
 
 **1. Get the current project and build it.** In PowerShell, for a fresh checkout:
 
 ```powershell
 git lfs install
-git clone https://github.com/Jenjenson/IstanaOpen.git
+git clone --branch codex/istana-open https://github.com/Jenjenson/IstanaOpen.git
 cd IstanaOpen
 git lfs pull
+git lfs fsck
 powershell -ExecutionPolicy Bypass -File .\Tools\setup_blue_python.ps1
 powershell -ExecutionPolicy Bypass -File .\Tools\build.ps1 -Target Editor
 ```
@@ -79,6 +109,25 @@ from the folder containing `IstanaOpen.uproject`. Close the project's Unreal
 window before rebuilding. If the engine is not discovered, pass
 `-EngineRoot 'D:\Epic Games\UE_5.5'` (using your actual path) to the setup,
 build and live-scene scripts.
+
+Use a short local folder, for example `C:\Projects\IstanaOpen`, rather than a
+cloud-synced directory. Restart PowerShell after installing Git/compiler tools.
+The setup script installs `triad-rl` plus its `test` and `media` extras into
+`RL\BlueTeam\.venv`: NumPy, Gymnasium, PettingZoo, pytest, Pillow and
+imageio-ffmpeg. The Windows imageio-ffmpeg wheel supplies FFmpeg; no separate
+system FFmpeg install is required. Run the setup script again after updating
+dependencies. Do not copy a virtual environment from another computer.
+
+For browser-only replay on a device without Unreal, install Python **3.11+**
+(3.11 is the tested bundled version), then use your actual interpreter path:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\Tools\setup_blue_python.ps1 -PythonExe 'C:\Path\To\Python311\python.exe'
+```
+
+That alternative does **not** provide native 3D; native mode still requires UE
+and the compiled project. No source asset regeneration is required after a
+complete Git LFS checkout.
 
 **2. Start the browser server.** Keep this PowerShell window open:
 
@@ -116,7 +165,92 @@ In Unreal, press **1** for a closer palace view or **3** for an aerial view;
 use **WASD + mouse** to explore and **E/Q** to move up/down. Sensors have cyan
 labels and visible masts resting on supported ground/roofs. Unsupported sites,
 steep slopes and narrow edges are excluded. Drone markers are grouped and
-labelled; these are simple simulation visuals, not detailed hardware models.
+labelled. Detailed sensor heads and quadcopter visuals are presentation assets,
+not validated physical hardware models.
+
+**5. Use native 3D previews inside the actual interface (optional).**
+
+This is the mode used for the model-switching presentation. Close/disconnect any
+other bridge client first. Stop the browser server with Ctrl+C, then start a
+capture-enabled Unreal instance and point the original console at its port:
+
+```powershell
+# Terminal 1, repository root: starts Unreal offscreen on a separate port.
+powershell -ExecutionPolicy Bypass -File .\Tools\start_blue_capture.ps1 -Port 8766
+
+# Terminal 2, repository root: leave running.
+powershell -ExecutionPolicy Bypass -File .\Tools\start_simulation_console.ps1 -Port 9048 -BridgePort 8766
+```
+
+Open port 9048, select **Live Unreal → Connect to Unreal**. The model selector
+retains the live **406 / 407 / 408 / Greedy** choices. Under **Archived native
+layouts (no inference)** choose a saved output and press **Apply saved layout**.
+Unreal validates and replaces the sensors; the console shows the native overhead
+capture. Enable **Presentation view** to expose the whole list and hide metrics.
+These previews do not advance Red or run a new policy. Ordinary live choices
+still use **Plan new episode** and the existing telemetry workflow.
+
+The three small saved-layout fixtures are included in
+`RL/BlueTeam/Results/model-switch-demo`; no old `Saved` folder is needed for
+them. Their source hashes are documented alongside them. They are **not model
+weights**. The trained temporal weights for 406/407/408 and 18 archived replay
+cases are also in the repository. The 256-episode warning experiment is a
+different model family and is not silently substituted into this dropdown.
+
+**Ports and ownership:**
+
+| Port | Purpose | When needed |
+| --- | --- | --- |
+| 9048 | Original browser console | Replay, live controls, native previews |
+| 8765 | Interactive Unreal bridge | Separate live 3D window |
+| 8766 | Capture-enabled Unreal bridge | Native preview/capture |
+| 9050 | Optional video/report server | Viewing generated reports |
+| 9051 | Earlier standalone demo selector | Not required for the original UI |
+| 8767–8770 | Optional independent benchmark workers | Training only |
+
+These services bind to loopback; no firewall port-forwarding is needed. Only
+one client should control each bridge. Do not attach the console and a capture
+or training script to the same bridge at the same time. To stop, disconnect in
+the console, Ctrl+C its server terminal, and close the Unreal window. The
+offscreen launcher prints its PID; stop **that specific process** when finished.
+
+**6. Verify the new installation.** From the repository root:
+
+```powershell
+.\RL\BlueTeam\.venv\Scripts\python.exe -c "import numpy, gymnasium, pettingzoo, PIL, imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())"
+Push-Location .\RL\BlueTeam\Python
+..\.venv\Scripts\python.exe -m pytest tests/test_simulation_console.py tests/test_model_switch_demo.py -q
+Pop-Location
+```
+
+Check that recorded playback loads, Unreal connects, and a saved preview shows
+the selected model name and a changed native sensor layout. First-run shaders
+can take several minutes. Automated Python tests do not replace this GPU/native
+smoke check; results can differ on a new driver/device.
+
+**7. Transfer optional training results and videos separately.**
+
+Git intentionally excludes `Saved`, `Binaries`, `Intermediate`, caches and
+virtual environments. Cloning includes code/assets/published temporal models,
+but **not** locally generated MP4s, native frame dumps or the later warning
+checkpoints. To continue those exact runs, copy the desired complete run folders
+from `Saved/WarningTraining` on the old machine to the same relative location
+on the new one (including `policy-*.json`, evaluation JSON, summary and protocol).
+For existing footage, copy the relevant video/report folder and its sidecars.
+Do not copy compiled DLLs or `.venv`; rebuild/reinstall them on the new device.
+Some capture manifests contain absolute frame paths from the original machine;
+playing a copied MP4 is portable, but rerendering those manifests may require
+relocating the frame references or making a new native capture.
+
+To serve a copied report folder, from `RL/BlueTeam/Python` run:
+
+```powershell
+..\.venv\Scripts\python.exe serve_warning_report.py 'C:\Path\To\CopiedReportFolder' --port 9050
+```
+
+Open port 9050 (the folder needs its generated `index.html`). The console does
+not require this report server. See the training guide below for optional
+synthetic benchmark scripts; no retraining is necessary for the interface demo.
 
 **Common fixes:**
 
@@ -130,10 +264,40 @@ labelled; these are simple simulation visuals, not detailed hardware models.
   timeout. Reconnect and plan a new episode.
 - **Build fails:** check the four Visual Studio components above and inspect
   `Saved/BuildLogs`. Runtime logs are in `Saved/Logs/BlueLive.log`.
+- **Missing `PIL` / `imageio_ffmpeg`:** rerun `setup_blue_python.ps1`; use the
+  repository `.venv` interpreter, not another Python on PATH.
+- **Native preview rejected:** it needs `start_blue_capture.ps1`, not the normal
+  interactive launcher; the latter does not enable screenshot requests.
+- **Preview choices missing:** update the repository, confirm the three JSON
+  fixtures under `Results/model-switch-demo`, then restart the console and reload.
+- **Grey/missing meshes or tiny asset files:** run `git lfs pull` and
+  `git lfs fsck`; an unresolved LFS pointer is not a usable Unreal asset.
+- **Port already in use:** reuse the matching service or close its specific
+  process. Use `Get-NetTCPConnection -LocalPort 9048,8765,8766 -State Listen`
+  to identify owners; do not indiscriminately stop all Python/Unreal processes.
 
 The live Red controller is scripted, not learned. Sensor capabilities/rewards
 are synthetic, and sensing does not model terrain occlusion. See the
 [live integration guide](Docs/BLUE_TEAM_LIVE.md) for validation and limitations.
+
+### Train Blue for warning time and watch the timelapse
+
+The [native warning-time training guide](Docs/WARNING_TIME_TRAINING.md) explains
+how to train a separate Blue RL policy, compare fixed checkpoints against
+untrained and greedy controls, and render an MP4 with sensor placements and
+measured warning times. It also includes a command to replay the trained policy
+in the actual Unreal 3D scene. It supports both the lightweight top-down replay
+and an **actual 1080p Unreal 3D timelapse** with detailed surface-mounted sensor
+models and native close-ups. Team warning and per-drone warning are separate;
+arrival means entering the target zone, not a physical crash. Improvement is
+measured rather than assumed.
+
+The new opt-in **long-approach benchmark** moves starts beyond sensor range,
+uses several fixed synthetic approach sectors, and logs spawn-clearance and
+first-look saturation checks. Its paired evaluation verifies unchanged Red
+trajectories and sensor/terrain constraints across checkpoints. The guide also
+includes **clean 3D footage**: no marker boxes or burned-in metric panels;
+timings and results sit beside/below the player and can be hidden.
 
 ## Controls
 
@@ -393,6 +557,42 @@ Epic's container registry; it has never been verified on Linux. The interactive
 packaged viewer stays a Windows desktop application. For the integrated live
 browser + 3D simulation, use the [Windows setup guide above](#set-up-the-browser-interface-and-live-3d-simulation-windows),
 not the older landscape-only release. The Docker services do not launch that UI.
+
+## Saved-layout switching demo (Windows)
+
+The **original simulation console** now also offers saved native previews in its
+Blue planner selector, beneath the unchanged live models. Start
+`simulation_console.py --bridge-port 8766` against the capture-enabled Unreal
+instance and open port 9048. In Live Unreal mode, connect, select an archived
+output and click **Apply saved layout**. The actual native overhead image appears
+in the existing viewer. The optional **Presentation view** expands the model
+list and hides performance panels for recording. Saved previews do not run
+inference or Red simulation; live model choices retain the normal planner flow.
+Native preview audit records are written to `Saved/ConsoleModelDemo`.
+
+For a presentation-only interface demo, `model_switch_demo.py` loads the archived
+RL, greedy, and initial-policy layouts from
+`RL/BlueTeam/Results/model-switch-demo` (small extracts of the original pilot,
+included in Git). It does **not** run inference, deploy Red, advance the solver,
+or compare performance. Each Apply resets the same seed and commits the exact
+saved layout through native placement validation, then captures Unreal's fixed
+overhead view and a sensor close-up. Sensor types/counts are preserved from each
+saved output; all share the same catalogue and placement rules.
+
+After building the Editor, start `Tools/start_blue_capture.ps1 -Port 8766`.
+In a second PowerShell terminal:
+
+```powershell
+cd RL/BlueTeam/Python
+../.venv/Scripts/python.exe model_switch_demo.py --output ../../../Saved/ModelSwitchDemo
+```
+
+Open `http://127.0.0.1:9051/`, select a saved model and click **Apply layout**.
+**Record guided switching demo** uses those same Apply operations and records
+the actual interface canvas, including native captures, into one H.264 MP4.
+The output folder contains `model-switching.mp4`, the WebM source and a native
+deployment log with source/frame hashes. Choose a fresh output folder to record
+again; existing MP4s are not overwritten. No performance metrics are displayed.
 
 ## Fidelity and data
 

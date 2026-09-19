@@ -109,6 +109,42 @@ def test_connection_failure_never_creates_live_data():
     assert 'Unreal is not listening' in state.status()['error']
 
 
+def test_saved_preview_deploys_exact_output_without_planning_or_red(monkeypatch, tmp_path, replays):
+    import model_switch_demo
+    import capture_warning_3d
+    import simulation_console
+    public = deepcopy(replays[0]['scenario']['public'])
+    public['tracks'] = []
+    placements = [{'profileId': 'eo', 'siteId': 3}]
+    row = {'label': 'RL Policy', 'seed': 27, 'placements': placements}
+    monkeypatch.setattr(model_switch_demo, 'ROOT', tmp_path)
+    monkeypatch.setattr(model_switch_demo, 'load_layouts', lambda _: {'rl': row})
+    monkeypatch.setattr(simulation_console.time, 'sleep', lambda _: None)
+    png = tmp_path/'frame.png'
+    png.write_bytes(b'capture-test-fixture')
+    monkeypatch.setattr(capture_warning_3d, 'capture', lambda *a: {
+        'path': str(png), 'sensor_screen_anchors': [{'x': 100, 'y': 100}]})
+    calls = []
+    class PreviewClient:
+        closed = False
+        completed_steps = 0
+        def reset(self, seed): calls.append(('reset', seed))
+        def get_blue_context(self): return {'runId': 'test-run', 'publicSnapshot': public,
+            'catalogue': replays[0]['catalogue'], 'worldOriginCm': {'x': 0, 'y': 0, 'z': 0}}
+        def deploy(self, rows): calls.append(('deploy', deepcopy(rows)))
+        def observe_blue(self): return {'elapsedSeconds': 0, 'completedSteps': 0, 'publicSnapshot': public}
+        def close(self): self.closed = True
+    def forbidden_plan(*args, **kwargs): raise AssertionError('Preview must not plan')
+    state = ConsoleState(planner=forbidden_plan)
+    state.client = PreviewClient()
+    view = state.action('preview', {'policy': 'saved-rl'})
+    assert calls == [('reset', 27), ('deploy', placements)]
+    assert view['nativePreview']['image'].startswith('data:image/png;base64,')
+    assert view['metrics'] is None and view['ended']
+    assert not view['frames'][0]['threats']
+    assert (tmp_path/'Saved/ConsoleModelDemo/test-run.json').exists()
+
+
 @pytest.mark.parametrize('selection', ['greedy', 'control', '406'])
 def test_controller_orders_public_plan_before_red_placement(replays, selection):
     events = []

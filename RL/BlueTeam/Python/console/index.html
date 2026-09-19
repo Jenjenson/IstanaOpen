@@ -1,9 +1,10 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Istana · Simulation console</title><link rel="stylesheet" href="/style.css"></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Istana · Simulation console</title><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/presentation.css"></head>
 <body>
 <header class="topbar"><a class="brand" href="/" aria-label="Istana console home"><span class="brand-mark">I</span><span>ISTANA<span class="brand-sub">SIMULATION LAB</span></span></a><div class="top-context">RED + BLUE <span>/</span> SENSOR PLACEMENT</div><span id="connection" class="connection"><i></i>Replay ready</span></header>
 <main>
  <section class="intro"><div><p class="eyebrow">Observe. Compare. Understand.</p><h1>The simulation, in view.</h1><p class="subtitle">Follow the threats. Inspect the sensing. See what the policy chose.</p></div><div class="mode-switch" role="group" aria-label="Data source"><button id="recorded-mode" aria-pressed="true">Recorded replay</button><button id="live-mode" aria-pressed="false">Live Unreal</button></div></section>
+ <label class="check"><input id="presentation" type="checkbox"><span>Presentation view · hide performance metrics</span></label>
  <div id="error" role="alert" hidden></div>
  <section class="workspace">
   <aside class="controls">
