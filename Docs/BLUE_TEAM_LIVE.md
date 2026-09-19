@@ -65,8 +65,10 @@ repeatedly choosing the legal option with the greatest predicted marginal
 return and stopping when no positive gain remains. It respects budget, site
 count, separation and the native unsupported-site mask. `control` remains a
 backward-compatible API alias; the CLI also accepts `--greedy`.
-The Red demo places scripted radial
-swarm centres; it is not a learned Red policy or joint adversarial training.
+Red placement defaults to the scripted radial control, while the CLI may
+explicitly select a learned, random wedge or dispersed demo policy. See
+[Red initial-placement RL](RED_TEAM_RL.md). This remains separate Red training
+against frozen Blue, not joint adversarial training.
 
 The browser displays 2D telemetry; the separate Unreal window renders the 3D
 Istana scene. Native sensor markers/coverage are presentation only. A connection

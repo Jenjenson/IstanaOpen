@@ -341,8 +341,9 @@ def placement_world_cm(context, placement):
 
 
 def run_episode(client, *, seed=12345, checkpoint=None, temporal_public_control=False,
+                red_policy=None, red_deterministic=True,
                 max_steps=5000, step_batch=10, paced=False, frame=None):
-    """One Blue plan, scripted Red placement, then real native fixed steps.
+    """One Blue plan, one Red placement decision, then real native fixed steps.
 
     Native terminal metrics are measured synthetic simulation outcomes. They
     are never substituted with the planner's forecast or offline benchmark.
@@ -353,9 +354,16 @@ def run_episode(client, *, seed=12345, checkpoint=None, temporal_public_control=
     blue_context = client.get_blue_context()
     plan = make_plan(blue_context, checkpoint=checkpoint, temporal_public_control=temporal_public_control)
     deployed = client.deploy(plan["placements"])
-    centers = scripted_red_centers(red_context)
+    if red_policy is None:
+        from .red_policy import ScriptedRadialRedPolicy
+        red_policy = ScriptedRadialRedPolicy()
+    red_decision = red_policy.select(red_context, blue_context=blue_context,
+                                     blue_placements=plan["placements"],
+                                     deterministic=red_deterministic)
+    centers = red_decision["centers"]
     red_result = client.place_red(centers)
     blue = client.observe_blue()
+    final_red = None
     start_wall = time.monotonic()
     while not blue["terminated"] and not blue["truncated"] and client.completed_steps < max_steps:
         response = client.step(min(step_batch, max_steps - client.completed_steps))
@@ -367,6 +375,7 @@ def run_episode(client, *, seed=12345, checkpoint=None, temporal_public_control=
             if remaining > 0:
                 time.sleep(min(remaining, 60.))
         red = response["observation"]
+        final_red = red
         if (red.get("bTerminated") or red.get("bTruncated")) and not (blue["terminated"] or blue["truncated"]):
             # Ask the coordinator to finalize if the Red clock stopped first.
             client.cancel()
@@ -377,10 +386,14 @@ def run_episode(client, *, seed=12345, checkpoint=None, temporal_public_control=
         blue = client.observe_blue()
     return {"schema": "istana.blue_live_run.v1", "runId": red_context["runId"], "seed": seed,
             "environment": "Unreal Istana live synthetic simulation", "physical_commands_sent": False,
-            "blue_policy": plan["recommendation"]["selection"], "red_policy": "scripted radial smoke/demo control, not learned",
-            "public_blue_context": blue_context, "plan": plan, "deployment_result": deployed["result"],
+            "blue_policy": plan["recommendation"]["selection"], "red_policy": red_decision["policy"],
+            "red_decision": red_decision,
+            "red_context": red_context, "public_blue_context": blue_context,
+            "plan": plan, "deployment_result": deployed["result"],
             "accepted_sensor_world_cm": [placement_world_cm(blue_context, row) for row in plan["placements"]],
             "red_placement_accepted": red_result["bAccepted"], "runner_step_limit_reached": limit_reached,
             "completed_steps": client.completed_steps, "final_blue_observation": blue,
+            "measured_red_reward": (final_red.get("reward") if final_red and final_red.get("bHasReward") else
+                                    -blue["reward"] if blue.get("metricsAvailable") else None),
             "measured_synthetic_metrics": deepcopy(blue["metrics"]) if blue.get("metricsAvailable") else None,
             "limitations": "Experimental simulator integration. Sensor models and rewards are synthetic. A live run does not establish real-world calibration or improvement over frozen offline baselines."}

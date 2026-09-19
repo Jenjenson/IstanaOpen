@@ -1,10 +1,16 @@
 # Red-team placement agent
 
+For the bounded learned initial-placement policy, training command and frozen
+policy comparison, see [Red initial-placement RL](RED_TEAM_RL.md).
+
 **Seeded Layout** remains the default and preserves the original annular generator.
 **Agent Placement** waits for externally selected world-space swarm centers. Placement
 happens once per episode; individual drones retain the existing solver's formation,
 collision avoidance, shared-objective following and partial approaches. No learned
-policy, sensors, training algorithm or task reward is bundled.
+policy is embedded in the native interface itself. The companion
+[Red initial-placement RL](RED_TEAM_RL.md) package supplies external Python
+training, learned/baseline policies and live evaluation while keeping this
+transport contract policy-agnostic.
 
 ## Setup
 
