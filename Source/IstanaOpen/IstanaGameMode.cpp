@@ -47,6 +47,7 @@ AIstanaGameMode::AIstanaGameMode()
 
 void AIstanaGameMode::StartPlay()
 {
+    ARedTeamAgentBridge* PendingLiveBridge = nullptr;
     // Configure actors before their BeginPlay so the external episode owns the clock.
     // This is an opt-in runtime setup; the saved landscape stays usable as a viewer.
     if (FParse::Param(FCommandLine::Get(), TEXT("IstanaBlueLive")))
@@ -85,7 +86,7 @@ void AIstanaGameMode::StartPlay()
                     Bridge->Port = Port;
                     Bridge->IdleTimeoutSeconds = 300;
                     Bridge->bStartOnBeginPlay = true;
-                    UE_LOG(LogTemp, Display, TEXT("IstanaBlueLive configured on 127.0.0.1:%d; awaiting Python planner."), Port);
+                    PendingLiveBridge = Bridge;
                 }
                 else UE_LOG(LogTemp, Error, TEXT("IstanaBlueLive could not create the loopback bridge."));
             }
@@ -93,6 +94,18 @@ void AIstanaGameMode::StartPlay()
         }
     }
     Super::StartPlay();
+    if (PendingLiveBridge)
+    {
+        FString BridgeError;
+        if (PendingLiveBridge->StartBridge(BridgeError))
+        {
+            UE_LOG(LogTemp, Display, TEXT("IstanaBlueLive listening on 127.0.0.1:%d; awaiting Python planner."), PendingLiveBridge->Port);
+        }
+        else
+        {
+            UE_LOG(LogTemp, Error, TEXT("IstanaBlueLive could not start the loopback bridge: %s"), *BridgeError);
+        }
+    }
 }
 
 AIstanaCameraPawn::AIstanaCameraPawn()

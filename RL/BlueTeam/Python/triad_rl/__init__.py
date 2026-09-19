@@ -8,6 +8,15 @@ from .placement_policy import (
     save_placement_checkpoint,
 )
 from .remote_control import TRIADRemoteControlClient
+from .red_policy import (
+    DispersedRandomRedPolicy,
+    LearnedRedPlacementPolicy,
+    RandomLegalRedPolicy,
+    RedLayoutSpec,
+    ScriptedRadialRedPolicy,
+    layout_catalogue,
+    public_approach_exposure,
+)
 from .rollout import RedActionScript, collect_blue_episode
 
 __all__ = [
@@ -15,10 +24,17 @@ __all__ = [
     "PlacementFeatureAdapter",
     "PlacementFeatures",
     "PlacementSample",
+    "DispersedRandomRedPolicy",
+    "LearnedRedPlacementPolicy",
+    "RandomLegalRedPolicy",
+    "RedLayoutSpec",
     "RedActionScript",
     "TRIADRedBlueEnv",
     "TRIADRemoteControlClient",
+    "ScriptedRadialRedPolicy",
     "collect_blue_episode",
     "load_placement_checkpoint",
+    "layout_catalogue",
+    "public_approach_exposure",
     "save_placement_checkpoint",
 ]
