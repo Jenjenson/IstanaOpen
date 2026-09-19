@@ -412,10 +412,12 @@ reusable Data Assets, validation functions, and a no-op policy interface.
 A separate [synthetic swarm module](Docs/SWARM_SIMULATION.md) now implements
 seeded multi-swarm spawning, boid movement, level-collision pathfinding and shared
 objective following through `ARedTeamManager`. The red team also supports
-[agent-controlled placement](Docs/RED_TEAM_AGENT.md) and an external Python runtime bridge.
+[agent-controlled placement](Docs/RED_TEAM_AGENT.md), an external Python runtime bridge,
+and a bounded [initial-placement RL workflow](Docs/RED_TEAM_RL.md).
 Behavior-preserving optimizations and measured limits are described in
 [optimization results](Docs/SWARM_OPTIMIZATION_RESULTS.md). Sensors, the operator panel
-and a trained policy remain future work. The architectural viewer still runs as before.
+and live synthetic evaluation are integrated; real-world calibration and a learned
+flight controller remain future work. The architectural viewer still runs as before.
 
 Start with the **[shared contracts usage guide](Docs/SIMULATION_CONTRACTS.md)** for
 field definitions, C++ and Blueprint examples, ownership, validation, and tests.
@@ -532,31 +534,232 @@ it does not implement joint Red/Blue training. See the
 [integration guide](RL/BlueTeam/INTEGRATION.md) and
 [experiment results](RL/BlueTeam/RESULTS.md).
 
-## Run in Docker
+## Run in Docker (any machine)
 
-The Python side of this project — trainer, planner, evaluators, the 64-module
-test suite and the published evidence — runs in one CPU-only container with no
-GPU, network, account or API key. It builds from a plain clone; `git lfs pull`
-is not required, because the image excludes `Content/` and `SourceAssets/`.
+The Python side of this project — trainer, planner, evaluators, the 66-module
+test suite and the published experiment evidence — runs in one CPU-only image.
+No GPU, no network, no account, no API key. It builds from a plain `git clone`;
+`git lfs pull` is **not** required, because the image excludes `Content/` and
+`SourceAssets/`.
+
+The image builds and runs natively on **linux/amd64 and linux/arm64**, so Intel
+and AMD machines, Apple Silicon Macs, and ARM servers all use the same commands
+with no emulation and no extra flags.
+
+### Requirements
+
+| Host | Install |
+| --- | --- |
+| macOS (Apple Silicon or Intel) | [Docker Desktop](https://docs.docker.com/desktop/install/mac-install/) |
+| Windows 10/11 | [Docker Desktop](https://docs.docker.com/desktop/install/windows-install/) with the WSL 2 backend |
+| Linux | [Docker Engine](https://docs.docker.com/engine/install/) plus the Compose plugin |
+
+Roughly 3 GB of free disk. Nothing else: the toolchain, the pinned dependencies
+and the evidence tree are all inside the image.
+
+### Quick start
 
 ```bash
-docker compose run --rm test      # full suite, offline (--network none in CI)
-docker compose run --rm smoke     # train -> evaluate -> replay -> plan
-docker compose run --rm plan      # layout recommendation into ./runs
+git clone https://github.com/Jenjenson/IstanaOpen.git
+cd IstanaOpen
+
+docker compose run --rm test      # full suite, including byte-exact evidence checks
+docker compose run --rm plan      # sensor layout from a public snapshot -> ./runs
+docker compose run --rm smoke     # train -> evaluate -> replay -> plan, end to end
 ```
 
-Dependencies are pinned to the versions the published experiments recorded, and
-the image fixes `PYTHONHASHSEED` and single-threaded BLAS so float reduction
-order matches those runs. See [docker/README.md](docker/README.md) for commands,
-reproducibility notes and the cross-platform last-bit float caveat.
+The first command builds the image (a few minutes), then runs 1,682 checks, most
+of which re-verify the archived experiment artifacts rather than merely
+exercising code. Budget about 20 minutes. None of it touches the network, and
+you can prove that by running the built image with networking switched off:
 
-Unreal is **not** part of that reproducible path. An optional, entitlement-gated
-image ([docker/Dockerfile.unreal](docker/Dockerfile.unreal)) builds the native
-modules and runs the automation suite for users who already have access to
-Epic's container registry; it has never been verified on Linux. The interactive
-packaged viewer stays a Windows desktop application. For the integrated live
-browser + 3D simulation, use the [Windows setup guide above](#set-up-the-browser-interface-and-live-3d-simulation-windows),
-not the older landscape-only release. The Docker services do not launch that UI.
+```bash
+docker run --rm --network none istana-rl:local test
+```
+
+Without Compose:
+
+```bash
+docker build -t istana-rl .
+docker run --rm --network none istana-rl test
+docker run --rm -v "$PWD/runs:/workspace/runs" istana-rl smoke
+```
+
+On Windows PowerShell use `${PWD}` in place of `$PWD`.
+
+### Apple Silicon and other arm64 hosts
+
+Nothing special is needed. `docker compose run --rm test` builds an arm64 image
+and runs it natively. Two things are worth knowing:
+
+- **Only the optional Unreal image is amd64-only.** Epic publishes
+  `ghcr.io/epicgames/unreal-engine` for amd64 alone, and emulating a full engine
+  build is not practical. Build the native C++ modules on an x86-64 machine or
+  on Windows with `Tools/build.ps1`. Everything in the table below is unaffected.
+- **To reproduce the archived numbers bit-for-bit, force amd64.** The published
+  evidence was generated on x86-64. The suite passes on arm64, but floating-point
+  reduction order is not guaranteed identical across architectures, so if you are
+  checking hashes rather than behaviour:
+
+  ```bash
+  DOCKER_DEFAULT_PLATFORM=linux/amd64 docker compose run --rm test
+  ```
+
+  That runs under emulation and is several times slower. For everyday use,
+  running natively on arm64 is the right choice.
+
+### Every command
+
+`docker run --rm istana-rl help` prints this list. Arguments after the command
+pass straight through to the underlying script.
+
+**Verification**
+
+| Command | What it does |
+| --- | --- |
+| `test [pytest args]` | Full suite, `-q` by default. Includes byte-exact checks of the published artifacts. |
+| `smoke` | End-to-end pipeline: train, evaluate, replay, recommend. Writes `runs/smoke`. |
+| `versions` | Interpreter, architecture and resolved dependency versions. |
+
+**Planning**
+
+| Command | What it does |
+| --- | --- |
+| `recommend [args]` | Temporal planner on a public snapshot. With no arguments, uses the bundled example and writes `runs/temporal-plan.json`. |
+| `recommend-adaptive [args]` | The same through the `adaptive-v1` checkpoint. |
+
+**Training and evaluation**
+
+| Command | What it does |
+| --- | --- |
+| `train [args]` | `train_blue_placement.py`; add `--dry-run` for the toy environment. |
+| `train-adaptive`, `train-robust`, `train-balanced`, `train-temporal` | The four archived training arms. |
+| `evaluate [args]`, `evaluate-adaptive [args]` | Checkpoint evaluation against the baselines. |
+
+**Replays**
+
+| Command | What it does |
+| --- | --- |
+| `demo-adaptive`, `demo-balanced`, `demo-temporal` | Render a self-contained HTML replay into `runs/`; open it in any browser. |
+
+**Project tools**
+
+| Command | What it does |
+| --- | --- |
+| `geometry` | Regenerate the Istana and environment OBJ geometry (standard library only). |
+| `benchmarks` | Summarise the swarm benchmark CSVs. |
+| `redteam-client [args]` | Wire client for a red-team bridge running in Unreal on the host. |
+| `verify [args]` | `Tools/verify_release.py`; needs the repository bind-mounted. |
+| `audit` | `Tools/audit_submission.py`; needs the repository bind-mounted. |
+
+**Escape hatches**
+
+| Command | What it does |
+| --- | --- |
+| `python [args]` | Python inside `RL/BlueTeam/Python`. |
+| `bash` / `shell` | Interactive shell. |
+| `exec <cmd> [args]` | Any command inside the container. |
+
+Compose exposes the common ones as services: `test`, `smoke`, `plan`, `demo`,
+`rl` (interactive shell) and `redteam-client`.
+
+Flags pass through, so a longer training run is just:
+
+```bash
+docker run --rm -v "$PWD/runs:/workspace/runs" istana-rl \
+  train-adaptive --episodes 200 --batch-size 8 --seed 42 --output /workspace/runs/adaptive
+```
+
+### Output, and file ownership on Linux
+
+Everything a command writes goes to `/workspace/runs`, bind-mounted to `./runs`
+on the host. The container runs unprivileged as uid 1000.
+
+On macOS and Windows, Docker Desktop maps ownership for you. On Linux, if your
+own uid is not 1000, tell Compose who you are before running anything that
+writes:
+
+```bash
+export ISTANA_UID=$(id -u) ISTANA_GID=$(id -g)
+docker compose run --rm smoke
+```
+
+With plain `docker run`, the equivalent is `--user "$(id -u):$(id -g)"`.
+
+### What is pinned, and why
+
+- **Dependency versions.** `docker/constraints.txt` pins NumPy to `2.4.6`, the
+  version the published experiments recorded. Build against current upstream
+  instead with `--build-arg CONSTRAINTS=docker/constraints-current.txt`, and
+  expect last-bit numeric drift from the archived artifacts.
+- **Thread count.** `OMP_NUM_THREADS=OPENBLAS_NUM_THREADS=MKL_NUM_THREADS=1`.
+  Not a performance setting: the recorded runs used single-threaded BLAS, and
+  letting thread count follow the host's core count changes float reduction
+  order.
+- **Hash seed.** `PYTHONHASHSEED=0`.
+- **Python minor version.** `python:3.11-slim-bookworm`. Override with
+  `--build-arg PYTHON_VERSION=3.12`.
+
+Containerising does not erase host differences entirely.
+`RL/BlueTeam/BALANCED_RESULTS.md` records 172 last-bit differences
+(max ~5.7e-14) between Windows and Linux, which changed hashes of unrounded JSON
+without changing a single sensor choice or action count. Running Linux in a
+container gives you the *Linux* numbers consistently, which is the point, but it
+does not make Windows-generated and Linux-generated hashes identical.
+
+### Talking to Unreal running on the host
+
+The red-team bridge runs inside Unreal on the host and binds loopback. A
+container cannot reach host loopback directly, so the client takes a `--host`:
+
+```bash
+docker compose run --rm redteam-client
+# equivalently
+docker run --rm --add-host host.docker.internal:host-gateway istana-rl \
+  redteam-client --host host.docker.internal --port 8765 --steps 100
+```
+
+### Unreal in a container (optional, amd64, entitlement-gated)
+
+```bash
+git lfs install && git lfs pull                  # .uasset files must be real
+docker login ghcr.io -u <github-user> -p <pat>   # Epic-linked GitHub account
+docker compose --profile unreal run --rm unreal all
+```
+
+This is not part of the reproducible path, and three constraints are worth
+stating plainly: the base image is pullable only by accounts linked to Epic and
+admitted to the EpicGames organisation; it exists for amd64 only; and this
+project has only ever been built and tested on Windows, so a Linux build is
+plausible but unverified. The interactive packaged viewer stays a Windows
+desktop application. For the live browser and 3D simulation, use the
+[Windows setup guide above](#set-up-the-browser-interface-and-live-3d-simulation-windows).
+
+### Troubleshooting
+
+**`entrypoint.sh: no such file or directory`.** CRLF line endings on the shell
+scripts. `.gitattributes` forces LF; re-clone, or run
+`git add --renormalize . && git checkout -- docker/`.
+
+**Permission denied writing output (Linux).** See the ownership note above.
+
+**`exec format error`, or the wrong architecture after switching platforms.**
+Compose reuses the `istana-rl:local` tag, so an image built for the other
+architecture can linger. Force a rebuild with `docker compose build --no-cache`,
+and confirm with `docker compose run --rm rl versions`, which prints the
+architecture it is actually running on.
+
+**A pin has no wheel for your platform.** pip names the package and stops rather
+than attempting a source build in an image with no compiler. Build with
+`--build-arg CONSTRAINTS=docker/constraints-current.txt`.
+
+**Published-artifact tests fail after you edited `RL/BlueTeam/Results/`.**
+Expected: those tests verify archived bytes. `git checkout -- RL/BlueTeam/Results`.
+
+**The image is ~700 MB.** About 184 MB is the published evidence tree,
+deliberately baked in so verification works with no network.
+
+[docker/README.md](docker/README.md) has the longer version of all of this.
 
 ## Saved-layout switching demo (Windows)
 

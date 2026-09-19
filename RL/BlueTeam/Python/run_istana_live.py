@@ -11,6 +11,8 @@ import json
 from pathlib import Path
 
 from triad_rl.istana_live import IstanaLiveClient, run_episode
+from triad_rl.red_policy import (DispersedRandomRedPolicy, LearnedRedPlacementPolicy,
+                                 RandomLegalRedPolicy)
 
 
 def main(argv=None):
@@ -18,6 +20,11 @@ def main(argv=None):
     selection = parser.add_mutually_exclusive_group(required=True)
     selection.add_argument("--checkpoint", type=Path, help="Explicit temporal checkpoint directory, never auto-selected")
     selection.add_argument("--temporal-public-control", "--greedy", action="store_true", help="Greedy non-RL placement using public predicted marginal return")
+    red = parser.add_mutually_exclusive_group()
+    red.add_argument("--red-checkpoint", type=Path, help="Trained Red placement checkpoint directory")
+    red.add_argument("--red-random", action="store_true", help="Use a seeded random legal Red layout")
+    red.add_argument("--red-dispersed", action="store_true",
+                     help="Place Red groups at independent random directions for a visual demo")
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--timeout", type=float, default=120.)
     parser.add_argument("--seed", type=int, default=12345)
@@ -28,6 +35,8 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if args.checkpoint is not None and not (args.checkpoint / "checkpoint.json").is_file():
         parser.error("--checkpoint must contain checkpoint.json")
+    if args.red_checkpoint is not None and not (args.red_checkpoint / "checkpoint.json").is_file():
+        parser.error("--red-checkpoint must contain checkpoint.json")
     # Reserve a new output directory before any reset/deployment occurs.
     args.output_dir.mkdir(parents=True, exist_ok=False)
     report_path, replay_path = args.output_dir / "report.json", args.output_dir / "replay.jsonl"
@@ -36,11 +45,14 @@ def main(argv=None):
             replay.write(json.dumps(value, allow_nan=False, separators=(",", ":")) + "\n")
             replay.flush()
         try:
+            red_policy = (LearnedRedPlacementPolicy.load(args.red_checkpoint) if args.red_checkpoint else
+                          DispersedRandomRedPolicy(args.seed) if args.red_dispersed else
+                          RandomLegalRedPolicy(args.seed) if args.red_random else None)
             with IstanaLiveClient(args.port, args.timeout,
                                   record=lambda item: record({"type": "wire_audit", **item})) as client:
                 report = run_episode(client, seed=args.seed, checkpoint=args.checkpoint,
                     temporal_public_control=args.temporal_public_control, max_steps=args.max_steps,
-                    step_batch=args.step_batch, paced=args.paced, frame=record)
+                    red_policy=red_policy, step_batch=args.step_batch, paced=args.paced, frame=record)
         except Exception as error:
             report = {"schema": "istana.blue_live_run_failure.v1", "status": "failed",
                       "error_type": type(error).__name__, "error": str(error),

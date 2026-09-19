@@ -18,6 +18,9 @@
 # The repository layout is preserved at /workspace because the test suite resolves
 # its repo root as Path(__file__).resolve().parents[4] and loads Tools/*.py from it.
 
+# Multi-architecture by construction. python:*-slim-bookworm publishes both
+# linux/amd64 and linux/arm64, and every pinned dependency has a wheel for each,
+# so an Apple Silicon host builds and runs this natively: no emulation, no flags.
 ARG PYTHON_VERSION=3.11
 FROM python:${PYTHON_VERSION}-slim-bookworm AS base
 
@@ -54,9 +57,14 @@ FROM base AS deps
 ARG CONSTRAINTS=docker/constraints.txt
 COPY docker/constraints.txt docker/constraints-current.txt docker/
 
-# All four dependencies ship manylinux wheels, so no compiler is required.
+# --only-binary is a guard, not an optimisation. Every pin here has a manylinux
+# wheel for x86_64 and aarch64, so a source build would mean the wheel set has
+# changed under us. This image carries no compiler, so without the flag that
+# surfaces as an opaque error deep inside a NumPy build; with it, pip names the
+# package that has no wheel for this platform.
 RUN python -m pip install --upgrade pip==24.3.1 && \
-    python -m pip install -c "${CONSTRAINTS}" numpy gymnasium pettingzoo pytest
+    python -m pip install --only-binary=:all: -c "${CONSTRAINTS}" \
+        numpy gymnasium pettingzoo pytest
 
 
 # ---------------------------------------------------------------------------
@@ -73,7 +81,8 @@ COPY --chown=istana:istana . /workspace
 
 # Install triad_rl itself without re-resolving the pinned dependency set.
 RUN python -m pip install --no-deps -c "${CONSTRAINTS}" ./RL/BlueTeam/Python && \
-    python -c "import triad_rl, numpy; print('triad_rl ok, numpy', numpy.__version__)"
+    python -c "import platform, triad_rl, numpy; \
+print('triad_rl ok on', platform.machine(), '- numpy', numpy.__version__)"
 
 # The exec bit does not survive a checkout on Windows hosts, so set it here.
 RUN mkdir -p /workspace/runs && \

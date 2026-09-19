@@ -9,6 +9,14 @@ set -euo pipefail
 PY_DIR="/workspace/RL/BlueTeam/Python"
 RUNS="${ISTANA_RUNS_DIR:-/workspace/runs}"
 
+# `docker run --user <uid>` with an id that has no /etc/passwd entry leaves HOME
+# unset or pointing at an unwritable `/`. Linux hosts need that override to own
+# their bind-mounted output, so make an arbitrary uid work rather than fail late
+# inside a library that wants a home directory.
+if [ -z "${HOME:-}" ] || [ ! -w "${HOME}" ]; then
+  export HOME=/tmp
+fi
+
 usage() {
   cat <<'EOF'
 Istana Open container — Blue Team RL, planner and project tools.
@@ -34,6 +42,7 @@ TRAINING AND EVALUATION
   train-adaptive [args]  python -m triad_rl.train_adaptive
   train-robust [args]    python -m triad_rl.train_robust
   train-balanced [args]  python -m triad_rl.train_balanced
+  train-temporal [args]  train_temporal.py
   evaluate [args]        evaluate_checkpoint.py
   evaluate-adaptive [args]
                          evaluate_adaptive.py
