@@ -5,6 +5,7 @@ on:
     paths:
       - "RL/BlueTeam/**"
       - ".github/workflows/blue-team-rl.yml"
+      - ".github/workflows/docker.yml"
       - "Tools/export_blue_rl.py"
       - "Tools/publish_adaptive_rl.py"
       - "Tools/publish_robust_rl.py"
@@ -17,6 +18,7 @@ on:
     paths:
       - "RL/BlueTeam/**"
       - ".github/workflows/blue-team-rl.yml"
+      - ".github/workflows/docker.yml"
       - "Tools/export_blue_rl.py"
       - "Tools/publish_adaptive_rl.py"
       - "Tools/publish_robust_rl.py"
