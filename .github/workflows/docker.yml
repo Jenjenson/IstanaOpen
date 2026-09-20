@@ -98,17 +98,13 @@ jobs:
 
   arm64:
     name: Build and verify (linux/arm64)
-    runs-on: ubuntu-latest
+    # Native ARM avoids the 90-minute QEMU timeout without reducing tests.
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
         with:
           lfs: false
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: arm64
 
       - name: Set up Buildx
         uses: docker/setup-buildx-action@v3
@@ -129,7 +125,8 @@ jobs:
           echo "$out"
           echo "$out" | grep -q aarch64 || { echo "expected an aarch64 image"; exit 1; }
 
-      # The whole suite under QEMU would take hours. These are the tests that
+      # Keep the same architecture-sensitive test selection on native ARM.
+      # These are the tests that
       # could plausibly differ by architecture: they re-verify archived artifacts
       # and checkpoint lineage byte for byte, so if float reduction order on
       # aarch64 moved a published number, they are what catches it.
