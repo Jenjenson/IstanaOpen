@@ -17,8 +17,10 @@ class ISTANAOPEN_API AIstanaDroneVisual : public AActor
 public:
     AIstanaDroneVisual();
     void ApplyState(const FIstanaDroneState& State);
+    void AnimateDisplayRotors(double PresentationSeconds);
 private:
     UPROPERTY() TObjectPtr<UStaticMeshComponent> Body;
+    UPROPERTY() TArray<TObjectPtr<UStaticMeshComponent>> DisplayRotors;
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FIstanaSwarmStepped, int64, CompletedSteps);

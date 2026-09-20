@@ -1,4 +1,5 @@
 #include "Simulation/BlueTeam/BlueTeamCoordinator.h"
+#include "Simulation/BlueTeam/BlueWarningTime.h"
 #include "Simulation/RedTeam/RedTeamManager.h"
 #include "Dom/JsonObject.h"
 #include "Engine/Engine.h"
@@ -9,6 +10,17 @@
 #include "Misc/AutomationTest.h"
 
 #if WITH_DEV_AUTOMATION_TESTS
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FBlueWarningTimeContract, "Istana.Simulation.BlueTeam.WarningTime",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FBlueWarningTimeContract::RunTest(const FString& Parameters)
+{
+    TestEqual(TEXT("Interpolated arrival minus first detection"), BlueWarningSeconds(2., 20.75), 18.75);
+    TestEqual(TEXT("Undetected arrival has zero warning"), BlueWarningSeconds(-1., 20.), 0.);
+    TestEqual(TEXT("Late detection cannot give negative warning"), BlueWarningSeconds(21., 20.), 0.);
+    TestEqual(TEXT("Initial zone entry has zero warning"), BlueWarningSeconds(0., 0.), 0.);
+    TestEqual(TEXT("Unresolved target contributes zero lower bound"), BlueWarningSeconds(1., -1.), 0.);
+    return true;
+}
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FBlueInitialLayoutContract, "Istana.Simulation.BlueTeam.InitialLayoutContract",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FBlueInitialLayoutContract::RunTest(const FString& Parameters)
@@ -24,6 +36,21 @@ bool FBlueInitialLayoutContract::RunTest(const FString& Parameters)
     auto* Blue = World->SpawnActor<ABlueTeamCoordinator>();
     Blue->Manager = Manager; Manager->BlueCoordinator = Blue;
     Blue->bSpawnSensorMarkers = false; Blue->bDrawCoverage = false;
+    auto* Visual = World->SpawnActor<ABlueSensorMarker>();
+    for (const FString Id : {TEXT("rf"), TEXT("radar"), TEXT("eo"), TEXT("thermal"), TEXT("fused")})
+    {
+        Visual->ConfigureSensor(Id, 4);
+        TArray<UStaticMeshComponent*> Components; Visual->GetComponents(Components);
+        TestTrue(TEXT("Detailed sensor assembly has multiple hardware parts"), Components.Num() >= 30);
+        for (const auto* Component : Components)
+        {
+            TestEqual(TEXT("Sensor visual cannot change collision/trajectories"), Component->GetCollisionEnabled(), ECollisionEnabled::NoCollision);
+            TestNotNull(TEXT("Sensor parts have authored PBR material"), Component->GetMaterial(0));
+        }
+        FVector Centre, Extent; Visual->GetActorBounds(false, Centre, Extent);
+        TestTrue(TEXT("Sensor assembly reaches the supporting surface"), FMath::Abs(Centre.Z-Extent.Z) < .1);
+    }
+    Visual->Destroy();
     FRedTeamPlacementContext Context; FString Error;
     TestTrue(TEXT("Empty world reset"), Manager->BeginPlacementEpisode(122, Context, Error));
     TestEqual(TEXT("Missing surfaces block every site"), Blue->ContextJson()->GetObjectField(TEXT("publicSnapshot"))->GetArrayField(TEXT("blocked_sites")).Num(), Blue->ApprovedSitesM.Num());

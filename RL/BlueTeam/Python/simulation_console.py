@@ -7,6 +7,7 @@ public snapshot; the observer display separately shows simulator drone truth.
 from __future__ import annotations
 
 import argparse
+import base64
 from copy import deepcopy
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
@@ -14,6 +15,7 @@ from pathlib import Path
 import re
 import secrets
 import threading
+import time
 
 from triad_rl.istana_live import IstanaLiveClient, make_plan, scripted_red_centers
 
@@ -100,7 +102,39 @@ class ConsoleState:
                     return self.status()
                 if self.client is None or self.client.closed:
                     raise ConnectionError("Start the compiled Unreal project with -IstanaBlueLive, then connect.")
-                if operation == "reset":
+                if operation == "preview":
+                    # Display saved output only; never invoke a planner or deploy Red.
+                    from model_switch_demo import load_layouts, LAYOUT_SOURCE, ROOT as PROJECT_ROOT
+                    from capture_warning_3d import capture
+                    layouts = load_layouts(LAYOUT_SOURCE)
+                    selection = payload.get("policy", "")
+                    if not isinstance(selection, str) or not selection.startswith("saved-"):
+                        raise ValueError("Select an available saved layout")
+                    key = selection.removeprefix("saved-")
+                    if key not in layouts:
+                        raise ValueError("Select an available saved layout")
+                    row = layouts[key]
+                    self.client.reset(row["seed"])
+                    self.context = self.client.get_blue_context()
+                    self.client.deploy(row["placements"])
+                    capture(self.client, PROJECT_ROOT/"Saved", "layout")
+                    time.sleep(.3)
+                    shot = capture(self.client, PROJECT_ROOT/"Saved", "layout")
+                    blue = self.client.observe_blue()
+                    audit_dir = PROJECT_ROOT/"Saved/ConsoleModelDemo"
+                    audit_dir.mkdir(parents=True, exist_ok=True)
+                    (audit_dir/f"{self.context['runId']}.json").write_text(json.dumps(
+                        dict(model=key, **row, shot=shot, completed_steps=self.client.completed_steps), indent=2))
+                    self.view = {"mode": "live", "label": f"{row['label']} · saved layout",
+                        "coordinateLabel": "Native Unreal · archived output preview",
+                        "catalogue": self.context["catalogue"], "placements": blue["publicSnapshot"]["placements"],
+                        "sites": self.context["publicSnapshot"]["sites"], "surfaceMounted": True,
+                        "budget": self.context["publicSnapshot"]["budget_total"], "objectiveRadius": 20,
+                        "policy": f"{row['label']} (saved output)", "metrics": None, "outcome": "preview",
+                        "ended": True, "frames": [self.frame({"drones": []}, blue)],
+                        "nativePreview": {"image": "data:image/png;base64," + base64.b64encode(Path(shot["path"]).read_bytes()).decode(),
+                                          "anchors": shot["sensor_screen_anchors"]}}
+                elif operation == "reset":
                     seed = payload.get("seed", 12345)
                     if type(seed) is not int or not -(2**31) <= seed < 2**31:
                         raise ValueError("Episode seed must be a signed 32-bit integer")
@@ -188,7 +222,12 @@ def make_server(port=9048, bridge_port=8765, *, state=None, replays=None):
             if self.path == "/api/session":
                 return self.reply({"token": token, "status": state.status(), "replays": [
                     {"id": i, "profile": r["profile"], "policy": r["temporal_seed"], "case": r["case_index"],
-                     "outcome": r["metrics"]["outcome"]} for i, r in enumerate(replays)]})
+                     "outcome": r["metrics"]["outcome"]} for i, r in enumerate(replays)],
+                    "savedModels": ([{"id": "saved-rl", "label": "RL Policy · saved output"},
+                                     {"id": "saved-greedy", "label": "Greedy · saved output"},
+                                     {"id": "saved-initial", "label": "Initial Policy · saved output"}]
+                                    if all((BLUE_ROOT/f"Results/model-switch-demo/evaluation-{key}.json").exists()
+                                           for key in ("0000", "0128", "greedy")) else [])})
             if self.path == "/api/status":
                 return self.reply(state.status())
             match = re.fullmatch(r"/api/replay/(\d+)", self.path)
@@ -196,6 +235,7 @@ def make_server(port=9048, bridge_port=8765, *, state=None, replays=None):
                 return self.reply(replay_view(replays[int(match[1])]))
             static = {"/": ("index.html", "text/html; charset=utf-8"),
                       "/app.js": ("app.js", "text/javascript; charset=utf-8"),
+                      "/presentation.css": ("presentation.css", "text/css; charset=utf-8"),
                       "/style.css": ("style.css", "text/css; charset=utf-8")}
             if self.path in static:
                 name, mime = static[self.path]
@@ -207,7 +247,7 @@ def make_server(port=9048, bridge_port=8765, *, state=None, replays=None):
             if (not self.valid_host() or self.headers.get("Origin") not in allowed_origin
                     or self.headers.get("X-Console-Token") != token):
                 return self.reply({"error": "Local session required"}, 403)
-            match = re.fullmatch(r"/api/action/(connect|disconnect|reset|step)", self.path)
+            match = re.fullmatch(r"/api/action/(connect|disconnect|reset|step|preview)", self.path)
             if not match:
                 return self.reply({"error": "Unknown action"}, 404)
             try:

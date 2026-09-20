@@ -1,0 +1,41 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Blue Team · Model switching</title>
+<style>body{margin:0;background:#0c1320;color:#eee;font:16px system-ui}#stage{position:relative;width:100%;max-width:1920px;margin:auto}canvas{width:100%;display:block}button{font:inherit;padding:12px 22px;background:#185b71;color:white;border:1px solid #438ba0;border-radius:5px;cursor:pointer}#tools{padding:14px;display:flex;gap:15px;align-items:center}a{color:#80ead1}#controls{position:absolute;inset:0;pointer-events:none}#controls button{position:absolute;opacity:0;pointer-events:auto;width:14.58%;height:6.48%;left:1.04%}#controls button:focus-visible{opacity:.25;outline:4px solid white}</style>
+<div id="stage"><canvas id="canvas" width="1920" height="1080" aria-label="Native Unreal sensor layout and model selector"></canvas><div id="controls"></div></div>
+<div id="tools"><button id="record">Record guided switching demo</button><span id="message">Choose a saved model and Apply to deploy it in Unreal.</span><a id="download" hidden download href="/model-switching.mp4">Download MP4</a></div>
+<script>
+const canvas=document.querySelector('canvas'),g=canvas.getContext('2d');
+let models=[],token='',selected='rl',active='',busy=false,recording=false,overview=null,detail=null,anchors=[],status='Select a model, then Apply',pointer=null;
+function text(s,x,y,size=24,color='#e6eef5'){g.fillStyle=color;g.font=`${size}px system-ui`;g.fillText(s,x,y)}
+function box(x,y,w,h,color){g.fillStyle=color;g.fillRect(x,y,w,h)}
+function draw(){
+ box(0,0,1920,1080,'#0c1320');text('BLUE TEAM  /  MODEL SWITCHING',24,46,30);text('Saved algorithm layouts · Native Unreal preview',24,82,21,'#a4bacb');
+ box(320,110,1600,900,'#152333');if(overview)g.drawImage(overview,320,110,1600,900);
+ for(const a of anchors){const x=320+a.x*1600/1920,y=110+a.y*900/1080;g.strokeStyle='#8be5d1';g.lineWidth=3;g.beginPath();g.ellipse(x,y+3,19,9,0,0,Math.PI*2);g.stroke();g.beginPath();g.moveTo(x+19,y+3);g.lineTo(x+48,y-22);g.stroke();text('Sensor',x+51,y-22,20,'#c5fff1')}
+ box(320,110,1600,65,'#0c1320e8');text(active?`Active model: ${active}`:'No layout applied',345,153,30,'#8be5d1');
+ text('1  SELECT MODEL',20,153,21,'#8fa6b9');
+ models.forEach((m,i)=>{let y=185+i*90;box(20,y,280,70,selected===m.id?'#235b70':'#1b2a3a');text(m.label,38,y+44,25);if(selected===m.id){box(20,y,5,70,'#8be5d1')}});
+ text('2  APPLY TO 3D',20,499,21,'#8fa6b9');box(20,530,280,70,busy?'#394657':'#167a70');text(busy?'Applying…':'Apply layout  →',38,574,26);
+ text('3  NATIVE PLACEMENT',20,665,20,'#8fa6b9');if(detail)g.drawImage(detail,20,685,280,158);
+ text('Sensor close-up',20,871,20,'#a4bacb');text('Same scene',20,920,22);text('Same asset catalogue',20,954,22);text('Same placement rules',20,988,22);
+ box(0,1010,1920,70,'#101d2c');text(status,24,1053,25,'#8be5d1');text('Archived outputs • no inference / evaluation',1300,1053,23,'#a4bacb');
+ if(pointer){g.fillStyle='#fff';g.beginPath();g.moveTo(pointer.x,pointer.y);g.lineTo(pointer.x+3,pointer.y+29);g.lineTo(pointer.x+12,pointer.y+20);g.lineTo(pointer.x+27,pointer.y+19);g.closePath();g.fill()}
+ requestAnimationFrame(draw);
+}
+function select(id){if(busy)return;selected=id;status=`Selected ${models.find(m=>m.id===id).label} — ready to apply`;}
+async function post(path,data,type='application/json'){const r=await fetch(path,{method:'POST',headers:{'Content-Type':type,'X-Demo-Token':token},body:type==='application/json'?JSON.stringify(data):data});const j=await r.json();if(!r.ok)throw Error(j.error);return j}
+function load(url){return new Promise((resolve,reject)=>{const i=new Image;i.onload=()=>resolve(i);i.onerror=()=>reject(Error('Native frame unavailable'));i.src=url})}
+async function apply(){if(busy)return;busy=true;status='Replacing sensor layout in Unreal…';try{const r=await post('/api/apply',{model:selected});const images=await Promise.all([load(r.shots.layout.url),load(r.shots.sensor.url)]);[overview,detail]=images;anchors=r.shots.layout.sensor_screen_anchors;active=r.label;status=`${active} applied — native sensor layout updated`;}catch(e){status='Apply failed: '+e.message;throw e}finally{busy=false}}
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+document.querySelector('#record').onclick=async()=>{
+ if(recording||busy)return;recording=true;document.querySelector('#record').disabled=true;
+ const stream=canvas.captureStream(30),chunks=[],rec=new MediaRecorder(stream,{mimeType:'video/webm;codecs=vp9',videoBitsPerSecond:10000000});
+ const stopped=new Promise(resolve=>rec.onstop=resolve);rec.ondataavailable=e=>chunks.push(e.data);rec.start();
+ try{for(let i=0;i<models.length;i++){pointer={x:200,y:220+i*90};select(models[i].id);await wait(1200);pointer={x:220,y:565};await wait(400);await apply();pointer=null;await wait(4200);}status='Model selected → Apply → Native sensor layout updated';await wait(1500);
+ rec.stop();await stopped;stream.getTracks().forEach(t=>t.stop());document.querySelector('#message').textContent='Encoding MP4…';
+ await post('/api/recording',new Blob(chunks,{type:'video/webm'}),'video/webm');document.querySelector('#message').textContent='MP4 ready';document.querySelector('#download').hidden=false;
+ }catch(e){if(rec.state!=='inactive')rec.stop();stream.getTracks().forEach(t=>t.stop());document.querySelector('#message').textContent=e.message;}finally{recording=false}
+};
+(async()=>{const s=await(await fetch('/api/session')).json();models=s.models;token=s.token;
+ for(let i=0;i<models.length;i++){const b=document.createElement('button');b.textContent=models[i].label;b.style.top=`${(185+i*90)/10.8}%`;b.onclick=()=>select(models[i].id);document.querySelector('#controls').append(b)}
+ const b=document.createElement('button');b.textContent='Apply layout';b.style.top='49.074%';b.onclick=()=>apply().catch(()=>{});document.querySelector('#controls').append(b);draw();await apply();})();
+</script></html>

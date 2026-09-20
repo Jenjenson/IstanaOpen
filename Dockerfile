@@ -64,7 +64,7 @@ COPY docker/constraints.txt docker/constraints-current.txt docker/
 # package that has no wheel for this platform.
 RUN python -m pip install --upgrade pip==24.3.1 && \
     python -m pip install --only-binary=:all: -c "${CONSTRAINTS}" \
-        numpy gymnasium pettingzoo pytest
+        numpy gymnasium pettingzoo pytest Pillow imageio-ffmpeg
 
 
 # ---------------------------------------------------------------------------

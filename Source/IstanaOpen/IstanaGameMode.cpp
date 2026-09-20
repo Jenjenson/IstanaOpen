@@ -76,6 +76,24 @@ void AIstanaGameMode::StartPlay()
             {
                 Coordinator->Manager = Manager;
                 Manager->BlueCoordinator = Coordinator;
+                // Separate synthetic learning benchmark; never edit the saved map or
+                // capabilities to make later checkpoints easier than earlier ones.
+                if (FParse::Param(FCommandLine::Get(), TEXT("IstanaWarningApproachV2")))
+                {
+                    Manager->MinSpawnRadiusCm = 26000;
+                    Manager->MaxSpawnRadiusCm = 30000;
+                    // Begin above the surrounding urban obstacles, rather than
+                    // embedding long-range starts among building collision hulls.
+                    Manager->SpawnHeightOffsetCm = 12000;
+                    Coordinator->TimeLimitSeconds = 180;
+                    Coordinator->PriorSpawnRadiusM = 280;
+                    Coordinator->PriorAltitudeM = Manager->SpawnHeightOffsetCm / 100.;
+                    const auto& Motion = Manager->MovementPreset ? Manager->MovementPreset->Settings : Manager->Settings;
+                    Coordinator->PriorSpeedMps = Motion.CruiseSpeedCmPerSecond / 100.;
+                    Coordinator->PriorSwarmSize = Manager->DronesPerSwarm;
+                    Coordinator->ApproachWeights = {.5, 0., .3, 0., .2, 0., 0., 0.};
+                    UE_LOG(LogTemp, Display, TEXT("Synthetic warning approach v2: 260-300m spawn annulus, unchanged sensor/site/motion constraints."));
+                }
                 ARedTeamAgentBridge* Bridge = nullptr;
                 for (TActorIterator<ARedTeamAgentBridge> It(GetWorld()); It; ++It)
                     if (It->Manager == Manager) { Bridge = *It; break; }

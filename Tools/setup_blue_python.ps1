@@ -20,6 +20,6 @@ if (!(Test-Path -LiteralPath $python)) {
     & $PythonExe -m venv $environment
     if ($LASTEXITCODE -ne 0) { throw 'Creating the Python environment failed.' }
 }
-& $python -m pip install -e ((Join-Path $projectRoot 'RL\BlueTeam\Python') + '[test]')
+& $python -m pip install -e ((Join-Path $projectRoot 'RL\BlueTeam\Python') + '[test,media]')
 if ($LASTEXITCODE -ne 0) { throw 'Installing the Blue Team dependencies failed.' }
 Write-Host "Blue Team Python is ready: $python"
