@@ -83,3 +83,28 @@ def test_comparison_invalid_input_is_an_actionable_http_error(server, body):
     code, result = request(server, "/api/comparison/run", body)
     assert code == 400 and result["error"]
     assert server.console_state.view == {"existing_live_episode": True}
+
+
+@pytest.mark.parametrize("action", ["scenario", "run"])
+@pytest.mark.parametrize("count", [None, True, "60", 60.0, 0, 7, 9, 64, 1000, []])
+def test_comparison_rejects_unsupported_or_coerced_population(server, action, count):
+    code, result = request(server, f"/api/comparison/{action}", {"replayId": 0, "droneCount": count})
+    assert code == 400 and "Choose 8 drones" in result["error"]
+    assert server.console_state.view == {"existing_live_episode": True}
+
+
+@pytest.mark.parametrize("count", [8, 60])
+def test_population_preview_then_manual_evaluation_keeps_the_same_public_case(server, count):
+    body = {"replayId": 1, "droneCount": count}
+    code, scenario = request(server, "/api/comparison/scenario", body)
+    assert code == 200 and scenario["droneCount"] == count
+    assert not {"targets", "frames", "metrics", "rl"} & scenario.keys()
+    code, result = request(server, "/api/comparison/run", {**body, "baseline": "manual", "placements": []})
+    assert code == 200 and result["droneCount"] == count
+    assert result["audit"]["fresh_rl_inference"] is True
+    for name in ("rl", "baseline"):
+        assert len(result[name]["frames"][0]["threats"]) == count
+        assert result[name]["sites"] == scenario["sites"]
+        assert result[name]["budget"] == scenario["budget"]
+    assert result["baseline"]["metrics"]["detected_fraction"] == 0
+    assert server.console_state.view == {"existing_live_episode": True}

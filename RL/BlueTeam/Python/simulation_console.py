@@ -230,7 +230,11 @@ def make_server(port=9048, bridge_port=8765, *, state=None, replays=None):
             if self.path == "/api/session":
                 return self.reply({"token": token, "status": state.status(), "replays": [
                     {"id": i, "profile": r["profile"], "policy": r["temporal_seed"], "case": r["case_index"],
-                     "outcome": r["metrics"]["outcome"]} for i, r in enumerate(replays)],
+                     "outcome": r["metrics"]["outcome"], "droneCount": len(r["scenario"]["targets"])} for i, r in enumerate(replays)],
+                    "comparisonPopulations": [{"id": "archived", "label": "Original recorded swarm"},
+                        {"id": 8, "label": "Training range · 8 drones", "trainingRange": [1, 8]},
+                        {"id": 60, "label": "Large swarm · 60 drones", "trainingRange": [1, 8],
+                         "outsideTrainingRange": True}],
                     "savedModels": ([{"id": "saved-rl", "label": "RL Policy · saved output"},
                                      {"id": "saved-greedy", "label": "Greedy · saved output"},
                                      {"id": "saved-initial", "label": "Initial Policy · saved output"}]
@@ -271,11 +275,24 @@ def make_server(port=9048, bridge_port=8765, *, state=None, replays=None):
                     replay_id = payload.get("replayId")
                     if type(replay_id) is not int or not 0 <= replay_id < len(replays):
                         raise ValueError("Choose an available recorded case for comparison")
-                    allowed = {"replayId"} if comparison[1] == "scenario" else {"replayId", "baseline", "placements"}
+                    allowed = ({"replayId", "droneCount"} if comparison[1] == "scenario"
+                               else {"replayId", "droneCount", "baseline", "placements"})
                     if set(payload) - allowed:
                         raise ValueError("Unexpected comparison input")
+                    drone_count = payload.get("droneCount")
+                    if "droneCount" in payload and (type(drone_count) is not int or drone_count not in (8, 60)):
+                        raise ValueError("Choose 8 drones (training range), 60 drones (stress demo), or an original recorded swarm")
                     with comparison_lock:
-                        if comparison[1] == "scenario":
+                        if drone_count is not None:
+                            from swarm_comparison import swarm_scenario, compare_swarm_placements
+                            if comparison[1] == "scenario":
+                                result = swarm_scenario(replays[replay_id], drone_count)
+                            else:
+                                result = compare_swarm_placements(replays[replay_id], drone_count,
+                                    baseline=payload.get("baseline", "common_sense"),
+                                    placements=payload.get("placements"))
+                            result["droneCount"] = drone_count
+                        elif comparison[1] == "scenario":
                             result = comparison_scenario(replays[replay_id])
                         else:
                             result = compare_placements(replays[replay_id],

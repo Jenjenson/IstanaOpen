@@ -25,11 +25,19 @@ python RL/BlueTeam/Python/simulation_console.py
 
 ## Demonstrate a comparison
 
-1. Choose **Compare placements** and select the scenario conditions, RL
-   checkpoint and recorded case. All 18 published cases remain available.
+1. Choose **Compare placements**, then choose the swarm size, scenario conditions,
+   RL checkpoint and case. **Large swarm · 60 drones** is the default demonstration;
+   **Training range · 8 drones** uses the upper end of the available Temporal
+   models' training population. **Original recorded swarm** retains all 18
+   published cases at their original counts.
 2. Keep **Common-sense layout** selected to use the suggested layout, or choose
-   **My manual layout** to add and remove sensor profiles at approved sites. You can
-   start from the suggestion or clear it and design your own layout.
+   **My manual layout** to start with an empty map. Pick a sensor card, then click
+   or tap the placement area on the map. The editor snaps to an approved location
+   and shows the sensor's coverage before placement when using a mouse. No
+   coordinate entry is needed. Use **Remove** to remove a sensor, or **Undo** to
+   reverse an edit. **Use common-sense suggestion** provides a starting layout.
+   The enlarged **Placement area** makes tapping easier. Amber arrows indicate
+   distant public reports; **Full scene** shows their reported positions.
 3. Evaluate the layouts. The results table compares detected adversary counts
    and rates, confirmation, timely confirmation and deployment cost.
    Positive RL-minus-baseline detection differences favor RL;
@@ -37,8 +45,38 @@ python RL/BlueTeam/Python/simulation_console.py
 4. Use playback and the method selector to inspect both layouts at the same
    simulation time. Sensors and their coverage change, while adversary routes
    remain the same.
-5. Edit the human layout or choose another case to try another comparison.
-   Editing invalidates the previous result until you evaluate again.
+5. Choose **Edit my layout** or another case to try another comparison. Replay maps
+   are read-only; editing returns to the placement preview and clears the previous
+   result until you evaluate again. Budget is shown as a percentage, and the editor
+   handles cost and spacing limits. The keyboard placement controls provide an
+   alternative to clicking the map.
+
+## Drone counts and training provenance
+
+The three Temporal checkpoints in this console (406, 407 and 408) trained with
+**1–8 drones**: normal cases contain 1–5, stress cases contain 3–8, and the
+capability-varied cases use those same population families. Eight is within the
+observed training population; it does not make every newly generated case a
+reproduction of training. The generators are in `triad_rl/adaptive_env.py` and
+`triad_rl/robust_scenarios.py`; training seed ranges are retained in the
+`Results/temporal-v6-pilot` protocols.
+
+The separate native warning-time training is documented with five groups of
+twelve drones (60). Its map-specific policy, simulator and objective differ from
+the Temporal experiment. The native trained weights and full run context are not
+included in this repository's saved-layout preview fixtures.
+
+The **60-drone mode is a new synthetic stress demonstration of the available
+Temporal models**, outside their training population. It matches the documented
+native drone count, not the native training experiment. It does not claim that
+these Temporal models were trained on 60 drones. Reproducing the native experiment
+requires its original checkpoint, run context and matching native simulator.
+
+Both generated modes build a seeded new swarm and public reports, then run fresh
+inference through the selected trained Temporal checkpoint. They do not reuse
+the old small-case RL placements or simply draw extra copies of the same drone.
+The common-sense and manual layouts are scored against the exact same generated
+swarm as RL. Changing swarm size, case or checkpoint clears old results.
 
 The editor receives public planning information and suggested placements before
 evaluation. Future adversary trajectories and RL deployment are not included in
@@ -74,9 +112,11 @@ empty manual layout is valid and produces zero detections.
 
 ## How the comparison stays fair
 
-The server copies the selected archived scenario and independently rescores the
-RL's saved action sequence and the baseline through the same existing sensing
-engine. It preserves adversary identities, paths, emitter behavior, weather,
+For original recorded swarms, the server copies the selected archived scenario
+and independently rescores the RL's saved action sequence and the baseline
+through the same existing sensing engine. Generated swarms use fresh RL inference
+on the new public observations. For both methods, each comparison preserves
+adversary identities, paths, emitter behavior, weather,
 timing, sensor catalogue, budget and constraints. Sensing draws are indexed by
 scenario seed, tick, target and modality, so different sensor counts do not shift
 the random stream. No scenario is regenerated or selected based on who wins.
@@ -115,7 +155,7 @@ for native build and launch requirements.
 Run from `RL/BlueTeam/Python`:
 
 ```powershell
-..\.venv\Scripts\python.exe -m pytest tests/test_common_sense.py tests/test_placement_comparison.py tests/test_console_comparison.py tests/test_simulation_console.py tests/test_istana_live.py -q
+..\.venv\Scripts\python.exe -m pytest tests/test_common_sense.py tests/test_placement_comparison.py tests/test_swarm_comparison.py tests/test_console_comparison.py tests/test_simulation_console.py tests/test_istana_live.py -q
 ```
 
 These tests exercise layout legality, public-only planning, paired sensing,
