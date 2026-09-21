@@ -1,6 +1,7 @@
 #include "Simulation/BlueTeam/BlueTeamCoordinator.h"
 #include "Simulation/BlueTeam/BlueWarningTime.h"
 #include "Simulation/RedTeam/RedTeamManager.h"
+#include "IstanaGameMode.h"
 #include "Dom/JsonObject.h"
 #include "Engine/Engine.h"
 #include "Engine/TargetPoint.h"
@@ -19,6 +20,51 @@ bool FBlueWarningTimeContract::RunTest(const FString& Parameters)
     TestEqual(TEXT("Late detection cannot give negative warning"), BlueWarningSeconds(21., 20.), 0.);
     TestEqual(TEXT("Initial zone entry has zero warning"), BlueWarningSeconds(0., 0.), 0.);
     TestEqual(TEXT("Unresolved target contributes zero lower bound"), BlueWarningSeconds(1., -1.), 0.);
+    return true;
+}
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FBlueLiveApproachModes, "Istana.Simulation.BlueTeam.LiveApproachModes",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FBlueLiveApproachModes::RunTest(const FString& Parameters)
+{
+    const auto Values = UWorld::InitializationValues().AllowAudioPlayback(false).CreatePhysicsScene(true)
+        .CreateNavigation(false).CreateAISystem(false).ShouldSimulatePhysics(false);
+    UWorld* World = UWorld::CreateWorld(EWorldType::Game, false, NAME_None, nullptr, true, ERHIFeatureLevel::Num, &Values);
+    GEngine->CreateNewWorldContext(EWorldType::Game).SetCurrentWorld(World);
+    ARedTeamManager* Manager = World->SpawnActor<ARedTeamManager>();
+    ABlueTeamCoordinator* Blue = World->SpawnActor<ABlueTeamCoordinator>();
+    Manager->MinSpawnRadiusCm = 3000; Manager->MaxSpawnRadiusCm = 10000;
+    Manager->SwarmSpreadRadiusCm = 1000; Manager->SpawnHeightOffsetCm = 0;
+
+    AIstanaGameMode::ConfigureBlueLiveApproach(*Manager, *Blue, false, false);
+    TestEqual(TEXT("Ordinary live mode preserves the map minimum"), Manager->MinSpawnRadiusCm, 3000.);
+    TestEqual(TEXT("Ordinary live mode preserves the map maximum"), Manager->MaxSpawnRadiusCm, 10000.);
+
+    AIstanaGameMode::ConfigureBlueLiveApproach(*Manager, *Blue, false, true);
+    TestEqual(TEXT("Delayed demo minimum"), Manager->MinSpawnRadiusCm, 19000.);
+    TestEqual(TEXT("Delayed demo maximum"), Manager->MaxSpawnRadiusCm, 21000.);
+    TestEqual(TEXT("Delayed demo preserves height"), Manager->SpawnHeightOffsetCm, 0.);
+    TestEqual(TEXT("Delayed demo preserves the frozen temporal prior"), Blue->PriorSpawnRadiusM, 320.);
+    TestEqual(TEXT("Delayed demo preserves the frozen horizon"), Blue->TimeLimitSeconds, 96.);
+    double MaximumSiteRadiusM = 0, MaximumSensorRangeM = 0;
+    for (const FVector2D& Site : Blue->ApprovedSitesM) MaximumSiteRadiusM = FMath::Max(MaximumSiteRadiusM, Site.Size());
+    for (const FBlueSensorProfile& Profile : Blue->Catalogue)
+        for (int32 I = 0; I < 4; ++I) MaximumSensorRangeM = FMath::Max(MaximumSensorRangeM, double(Profile.RangesM[I]));
+    const double MinimumMemberRadiusM = Manager->MinSpawnRadiusCm / 100. - Manager->SwarmSpreadRadiusCm / 100.;
+    TestTrue(TEXT("Every allowed initial drone is outside every possible sensor range"),
+        MinimumMemberRadiusM - MaximumSiteRadiusM > MaximumSensorRangeM);
+    const double ScriptedStartRadiusM = (Manager->MinSpawnRadiusCm + Manager->MaxSpawnRadiusCm) / 200.;
+    const double CruiseSpeedMps = Manager->Settings.CruiseSpeedCmPerSecond / 100.;
+    TestTrue(TEXT("Nominal inward approach reaches the objective within the frozen horizon"),
+        (ScriptedStartRadiusM - Blue->ObjectiveRadiusM) / CruiseSpeedMps < Blue->TimeLimitSeconds);
+
+    AIstanaGameMode::ConfigureBlueLiveApproach(*Manager, *Blue, true, true);
+    TestEqual(TEXT("Warning benchmark takes precedence"), Manager->MinSpawnRadiusCm, 26000.);
+    TestEqual(TEXT("Warning benchmark maximum is unchanged"), Manager->MaxSpawnRadiusCm, 30000.);
+    TestEqual(TEXT("Warning benchmark height is unchanged"), Manager->SpawnHeightOffsetCm, 12000.);
+    TestEqual(TEXT("Warning benchmark horizon is unchanged"), Blue->TimeLimitSeconds, 180.);
+    TestEqual(TEXT("Warning benchmark prior is unchanged"), Blue->PriorSpawnRadiusM, 280.);
+    GEngine->DestroyWorldContext(World);
+    World->DestroyWorld(false);
     return true;
 }
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FBlueInitialLayoutContract, "Istana.Simulation.BlueTeam.InitialLayoutContract",

@@ -55,6 +55,9 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Swarm|Clock") bool bPaused = false;
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Swarm|Presentation") bool bSpawnVisuals = true;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Swarm|Presentation") bool bDrawDebug = true;
+    // Neighbor-radius spheres are useful in the standalone swarm harness but
+    // can obscure the drone meshes in presentation-oriented integrations.
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Swarm|Presentation") bool bDrawDroneNeighborRings = true;
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Swarm|Demo") bool bEnableDemoKeyboard = false;
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Swarm|Demo") TArray<FVector> DemoWaypointsCm;
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Swarm|Demo") bool bLoopDemoRoute = true;

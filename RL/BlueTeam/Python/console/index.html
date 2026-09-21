@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Istana · Simulation console</title><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/presentation.css"></head>
 <body>
-<header class="topbar"><a class="brand" href="/" aria-label="Istana console home"><span class="brand-mark">I</span><span>ISTANA<span class="brand-sub">SIMULATION LAB</span></span></a><div class="top-context">RED + BLUE <span>/</span> SENSOR PLACEMENT</div><span id="connection" class="connection"><i></i>Replay ready</span></header>
+<header class="topbar"><a class="brand" href="/" aria-label="Istana console home"><span class="brand-mark">I</span><span>ISTANA<span class="brand-sub">SIMULATION LAB</span></span></a><div class="top-context">RED + BLUE <span>/</span> SENSOR PLACEMENT</div><span id="connection" class="connection"><i></i><span id="connection-label">Replay ready</span></span></header>
 <main>
  <section class="intro"><div><p class="eyebrow">Observe. Compare. Understand.</p><h1>The simulation, in view.</h1><p class="subtitle">Follow the threats. Inspect the sensing. See what the policy chose.</p></div><div class="mode-switch" role="group" aria-label="Data source"><button id="recorded-mode" aria-pressed="true">Recorded replay</button><button id="live-mode" aria-pressed="false">Live Unreal</button></div></section>
  <label class="check"><input id="presentation" type="checkbox"><span>Presentation view · hide performance metrics</span></label>
@@ -34,6 +34,7 @@
    <div class="layer-heading">Map layers</div>
    <label class="check"><input id="ranges" type="checkbox" checked><span>Sensor ranges</span></label>
    <label class="check"><input id="trails" type="checkbox" checked><span>Threat paths</span></label>
+   <label class="check"><input id="drone-rings" type="checkbox"><span>Drone detection rings</span></label>
    <label class="check"><input id="sites" type="checkbox"><span>Approved sites</span></label>
   </aside>
   <section class="stage" aria-label="Simulation viewer">
@@ -43,6 +44,6 @@
    <div class="telemetry"><div><span id="threats-label">Threats</span><strong id="threat-count">—</strong></div><div><span id="detected-label">Detected so far</span><strong id="detected-count">—</strong></div><div><span>Confirmed tracks</span><strong id="confirmed-count">—</strong></div><div><span id="outcome-label">Recorded final result</span><strong id="outcome">—</strong></div></div>
   </section>
  </section>
- <section class="details"><div class="detail-panel"><div class="section-heading"><span class="section-num">03</span><h2>What happened</h2><span id="event-count" class="count">0</span></div><div id="events" class="events" aria-live="off"></div></div><div class="detail-panel result-panel"><div class="section-heading"><span class="section-num">04</span><h2>Episode results</h2><span id="results-tag">RECORDED FINAL</span></div><div class="result-grid"><div><span>Detected</span><strong id="result-detected">—</strong></div><div><span>Confirmed</span><strong id="result-confirmed">—</strong></div><div><span>Timely confirmation</span><strong id="result-timely">—</strong></div><div><span>Total return</span><strong id="result-return">—</strong></div></div><p id="result-note" class="helper">Synthetic sensing outcomes. Confirmation before the deadline is the objective; no interception is simulated.</p></div></section>
+ <section class="details"><div class="detail-panel"><div class="section-heading"><span class="section-num">03</span><h2>What happened</h2><span id="event-count" class="count">0</span></div><div id="events" class="events" aria-live="off"></div></div><div class="detail-panel result-panel"><div class="section-heading"><span class="section-num">04</span><h2>Episode results</h2><span id="results-tag">RECORDED FINAL</span></div><div class="result-grid"><div><span>Detected</span><strong id="result-detected">—</strong></div><div><span>Confirmed</span><strong id="result-confirmed">—</strong></div><div><span>Timely confirmation</span><strong id="result-timely">—</strong></div><div><span>Total return</span><strong id="result-return">—</strong></div><div><span>Team warning</span><strong id="result-team-warning">—</strong></div><div><span>Mean per-drone warning</span><strong id="result-mean-warning">—</strong></div></div><p id="result-note" class="helper">Synthetic sensing outcomes. Confirmation before the deadline is the objective; no interception is simulated.</p></div></section>
  <footer><span><i class="footer-dot"></i><span id="provenance">Published temporal-v6 evidence · 18 recorded cases</span></span><span>Observer view can show simulation truth. Blue receives public observations only.</span></footer>
 </main><script src="/app.js"></script></body></html>

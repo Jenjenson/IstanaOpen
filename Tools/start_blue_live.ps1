@@ -3,8 +3,12 @@
 Open the compiled UE 5.5 Istana scene with the live Red/Blue bridge.
 #>
 [CmdletBinding()]
-param([string]$EngineRoot, [ValidateRange(1024, 65535)][int]$Port = 8765, [switch]$WarningApproachV2)
+param([string]$EngineRoot, [ValidateRange(1024, 65535)][int]$Port = 8765,
+    [switch]$WarningApproachV2, [switch]$DelayedDetectionDemo)
 $ErrorActionPreference = 'Stop'
+if ($WarningApproachV2 -and $DelayedDetectionDemo) {
+    throw '-WarningApproachV2 and -DelayedDetectionDemo select different scenarios; choose one.'
+}
 . (Join-Path $PSScriptRoot 'build-common.ps1')
 $projectRoot = Get-IstanaProjectRoot
 $engine = Resolve-IstanaEngine $EngineRoot
@@ -22,6 +26,7 @@ $arguments = @(('"' + $project + '"'), '/Game/Maps/Istana', '-game', '-IstanaBlu
     "-IstanaBluePort=$Port", '-windowed', '-ResX=1280', '-ResY=720', '-IstanaMedium',
     '-IstanaCaptureView=3', ('-abslog="' + $log + '"'))
 if ($WarningApproachV2) { $arguments += '-IstanaWarningApproachV2' }
+if ($DelayedDetectionDemo) { $arguments += '-IstanaDelayedDetectionDemo' }
 $viewerProcess = Start-Process -FilePath $editor -ArgumentList $arguments -WorkingDirectory $projectRoot -WindowStyle Normal -PassThru
 Write-Host "Started live Istana scene (process $($viewerProcess.Id)); bridge 127.0.0.1:$Port."
 Write-Host 'Open http://127.0.0.1:9048/ and choose Live Unreal, Connect, then Plan new episode.'

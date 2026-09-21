@@ -45,6 +45,38 @@ AIstanaGameMode::AIstanaGameMode()
     HUDClass = AIstanaHUD::StaticClass();
 }
 
+void AIstanaGameMode::ConfigureBlueLiveApproach(ARedTeamManager& Manager, ABlueTeamCoordinator& Coordinator,
+    bool bWarningApproachV2, bool bDelayedDetectionDemo)
+{
+    // The warning benchmark is a frozen, separate scenario and takes precedence
+    // if command-line flags are combined outside the supported launchers.
+    if (bWarningApproachV2)
+    {
+        Manager.MinSpawnRadiusCm = 26000;
+        Manager.MaxSpawnRadiusCm = 30000;
+        // Begin above the surrounding urban obstacles, rather than embedding
+        // long-range starts among building collision hulls.
+        Manager.SpawnHeightOffsetCm = 12000;
+        Coordinator.TimeLimitSeconds = 180;
+        Coordinator.PriorSpawnRadiusM = 280;
+        Coordinator.PriorAltitudeM = Manager.SpawnHeightOffsetCm / 100.;
+        const auto& Motion = Manager.MovementPreset ? Manager.MovementPreset->Settings : Manager.Settings;
+        Coordinator.PriorSpeedMps = Motion.CruiseSpeedCmPerSecond / 100.;
+        Coordinator.PriorSwarmSize = Manager.DronesPerSwarm;
+        Coordinator.ApproachWeights = {.5, 0., .3, 0., .2, 0., 0., 0.};
+        UE_LOG(LogTemp, Display, TEXT("Synthetic warning approach v2: 260-300m spawn annulus, unchanged sensor/site/motion constraints."));
+    }
+    else if (bDelayedDetectionDemo)
+    {
+        // With a 10 m swarm spread, 45 m outer sites and a 130 m maximum
+        // sensor range, the 190 m inner bound leaves at least 5 m clearance.
+        // The scripted radial demo uses the 200 m midpoint, then flies inward.
+        Manager.MinSpawnRadiusCm = 19000;
+        Manager.MaxSpawnRadiusCm = 21000;
+        UE_LOG(LogTemp, Display, TEXT("Delayed-detection demo: 190-210m Red spawn annulus; frozen Blue planner inputs unchanged."));
+    }
+}
+
 void AIstanaGameMode::StartPlay()
 {
     ARedTeamAgentBridge* PendingLiveBridge = nullptr;
@@ -70,6 +102,7 @@ void AIstanaGameMode::StartPlay()
             Manager->bAutoInitialize = false;
             Manager->bAutoAdvance = false;
             Manager->bEnableDemoKeyboard = false;
+            Manager->bDrawDroneNeighborRings = false;
             auto* Coordinator = Manager->BlueCoordinator.Get();
             if (!IsValid(Coordinator)) Coordinator = GetWorld()->SpawnActor<ABlueTeamCoordinator>();
             if (IsValid(Coordinator))
@@ -78,22 +111,9 @@ void AIstanaGameMode::StartPlay()
                 Manager->BlueCoordinator = Coordinator;
                 // Separate synthetic learning benchmark; never edit the saved map or
                 // capabilities to make later checkpoints easier than earlier ones.
-                if (FParse::Param(FCommandLine::Get(), TEXT("IstanaWarningApproachV2")))
-                {
-                    Manager->MinSpawnRadiusCm = 26000;
-                    Manager->MaxSpawnRadiusCm = 30000;
-                    // Begin above the surrounding urban obstacles, rather than
-                    // embedding long-range starts among building collision hulls.
-                    Manager->SpawnHeightOffsetCm = 12000;
-                    Coordinator->TimeLimitSeconds = 180;
-                    Coordinator->PriorSpawnRadiusM = 280;
-                    Coordinator->PriorAltitudeM = Manager->SpawnHeightOffsetCm / 100.;
-                    const auto& Motion = Manager->MovementPreset ? Manager->MovementPreset->Settings : Manager->Settings;
-                    Coordinator->PriorSpeedMps = Motion.CruiseSpeedCmPerSecond / 100.;
-                    Coordinator->PriorSwarmSize = Manager->DronesPerSwarm;
-                    Coordinator->ApproachWeights = {.5, 0., .3, 0., .2, 0., 0., 0.};
-                    UE_LOG(LogTemp, Display, TEXT("Synthetic warning approach v2: 260-300m spawn annulus, unchanged sensor/site/motion constraints."));
-                }
+                ConfigureBlueLiveApproach(*Manager, *Coordinator,
+                    FParse::Param(FCommandLine::Get(), TEXT("IstanaWarningApproachV2")),
+                    FParse::Param(FCommandLine::Get(), TEXT("IstanaDelayedDetectionDemo")));
                 ARedTeamAgentBridge* Bridge = nullptr;
                 for (TActorIterator<ARedTeamAgentBridge> It(GetWorld()); It; ++It)
                     if (It->Manager == Manager) { Bridge = *It; break; }

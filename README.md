@@ -143,12 +143,15 @@ synthetic evaluations, not a live Unreal simulation.
 folder and run:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\Tools\start_blue_live.ps1
+powershell -ExecutionPolicy Bypass -File .\Tools\start_blue_live.ps1 -DelayedDetectionDemo
 ```
 
 Wait for the Istana scene to finish loading; first-time shader compilation can
 take several minutes. The launcher starts the compiled project with the live
 bridge on **127.0.0.1:8765**. Do not launch a second scene on the same port.
+`-DelayedDetectionDemo` starts Red outside the synthetic sensor ranges so the
+live 406/407/408 demonstration shows an approach before detections appear.
+Omit it when reproducing the original live training/evaluation scenario.
 
 **4. Deploy and run from the browser:**
 
