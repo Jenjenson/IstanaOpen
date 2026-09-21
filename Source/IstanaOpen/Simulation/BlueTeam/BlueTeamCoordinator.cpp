@@ -612,6 +612,8 @@ TSharedRef<FJsonObject> ABlueTeamCoordinator::ContextJson() const
     Temporal->SetNumberField(TEXT("rf_persistent_weight"), .5); Object->SetObjectField(TEXT("temporalConfig"), Temporal);
     Object->SetNumberField(TEXT("fixedStepSeconds"), FixedStepSeconds); Object->SetNumberField(TEXT("timeLimitSeconds"), TimeLimitSeconds);
     Object->SetStringField(TEXT("sensorModel"), TEXT("generic directional profile v1; 3D frustum + world-static LOS + pixels-on-target probability; temporal confirmation unchanged"));
+    Object->SetNumberField(TEXT("trainingConfigurationVersion"), 1);
+    Object->SetStringField(TEXT("warningDefinition"), TEXT("mean per-drone max(0, zone entry - first detection), seconds; undetected=0; unresolved targets contribute zero lower bound"));
     return Object;
 }
 

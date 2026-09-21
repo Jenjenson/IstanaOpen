@@ -18,7 +18,7 @@ async function api(path,body){
  if(!response.ok)throw new Error(data.error||'Request failed');return data;
 }
 function connectionStatus(){
- const label=mode==='comparison'?'Comparison · local simulation':mode==='recorded'?'Replay ready':connected?'Unreal connected':'Unreal disconnected';
+ const label=mode==='training'?'Blue Team · training':mode==='comparison'?'Comparison · local simulation':mode==='recorded'?'Replay ready':connected?'Unreal connected':'Unreal disconnected';
  $('connection-label').textContent=label;
  $('connection').firstChild.style.background=mode==='live'&&!connected?'#ffb18a':'#6ce8c8';
  $('connect').textContent=connected?'Disconnect':'Connect to Unreal';
@@ -31,7 +31,7 @@ function controls(){
  $('restart').disabled=!view||mode==='live'||blocking||draft;
  $('timeline').disabled=!view||blocking||draft;$('speed').disabled=!view||draft;
  $('connect').disabled=busy||playing;$('plan').disabled=!connected||busy||playing;
- for(const id of ['recorded-mode','live-mode','comparison-mode'])$(id).disabled=busy||playing||comparison.loading;
+ for(const id of ['recorded-mode','live-mode','comparison-mode','training-mode'])$(id).disabled=busy||playing||comparison.loading;
  comparisonControls();
 }
 function pause(){playing=false;lastWall=0;controls();}
@@ -81,8 +81,11 @@ async function loadReplay(){
 }
 async function switchMode(next){
  pause();mode=next;++loadSequence;showError('');
- for(const id of ['recorded','live','comparison'])$(id+'-mode').setAttribute('aria-pressed',String(mode===id));
+ for(const id of ['recorded','live','comparison','training'])$(id+'-mode').setAttribute('aria-pressed',String(mode===id));
  document.body.classList.toggle('comparison-mode',mode==='comparison');
+ document.body.classList.toggle('training-mode',mode==='training');$('training-workbench').hidden=mode!=='training';
+ if(mode==='training'){$('provenance').textContent='Native Blue Team training · persisted experiments and compatible policies';connectionStatus();await window.TrainingWorkbench.show();return;}
+ window.TrainingWorkbench.hide();
  $('recorded-controls').hidden=mode==='live';$('live-controls').hidden=mode!=='live';$('comparison-controls').hidden=mode!=='comparison';$('comparison-panel').hidden=mode!=='comparison';
  $('source-badge').textContent=mode==='recorded'?'RECORDED · SYNTHETIC':mode==='comparison'?'COMPARISON · SYNTHETIC':'LIVE UNREAL · SYNTHETIC';
  $('provenance').textContent=mode==='recorded'?'Published temporal-v6 evidence · 18 recorded cases':mode==='comparison'?'Matched synthetic evaluation · archived scenarios and RL layouts':'Local Unreal bridge · scripted Red · experimental Blue';
@@ -319,7 +322,7 @@ for(const id of ['profile','policy','case'])$(id).addEventListener('change',load
   if(nearest>=0)comparisonAdd(nearest);
  });
 for(const id of ['ranges','trails','drone-rings','sites'])$(id).addEventListener('change',()=>render());
-$('recorded-mode').onclick=()=>switchMode('recorded');$('live-mode').onclick=()=>switchMode('live');$('comparison-mode').onclick=()=>switchMode('comparison');
+$('recorded-mode').onclick=()=>switchMode('recorded');$('live-mode').onclick=()=>switchMode('live');$('comparison-mode').onclick=()=>switchMode('comparison');$('training-mode').onclick=()=>switchMode('training');
 $('connect').onclick=()=>{pause();liveAction(connected?'disconnect':'connect');};
 $('plan').onclick=()=>{pause();liveAction($('live-policy').value.startsWith('saved-')?'preview':'reset',{seed:Number($('seed').value),policy:$('live-policy').value});};
 $('live-policy').onchange=()=>{$('plan').textContent=$('live-policy').value.startsWith('saved-')?'Apply saved layout':'Plan new episode';};
@@ -330,5 +333,6 @@ $('restart').onclick=()=>{pause();frameIndex=0;elapsed=0;render();};
 $('timeline').oninput=()=>{pause();const requested=Number($('timeline').value);if(mode==='live'){frameIndex=0;for(let i=1;i<view.frames.length&&view.frames[i].completedSteps<=requested;i++)frameIndex=i;}else frameIndex=requested;render();};
 $('speed').onchange=()=>render();
 new ResizeObserver(()=>draw(view?.frames[frameIndex])).observe($('map').parentElement);
-api('/api/session').then(async session=>{token=session.token;catalog=session.replays;connected=session.status.connected;if(session.savedModels?.length){const group=document.createElement('optgroup');group.label='Archived native layouts (no inference)';for(const model of session.savedModels){const option=document.createElement('option');option.value=model.id;option.textContent=model.label;group.append(option);}$('live-policy').append(group);}await loadReplay();connectionStatus();}).catch(e=>showError(e.message));
+window.TrainingWorkbench.init({api,onLoadModel:async (model,status)=>{if(typeof status?.connected==='boolean')connected=status.connected;let group=$('live-policy').querySelector('optgroup[data-trained-models]');if(!group){group=document.createElement('optgroup');group.label='Trained native policies';group.dataset.trainedModels='true';$('live-policy').append(group);}let option=[...group.children].find(row=>row.value===model.id);if(!option){option=document.createElement('option');option.value=model.id;group.append(option);}option.textContent=model.label;option.selected=true;$('plan').textContent='Plan new episode';await switchMode('live');$('active-policy').textContent=`Selected: ${model.label}. Choose a seed and plan an evaluation episode.`;}});
+api('/api/session').then(async session=>{token=session.token;catalog=session.replays;connected=session.status.connected;if(session.savedModels?.length){const group=document.createElement('optgroup');group.label='Archived native layouts (no inference)';for(const model of session.savedModels){const option=document.createElement('option');option.value=model.id;option.textContent=model.label;group.append(option);}$('live-policy').append(group);}if(mode==='recorded')await loadReplay();connectionStatus();}).catch(e=>showError(e.message));
 controls();requestAnimationFrame(animate);

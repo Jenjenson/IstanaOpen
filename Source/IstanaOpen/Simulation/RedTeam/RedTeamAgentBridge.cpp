@@ -118,10 +118,44 @@ FString ARedTeamAgentBridge::HandleRequest(const FString& Line)
     {
         double Seed;
         FRedTeamPlacementContext Context;
+        auto* Blue = Manager->BlueCoordinator.Get();
+        const double PreviousBudget = IsValid(Blue) ? Blue->Budget : 0.;
+        const TArray<FString> PreviousAvailable = IsValid(Blue) ? Blue->AvailableSensorIds : TArray<FString>();
+        bool bConfigurationApplied = false;
         if (!Request->TryGetNumberField(TEXT("seed"), Seed) || !FMath::IsFinite(Seed) || Seed < MIN_int32 || Seed > MAX_int32 || FMath::FloorToDouble(Seed) != Seed)
             Error = TEXT("seed: expected int32.");
-        else if (Manager->BeginPlacementEpisode(int32(Seed), Context, Error))
+        if (Error.IsEmpty() && Request->HasField(TEXT("blueConfiguration")))
+        {
+            const TSharedPtr<FJsonObject>* Configuration = nullptr;
+            const TArray<TSharedPtr<FJsonValue>>* Available = nullptr;
+            double Budget = 0.; TArray<FString> Ids;
+            if (!IsValid(Blue)) Error = TEXT("Blue configuration requires an available Blue coordinator.");
+            else if (!Request->TryGetObjectField(TEXT("blueConfiguration"), Configuration)
+                || (*Configuration)->Values.Num() != 2
+                || !(*Configuration)->TryGetNumberField(TEXT("budget"), Budget)
+                || !FMath::IsFinite(Budget) || Budget < .001 || Budget > 100
+                || !(*Configuration)->TryGetArrayField(TEXT("availableSensorIds"), Available)
+                || Available->Num() > Blue->Catalogue.Num())
+                Error = TEXT("blueConfiguration requires budget in [.001,100] and availableSensorIds, with no other fields.");
+            else for (const auto& Value : *Available)
+            {
+                FString SensorId;
+                if (!Value->TryGetString(SensorId) || Ids.Contains(SensorId)
+                    || !Blue->Catalogue.ContainsByPredicate([&](const FBlueSensorProfile& Profile) { return Profile.Id == SensorId; }))
+                { Error = TEXT("availableSensorIds must contain unique IDs from the native sensor catalogue."); break; }
+                Ids.Add(SensorId);
+            }
+            if (Error.IsEmpty())
+            {
+                Blue->Budget = Budget; Blue->AvailableSensorIds = MoveTemp(Ids);
+                bConfigurationApplied = true;
+            }
+        }
+        if (Error.IsEmpty() && Manager->BeginPlacementEpisode(int32(Seed), Context, Error))
             Response->SetObjectField(TEXT("context"), FJsonObjectConverter::UStructToJsonObject(Context));
+        // A rejected reset must leave both the old episode and its configuration intact.
+        if (!Error.IsEmpty() && bConfigurationApplied)
+        { Blue->Budget = PreviousBudget; Blue->AvailableSensorIds = PreviousAvailable; }
     }
     else if (Op == TEXT("blue_context") || Op == TEXT("blue_observe") || Op == TEXT("blue_deploy"))
     {

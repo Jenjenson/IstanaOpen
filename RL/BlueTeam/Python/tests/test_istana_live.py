@@ -56,6 +56,40 @@ def test_invalid_request_does_not_send_or_advance_id():
         assert not sock.sent and client.next_id == 0
 
 
+def test_reset_forwards_training_configuration_to_native_without_changing_it():
+    response = {'id': 0, 'ok': True, 'context': {'runId': 'configured-run', 'revision': 3}}
+    sock = Socket((json.dumps(response) + '\n').encode())
+    configuration = {'budget': 10, 'availableSensorIds': ['thermal', 'rf']}
+    with IstanaLiveClient(connection=sock) as client:
+        assert client.reset(37, blue_configuration=configuration)['runId'] == 'configured-run'
+    assert json.loads(sock.sent[0]) == {'id': 0, 'op': 'reset', 'seed': 37,
+                                      'blueConfiguration': configuration}
+    assert configuration == {'budget': 10, 'availableSensorIds': ['thermal', 'rf']}
+
+
+@pytest.mark.parametrize('configuration', [True, {}, {'budget': 10},
+    {'budget': 10, 'availableSensorIds': [], 'extra': 1},
+    *({'budget': value, 'availableSensorIds': []} for value in (True, -1, 0, 101, float('nan'), '10')),
+    *({'budget': 10, 'availableSensorIds': value} for value in (None, 'thermal', [1], [''], ['rf', 'rf']))])
+def test_invalid_training_reset_configuration_never_reaches_native(configuration):
+    sock = Socket(b'')
+    with IstanaLiveClient(connection=sock) as client:
+        with pytest.raises(ValueError):
+            client.reset(37, blue_configuration=configuration)
+        assert not sock.sent and client.next_id == 0
+
+
+def test_default_reset_keeps_legacy_wire_and_rejected_override_keeps_session_state():
+    sock = Socket(b'{"id":0,"ok":true,"context":{"runId":"old-run","revision":1}}\n'
+                  b'{"id":1,"ok":false,"error":"Unknown sensor"}\n')
+    with IstanaLiveClient(connection=sock) as client:
+        previous = client.reset(7)
+        assert json.loads(sock.sent[0]) == {'id': 0, 'op': 'reset', 'seed': 7}
+        with pytest.raises(BridgeRejected, match='Unknown sensor'):
+            client.reset(8, blue_configuration={'budget': 2, 'availableSensorIds': ['missing']})
+        assert client.red_context == previous and not client.closed
+
+
 @pytest.fixture
 def context():
     def read(name): return json.loads((BLUE / 'Examples' / name).read_text())

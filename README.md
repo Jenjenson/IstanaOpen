@@ -54,6 +54,10 @@ synchronized replay you can switch between methods. This mode works without
 Unreal. See the [sensor placement comparison guide](Docs/SENSOR_PLACEMENT_COMPARISON.md).
 The common-sense planner is also selectable in Live Unreal mode.
 
+The **Training** tab runs configurable REINFORCE and PPO experiments against the
+native directional sensor system, with live graphs, saved run history, checkpoints
+and loading into Live Unreal. See the [training workbench guide](Docs/TRAINING_WORKBENCH.md).
+
 ### Set up the browser interface and live 3D simulation (Windows)
 
 The **browser is the control/telemetry interface**; a **separate Unreal window
