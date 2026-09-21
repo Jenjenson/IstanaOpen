@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import base64
 from copy import deepcopy
+from contextlib import contextmanager, nullcontext
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 from pathlib import Path
@@ -59,6 +60,60 @@ class ConsoleState:
         self.view = None
         self.context = None
         self.error = ""
+        self.training_owner = None
+        self.training_manager = None
+
+    def acquire_training(self, owner):
+        with self.lock:
+            if self.training_owner is not None:
+                raise ValueError("The native simulator is reserved by a training run")
+            self.close()
+            self.view = self.context = None
+            self.training_owner = owner
+
+    def release_training(self, owner):
+        with self.lock:
+            if self.training_owner == owner:
+                self.training_owner = None
+
+    def training_context(self):
+        with self.lock:
+            if self.training_owner:
+                raise ValueError("Native training is active")
+            if self.client is not None and not self.client.closed:
+                return self.client.request("blue_context")["context"]
+            with self.client_factory(self.bridge_port, timeout=3.) as client:
+                return client.request("blue_context")["context"]
+
+    @contextmanager
+    def live_access(self):
+        with self.lock:
+            if self.training_owner:
+                raise ValueError("Training owns the native simulator. Stop training before using Live controls.")
+            with self.training_manager.native_access() if self.training_manager else nullcontext():
+                yield
+
+    def load_trained_model(self, payload):
+        from triad_rl.training_algorithms import load_algorithm
+        from triad_rl.training_environment import blue_configuration, require_training_runtime
+        if set(payload) - {"runId", "checkpoint"}:
+            raise ValueError("Unexpected model load input")
+        model = self.training_manager.model_spec(payload.get("runId"), payload.get("checkpoint", "best"))
+        with self.live_access():
+            self.view = self.context = None
+            try:
+                if self.client is None or self.client.closed:
+                    self.client = self.client_factory(self.bridge_port, timeout=10.)
+                require_training_runtime(self.client.request("blue_context")["context"])
+                self.client.reset(model["config"]["seed"], blue_configuration=blue_configuration(model["config"]))
+                context = self.client.get_blue_context()
+                load_algorithm(model["path"], context)
+                self.error = ""
+                return {"model": {"id": model["id"], "label": model["label"]}, "status": self.status()}
+            except Exception as exc:
+                self.close()
+                self.error = str(exc)
+                raise
 
     def close(self):
         if self.client is not None:
@@ -69,7 +124,7 @@ class ConsoleState:
         with self.lock:
             return {"connected": self.client is not None and not self.client.closed,
                     "episode": self.view is not None, "error": self.error,
-                    "bridgePort": self.bridge_port}
+                    "bridgePort": self.bridge_port, "trainingRun": self.training_owner}
 
     def frame(self, red, blue):
         origin = self.context["worldOriginCm"]
@@ -84,7 +139,13 @@ class ConsoleState:
                 "directionalDiagnostics": blue.get("directionalDiagnosticsForPresentationOnly", [])}
 
     def action(self, operation, payload):
-        with self.lock:
+        selected_model = None
+        if operation == "reset" and isinstance(payload.get("policy"), str) and payload["policy"].startswith("trained:"):
+            parts = payload["policy"].split(":")
+            if len(parts) != 3 or self.training_manager is None:
+                raise ValueError("Select a saved native training model")
+            selected_model = self.training_manager.model_spec(parts[1], parts[2])
+        with self.live_access():
             try:
                 if operation == "connect":
                     if self.client is None or self.client.closed:
@@ -147,18 +208,36 @@ class ConsoleState:
                     if type(seed) is not int or not -(2**31) <= seed < 2**31:
                         raise ValueError("Episode seed must be a signed 32-bit integer")
                     policy = payload.get("policy", "406")
-                    if policy not in ("406", "407", "408", "greedy", "control", "common_sense"):
+                    trained = isinstance(policy, str) and policy.startswith("trained:")
+                    if not trained and policy not in ("406", "407", "408", "greedy", "control", "common_sense"):
                         raise ValueError("Select checkpoint 406, 407, 408, greedy, or common-sense placement")
                     greedy = policy in ("greedy", "control")  # retain the old API alias
                     common_sense = policy == "common_sense"
                     self.view = self.context = None
-                    red_context = self.client.reset(seed)
-                    self.context = self.client.get_blue_context()
-                    checkpoint = None if greedy or common_sense else BLUE_ROOT / f"Results/temporal-v6-pilot/training/seed-{policy}/last"
-                    plan = self.planner(self.context, checkpoint=checkpoint, temporal_public_control=greedy,
-                                        **({"common_sense": True} if common_sense else {}))
+                    if trained:
+                        from triad_rl.training_algorithms import load_algorithm
+                        from triad_rl.training_environment import blue_configuration, require_training_runtime
+                        from train_warning_live import red_centers
+                        parts = policy.split(":")
+                        if len(parts) != 3 or self.training_manager is None:
+                            raise ValueError("Select a saved native training model")
+                        model = selected_model
+                        require_training_runtime(self.client.request("blue_context")["context"])
+                        red_context = self.client.reset(seed, blue_configuration=blue_configuration(model["config"]))
+                        self.context = self.client.get_blue_context()
+                        algorithm = load_algorithm(model["path"], self.context)
+                        placements, _ = algorithm.plan(self.context, deterministic=True)
+                        plan = {"placements": placements, "recommendation": {"decisions": []}}
+                        centers = red_centers(red_context, seed)
+                    else:
+                        red_context = self.client.reset(seed)
+                        self.context = self.client.get_blue_context()
+                        checkpoint = None if greedy or common_sense else BLUE_ROOT / f"Results/temporal-v6-pilot/training/seed-{policy}/last"
+                        plan = self.planner(self.context, checkpoint=checkpoint, temporal_public_control=greedy,
+                                            **({"common_sense": True} if common_sense else {}))
+                        centers = scripted_red_centers(red_context)
                     self.client.deploy(plan["placements"])
-                    placed = self.client.place_red(scripted_red_centers(red_context))
+                    placed = self.client.place_red(centers)
                     blue = self.client.observe_blue()
                     self.view = {"mode": "live", "label": "Istana · live episode", "seed": seed,
                         "coordinateLabel": "Istana top-down telemetry · objective-relative XY metres",
@@ -174,7 +253,7 @@ class ConsoleState:
                         "timeLimitSeconds": self.context.get("timeLimitSeconds", 96.),
                         "stepDurationSeconds": 10 * self.context.get("fixedStepSeconds", .05),
                         "weather": self.context["publicSnapshot"]["weather"],
-                        "policy": ("Common-sense placement (non-RL heuristic)" if common_sense else
+                        "policy": (model["label"] if trained else "Common-sense placement (non-RL heuristic)" if common_sense else
                                    "Greedy placement (non-RL)" if greedy else f"Experimental temporal checkpoint {policy}"),
                         "decisions": plan["recommendation"]["decisions"],
                         "frames": [self.frame({"drones": placed["initialStates"]}, blue)],
@@ -207,8 +286,13 @@ class ConsoleState:
                 raise
 
 
-def make_server(port=9048, bridge_port=8765, *, state=None, replays=None):
+def make_server(port=9048, bridge_port=8765, *, state=None, replays=None, training_root=None):
+    from triad_rl.training_manager import TrainingManager
     state = state or ConsoleState(bridge_port)
+    training = TrainingManager(training_root or ROOT.parents[2] / "training_runs", bridge_port=state.bridge_port,
+                               client_factory=state.client_factory, acquire=state.acquire_training,
+                               release=state.release_training, probe=state.training_context)
+    state.training_manager = training
     replays = replays if replays is not None else load_replays()
     token = secrets.token_urlsafe(32)
     # Serialise offline scoring independently of the native bridge session.
@@ -247,12 +331,24 @@ def make_server(port=9048, bridge_port=8765, *, state=None, replays=None):
                                            for key in ("0000", "0128", "greedy")) else [])})
             if self.path == "/api/status":
                 return self.reply(state.status())
+            try:
+                if self.path == "/api/training/options":
+                    return self.reply(training.options())
+                if self.path == "/api/training/runs":
+                    return self.reply(training.runs())
+                training_run = re.fullmatch(r"/api/training/run/([A-Za-z0-9_-]+)", self.path)
+                if training_run:
+                    return self.reply(training.detail(training_run[1]))
+            except (ValueError, KeyError, RuntimeError, OSError) as error:
+                return self.reply({"error": str(error)}, 400)
             match = re.fullmatch(r"/api/replay/(\d+)", self.path)
             if match and int(match[1]) < len(replays):
                 return self.reply(replay_view(replays[int(match[1])]))
             static = {"/": ("index.html", "text/html; charset=utf-8"),
                       "/app.js": ("app.js", "text/javascript; charset=utf-8"),
                       "/presentation.css": ("presentation.css", "text/css; charset=utf-8"),
+                      "/training.js": ("training.js", "text/javascript; charset=utf-8"),
+                      "/training.css": ("training.css", "text/css; charset=utf-8"),
                       "/style.css": ("style.css", "text/css; charset=utf-8")}
             if self.path in static:
                 name, mime = static[self.path]
@@ -266,7 +362,8 @@ def make_server(port=9048, bridge_port=8765, *, state=None, replays=None):
                 return self.reply({"error": "Local session required"}, 403)
             match = re.fullmatch(r"/api/action/(connect|disconnect|reset|step|preview)", self.path)
             comparison = re.fullmatch(r"/api/comparison/(scenario|run)", self.path)
-            if not match and not comparison:
+            training_action = re.fullmatch(r"/api/training/(start|stop|load)", self.path)
+            if not match and not comparison and not training_action:
                 return self.reply({"error": "Unknown action"}, 404)
             try:
                 size = int(self.headers.get("Content-Length", "0"))
@@ -275,7 +372,16 @@ def make_server(port=9048, bridge_port=8765, *, state=None, replays=None):
                 payload = json.loads(self.rfile.read(size))
                 if not isinstance(payload, dict):
                     raise ValueError("Expected a JSON object")
-                if comparison:
+                if training_action:
+                    if training_action[1] == "start":
+                        result = training.start(payload)
+                    elif training_action[1] == "stop":
+                        if set(payload) != {"runId"}:
+                            raise ValueError("Stop expects a runId")
+                        result = training.stop(payload.get("runId"))
+                    else:
+                        result = state.load_trained_model(payload)
+                elif comparison:
                     from placement_comparison import comparison_scenario, compare_placements
                     replay_id = payload.get("replayId")
                     if type(replay_id) is not int or not 0 <= replay_id < len(replays):
@@ -299,6 +405,7 @@ def make_server(port=9048, bridge_port=8765, *, state=None, replays=None):
 
     server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
     server.console_state = state
+    server.training_manager = training
     return server
 
 
@@ -314,6 +421,7 @@ def main(argv=None):
     except KeyboardInterrupt:
         pass
     finally:
+        server.training_manager.close()
         server.console_state.close()
         server.server_close()
 

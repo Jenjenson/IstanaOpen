@@ -110,9 +110,27 @@ class IstanaLiveClient:
             raise BridgeRejected(str(result.get("error", "Bridge rejected request")))
         return result
 
-    def reset(self, seed=12345):
+    def reset(self, seed=12345, *, blue_configuration=None):
+        """Begin a native episode, optionally setting its actual budget/type availability.
+
+        Overrides apply only at reset; catalogue capabilities remain authoritative
+        native values. Omission preserves the native scene's current configuration.
+        """
         seed = _integer(seed, "seed", -(2**31), 2**31 - 1)
-        context = self.request("reset", seed=seed)["context"]
+        fields = {}
+        if blue_configuration is not None:
+            if not isinstance(blue_configuration, dict) or set(blue_configuration) != {"budget", "availableSensorIds"}:
+                raise ValueError("blue_configuration requires budget and availableSensorIds only")
+            budget = _finite(blue_configuration["budget"], "budget")
+            available = blue_configuration["availableSensorIds"]
+            if not .001 <= budget <= 100:
+                raise ValueError("budget must be in [.001, 100]")
+            if (not isinstance(available, list) or len(available) > 64
+                    or any(not isinstance(sensor, str) or not sensor for sensor in available)
+                    or len(set(available)) != len(available)):
+                raise ValueError("availableSensorIds must be a list of unique nonempty sensor IDs")
+            fields["blueConfiguration"] = {"budget": budget, "availableSensorIds": list(available)}
+        context = self.request("reset", seed=seed, **fields)["context"]
         if not isinstance(context.get("runId"), str) or not context["runId"]:
             raise BridgeProtocolError("Reset returned no run ID")
         _integer(context.get("revision"), "revision")
