@@ -45,13 +45,15 @@ the integration has passed native builds, 18 native tests and live headless
 smoke episodes on the Istana map. Use the source project's live launcher,
 not the older landscape-only downloadable release.
 
-Choose **Compare placements** to compare an archived RL layout with a transparent
-**Common-sense layout** or **My manual layout**, which you can edit on approved
-sensor sites. Both layouts run through the same synthetic scenario and sensing
-draws, with the same catalogue, placement rules and budget. The console shows
-detected adversary counts, detection rates, confirmations and costs, plus a
-synchronized replay you can switch between methods. This mode works without
-Unreal. See the [sensor placement comparison guide](Docs/SENSOR_PLACEMENT_COMPARISON.md).
+Choose **Compare placements** for a side-by-side replay of existing RL policies
+against one fixed **Common-sense layout**. Nine paired native Istana evaluations
+use the current sensor catalogue, 60 drones, identical trajectories, and shared
+budgets and sensing draws. Select an RL policy and episode, then play or scrub
+both maps together. Results include detection and confirmation timing, warning,
+counts and cost differences. The saved comparisons play without Unreal.
+The current RL checkpoints predate the directional thermal update; the display
+identifies their public-forecast orientation adapter and retains losing cases.
+See the [sensor placement comparison guide](Docs/SENSOR_PLACEMENT_COMPARISON.md).
 The common-sense planner is also selectable in Live Unreal mode.
 
 ### Set up the browser interface and live 3D simulation (Windows)

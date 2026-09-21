@@ -73,7 +73,7 @@ def test_drone_detection_rings_are_an_opt_in_map_layer():
     script = (CONSOLE / 'app.js').read_text(encoding='utf-8')
     assert '<input id="drone-rings" type="checkbox"><span>Drone detection rings</span>' in html
     assert '<input id="drone-rings" type="checkbox" checked>' not in html
-    assert "if($('drone-rings').checked&&(t.detected||t.tracked))circle([x,y],10" in script
+    assert "if($('drone-rings').checked&&(t.detected||t.tracked||t.confirmed))circle([x,y],10" in script
     assert "if($('drone-rings').checked)circle(p,9" in script
     assert "['ranges','trails','drone-rings','sites']" in script
 

@@ -18,6 +18,7 @@ import threading
 import time
 
 from triad_rl.istana_live import IstanaLiveClient, make_plan, scripted_red_centers
+from native_comparison import NativeComparisons, policy_label
 
 ROOT = Path(__file__).resolve().parent
 ASSETS = ROOT / "console"
@@ -37,7 +38,7 @@ def load_replays(path=None):
 
 def replay_view(replay):
     """Read archived evidence; never resimulate, filter cases or infer new results."""
-    return {"mode": "recorded", "label": f"Temporal {replay['temporal_seed']} · {replay['profile']} · case {replay['case_index']}",
+    return {"mode": "recorded", "label": f"{policy_label(replay['temporal_seed'])} · {replay['profile']} · case {replay['case_index']}",
             "coordinateLabel": "Synthetic evaluation arena · objective-relative metres",
             "catalogue": replay["catalogue"], "placements": replay["placements"],
             "sites": replay["scenario"]["public"]["sites"],
@@ -46,7 +47,7 @@ def replay_view(replay):
             "frames": replay["frames"], "metrics": replay["metrics"],
             "decisions": replay["decisions"], "seed": replay["seed"],
             "weather": replay["scenario"]["public"]["weather"],
-            "policy": f"Experimental temporal checkpoint {replay['temporal_seed']}",
+            "policy": policy_label(replay['temporal_seed']),
             "outcome": replay["metrics"]["outcome"],
             "audit": {"recorded": True, "live_unreal": False, "policy_truth_access": False}}
 
@@ -148,7 +149,7 @@ class ConsoleState:
                         raise ValueError("Episode seed must be a signed 32-bit integer")
                     policy = payload.get("policy", "406")
                     if policy not in ("406", "407", "408", "greedy", "control", "common_sense"):
-                        raise ValueError("Select checkpoint 406, 407, 408, greedy, or common-sense placement")
+                        raise ValueError("Select an available RL policy, greedy, or common-sense placement")
                     greedy = policy in ("greedy", "control")  # retain the old API alias
                     common_sense = policy == "common_sense"
                     self.view = self.context = None
@@ -175,7 +176,7 @@ class ConsoleState:
                         "stepDurationSeconds": 10 * self.context.get("fixedStepSeconds", .05),
                         "weather": self.context["publicSnapshot"]["weather"],
                         "policy": ("Common-sense placement (non-RL heuristic)" if common_sense else
-                                   "Greedy placement (non-RL)" if greedy else f"Experimental temporal checkpoint {policy}"),
+                                   "Greedy placement (non-RL)" if greedy else policy_label(policy)),
                         "decisions": plan["recommendation"]["decisions"],
                         "frames": [self.frame({"drones": placed["initialStates"]}, blue)],
                         "metrics": None, "outcome": "running", "ended": False,
@@ -207,11 +208,12 @@ class ConsoleState:
                 raise
 
 
-def make_server(port=9048, bridge_port=8765, *, state=None, replays=None):
+def make_server(port=9048, bridge_port=8765, *, state=None, replays=None, comparisons=None):
     state = state or ConsoleState(bridge_port)
     replays = replays if replays is not None else load_replays()
+    comparisons = comparisons if comparisons is not None else NativeComparisons()
     token = secrets.token_urlsafe(32)
-    # Serialise offline scoring independently of the native bridge session.
+    # Saved native evidence is read independently of the live bridge session.
     comparison_lock = threading.Lock()
 
     class Handler(BaseHTTPRequestHandler):
@@ -240,6 +242,7 @@ def make_server(port=9048, bridge_port=8765, *, state=None, replays=None):
                 return self.reply({"token": token, "status": state.status(), "replays": [
                     {"id": i, "profile": r["profile"], "policy": r["temporal_seed"], "case": r["case_index"],
                      "outcome": r["metrics"]["outcome"]} for i, r in enumerate(replays)],
+                    "comparisonEpisodes": comparisons.list(),
                     "savedModels": ([{"id": "saved-rl", "label": "RL Policy · saved output"},
                                      {"id": "saved-greedy", "label": "Greedy · saved output"},
                                      {"id": "saved-initial", "label": "Initial Policy · saved output"}]
@@ -276,21 +279,10 @@ def make_server(port=9048, bridge_port=8765, *, state=None, replays=None):
                 if not isinstance(payload, dict):
                     raise ValueError("Expected a JSON object")
                 if comparison:
-                    from placement_comparison import comparison_scenario, compare_placements
-                    replay_id = payload.get("replayId")
-                    if type(replay_id) is not int or not 0 <= replay_id < len(replays):
-                        raise ValueError("Choose an available recorded case for comparison")
-                    allowed = {"replayId"} if comparison[1] == "scenario" else {"replayId", "baseline", "placements"}
-                    if set(payload) - allowed:
-                        raise ValueError("Unexpected comparison input")
+                    if set(payload) != {"episodeId"}:
+                        raise ValueError("Choose a native episode; comparison layouts are fixed and cannot be edited")
                     with comparison_lock:
-                        if comparison[1] == "scenario":
-                            result = comparison_scenario(replays[replay_id])
-                        else:
-                            result = compare_placements(replays[replay_id],
-                                baseline=payload.get("baseline", "common_sense"),
-                                placements=payload.get("placements"))
-                    result["replayId"] = replay_id
+                        result = comparisons.get(payload["episodeId"], scenario=comparison[1] == "scenario")
                 else:
                     result = state.action(match[1], payload)
                 self.reply(result)

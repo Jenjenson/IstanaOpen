@@ -293,7 +293,7 @@ def make_plan(context, *, checkpoint=None, temporal_public_control=False, common
         planning_state, planning_catalogue = to_legacy_inputs(state, catalogue)
     if common_sense:
         from .common_sense import plan_common_sense
-        plan = plan_common_sense(planning_state, planning_catalogue)
+        plan = plan_common_sense(state, catalogue)
     elif checkpoint is not None:
         from recommend_temporal import recommend_layout
         policy = TemporalPolicy.load(checkpoint, config=config)
@@ -318,7 +318,7 @@ def make_plan(context, *, checkpoint=None, temporal_public_control=False, common
                 "new_placements": [row for row in decisions if not row["stop"]],
                 "final_public_state": final, "temporal_config": asdict(config),
                 "selection": {"kind": "temporal_public_control", "claim": "Non-RL public-model control"}}
-    if directional:
+    if directional and not common_sense:
         from .directional_inputs import best_orientation
         oriented = []
         for row in plan["new_placements"]:
