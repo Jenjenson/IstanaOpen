@@ -93,8 +93,8 @@ def test_live_transport_remains_stable_and_interactive_while_stepping():
     html = (CONSOLE / 'index.html').read_text(encoding='utf-8')
     script = (CONSOLE / 'app.js').read_text(encoding='utf-8')
     assert '<span id="connection-label">Replay ready</span>' in html
-    assert "const blocking=busy&&busyOperation!=='step'" in script
-    assert "$('timeline').disabled=!view;$('speed').disabled=!view" in script
+    assert "const blocking=(busy&&busyOperation!=='step')||comparison.loading" in script
+    assert "$('timeline').disabled=!view||blocking||draft;$('speed').disabled=!view||draft" in script
     assert "interval=1000*(Number(view.stepDurationSeconds)||.5)/speed" in script
     assert "if(mode==='live'){frameIndex=0;for(let i=1;i<view.frames.length" in script
     assert "if(canvas.width!==pixelWidth||canvas.height!==pixelHeight)" in script
@@ -182,7 +182,7 @@ def test_saved_preview_deploys_exact_output_without_planning_or_red(monkeypatch,
     assert (tmp_path/'Saved/ConsoleModelDemo/test-run.json').exists()
 
 
-@pytest.mark.parametrize('selection', ['greedy', 'control', '406'])
+@pytest.mark.parametrize('selection', ['greedy', 'control', '406', 'common_sense'])
 def test_controller_orders_public_plan_before_red_placement(replays, selection):
     events = []
     sample = replays[0]
@@ -213,13 +213,15 @@ def test_controller_orders_public_plan_before_red_placement(replays, selection):
     def plan(value, **kwargs):
         assert value is context
         assert kwargs['temporal_public_control'] == (selection in ('greedy', 'control'))
-        assert (kwargs['checkpoint'] is None) == (selection in ('greedy', 'control'))
+        assert (kwargs['checkpoint'] is None) == (selection in ('greedy', 'control', 'common_sense'))
+        assert kwargs.get('common_sense', False) == (selection == 'common_sense')
         events.append('public_plan')
         return {'placements': [], 'recommendation': {'decisions': []}}
     state = ConsoleState(client_factory=FakeClient, planner=plan)
     assert state.action('connect', {})['connected']
     view = state.action('reset', {'seed': 123, 'policy': selection})
     assert ('Greedy' in view['policy']) == (selection in ('greedy', 'control'))
+    assert ('Common-sense' in view['policy']) == (selection == 'common_sense')
     assert events == ['reset', 'public_plan', 'deploy', 'place_red']
     assert view['frames'][0]['threats'][0]['position'] == [10, 20, 30]
     assert view['frames'][0]['threats'][0]['observer_truth']
