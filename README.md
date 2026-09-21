@@ -45,6 +45,15 @@ the integration has passed native builds, 18 native tests and live headless
 smoke episodes on the Istana map. Use the source project's live launcher,
 not the older landscape-only downloadable release.
 
+Choose **Compare placements** to compare an archived RL layout with a transparent
+**Common-sense layout** or **My manual layout**, which you can edit on approved
+sensor sites. Both layouts run through the same synthetic scenario and sensing
+draws, with the same catalogue, placement rules and budget. The console shows
+detected adversary counts, detection rates, confirmations and costs, plus a
+synchronized replay you can switch between methods. This mode works without
+Unreal. See the [sensor placement comparison guide](Docs/SENSOR_PLACEMENT_COMPARISON.md).
+The common-sense planner is also selectable in Live Unreal mode.
+
 ### Set up the browser interface and live 3D simulation (Windows)
 
 The **browser is the control/telemetry interface**; a **separate Unreal window

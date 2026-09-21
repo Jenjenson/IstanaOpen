@@ -277,21 +277,24 @@ def public_planning_inputs(context):
     return state, catalogue, config
 
 
-def make_plan(context, *, checkpoint=None, temporal_public_control=False):
+def make_plan(context, *, checkpoint=None, temporal_public_control=False, common_sense=False):
     """Use an explicit checkpoint or an explicitly selected non-RL control."""
     from .adaptive_inputs import LiveObservationAdapter, apply_placement
     from .temporal_inputs import TemporalObservationBuilder, TemporalPublicGreedy
     from .temporal_policy import TemporalPolicy
 
-    if (checkpoint is not None) == bool(temporal_public_control):
-        raise ValueError("Choose an explicit checkpoint OR temporal public control")
+    if sum((checkpoint is not None, bool(temporal_public_control), bool(common_sense))) != 1:
+        raise ValueError("Choose exactly one explicit checkpoint, temporal public control, or common-sense baseline")
     state, catalogue, config = public_planning_inputs(context)
     directional = any(row.get("directional") for row in catalogue)
     planning_state, planning_catalogue = state, catalogue
     if directional:
         from .directional_inputs import to_legacy_inputs
         planning_state, planning_catalogue = to_legacy_inputs(state, catalogue)
-    if checkpoint is not None:
+    if common_sense:
+        from .common_sense import plan_common_sense
+        plan = plan_common_sense(planning_state, planning_catalogue)
+    elif checkpoint is not None:
         from recommend_temporal import recommend_layout
         policy = TemporalPolicy.load(checkpoint, config=config)
         plan = recommend_layout(policy, planning_state, config=config, catalogue=planning_catalogue)
@@ -364,7 +367,7 @@ def placement_world_cm(context, placement):
             "z": origin["z"] + profile["height_m"] * 100.}
 
 
-def run_episode(client, *, seed=12345, checkpoint=None, temporal_public_control=False,
+def run_episode(client, *, seed=12345, checkpoint=None, temporal_public_control=False, common_sense=False,
                 red_policy=None, red_deterministic=True,
                 max_steps=5000, step_batch=10, paced=False, frame=None):
     """One Blue plan, one Red placement decision, then real native fixed steps.
@@ -376,7 +379,8 @@ def run_episode(client, *, seed=12345, checkpoint=None, temporal_public_control=
     step_batch = _integer(step_batch, "step_batch", 1, 1000)
     red_context = client.reset(seed)
     blue_context = client.get_blue_context()
-    plan = make_plan(blue_context, checkpoint=checkpoint, temporal_public_control=temporal_public_control)
+    plan = make_plan(blue_context, checkpoint=checkpoint, temporal_public_control=temporal_public_control,
+                     **({"common_sense": True} if common_sense else {}))
     deployed = client.deploy(plan["placements"])
     if red_policy is None:
         from .red_policy import ScriptedRadialRedPolicy

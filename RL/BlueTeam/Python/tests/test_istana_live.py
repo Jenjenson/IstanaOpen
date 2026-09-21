@@ -85,15 +85,16 @@ def test_planner_rejects_stale_or_wrong_coordinate_context(context, field, value
     with pytest.raises(ValueError): public_planning_inputs(context)
 
 
-@pytest.mark.parametrize('policy', ['406', '407', '408', 'control'])
+@pytest.mark.parametrize('policy', ['406', '407', '408', 'control', 'common_sense'])
 @pytest.mark.parametrize('ue_whole_doubles', [False, True])
 def test_explicit_published_checkpoints_and_control_create_legal_initial_plan(context, policy, ue_whole_doubles):
     if ue_whole_doubles:
         context['temporalConfig'] = {k: int(v) if isinstance(v, float) and v.is_integer() else v
                                      for k, v in context['temporalConfig'].items()}
     original = deepcopy(context)
-    checkpoint = None if policy == 'control' else BLUE / f'Results/temporal-v6-pilot/training/seed-{policy}/last'
-    plan = make_plan(context, checkpoint=checkpoint, temporal_public_control=policy == 'control')
+    checkpoint = None if policy in ('control', 'common_sense') else BLUE / f'Results/temporal-v6-pilot/training/seed-{policy}/last'
+    plan = make_plan(context, checkpoint=checkpoint, temporal_public_control=policy == 'control',
+                     common_sense=policy == 'common_sense')
     assert context == original and plan['public_only']
     assert plan['coordinateSystem'] == context['coordinateSystem']
     assert len(plan['placements']) <= context['publicSnapshot']['max_sites']
@@ -139,10 +140,24 @@ def test_surface_position_uses_native_roof_height(context):
         placement_world_cm(context, {'siteId': 0, 'profileId': profile['id']})
 
 
-@pytest.mark.parametrize('policy', ['406', '407', '408', 'control'])
+@pytest.mark.parametrize('policy', ['406', '407', '408', 'control', 'common_sense'])
 def test_all_planners_respect_unsupported_surface_mask(context, policy):
     context['publicSnapshot']['blocked_sites'] = list(range(len(context['publicSnapshot']['sites'])))
-    checkpoint = None if policy == 'control' else BLUE / f'Results/temporal-v6-pilot/training/seed-{policy}/last'
-    plan = make_plan(context, checkpoint=checkpoint, temporal_public_control=policy == 'control')
+    checkpoint = None if policy in ('control', 'common_sense') else BLUE / f'Results/temporal-v6-pilot/training/seed-{policy}/last'
+    plan = make_plan(context, checkpoint=checkpoint, temporal_public_control=policy == 'control',
+                     common_sense=policy == 'common_sense')
     assert plan['placements'] == []
     assert plan['recommendation']['decisions'][-1]['stop']
+
+
+@pytest.mark.parametrize('selection', [{}, {'checkpoint': 'unused', 'common_sense': True},
+    {'temporal_public_control': True, 'common_sense': True}])
+def test_planner_requires_exactly_one_method(context, selection):
+    with pytest.raises(ValueError, match='exactly one'):
+        make_plan(context, **selection)
+
+
+def test_common_sense_is_unaffected_by_private_red_truth(context):
+    before = make_plan(context, common_sense=True)
+    context.update(private_red_truth={'targets': [[999, 888, 77]], 'seed': 17}, reward=999)
+    assert make_plan(context, common_sense=True) == before

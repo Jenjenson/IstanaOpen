@@ -2,7 +2,8 @@
 
 Start Unreal with -IstanaBlueLive. Select --checkpoint explicitly (the checked
 in temporal-v6 seed-406/last is a demo candidate, not a selected winner), or
---temporal-public-control for the non-RL control. Use --paced for visible PIE.
+--temporal-public-control for the greedy control, or --common-sense for a
+simple public-coverage baseline. Use --paced for visible PIE.
 """
 from __future__ import annotations
 
@@ -20,6 +21,7 @@ def main(argv=None):
     selection = parser.add_mutually_exclusive_group(required=True)
     selection.add_argument("--checkpoint", type=Path, help="Explicit temporal checkpoint directory, never auto-selected")
     selection.add_argument("--temporal-public-control", "--greedy", action="store_true", help="Greedy non-RL placement using public predicted marginal return")
+    selection.add_argument("--common-sense", action="store_true", help="Common-sense non-RL placement using ingress coverage, weather, spread and budget")
     red = parser.add_mutually_exclusive_group()
     red.add_argument("--red-checkpoint", type=Path, help="Trained Red placement checkpoint directory")
     red.add_argument("--red-random", action="store_true", help="Use a seeded random legal Red layout")
@@ -51,7 +53,8 @@ def main(argv=None):
             with IstanaLiveClient(args.port, args.timeout,
                                   record=lambda item: record({"type": "wire_audit", **item})) as client:
                 report = run_episode(client, seed=args.seed, checkpoint=args.checkpoint,
-                    temporal_public_control=args.temporal_public_control, max_steps=args.max_steps,
+                    temporal_public_control=args.temporal_public_control, common_sense=args.common_sense,
+                    max_steps=args.max_steps,
                     red_policy=red_policy, step_batch=args.step_batch, paced=args.paced, frame=record)
         except Exception as error:
             report = {"schema": "istana.blue_live_run_failure.v1", "status": "failed",
