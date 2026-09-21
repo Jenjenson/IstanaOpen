@@ -3,10 +3,12 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Simulation/RedTeam/RedTeamPlacementTypes.h"
+#include "Simulation/Sensing/DirectionalSensorModel.h"
 #include "BlueTeamCoordinator.generated.h"
 
 class ARedTeamManager;
 class FJsonObject;
+class USceneComponent;
 class UStaticMeshComponent;
 class UStaticMesh;
 class UMaterialInterface;
@@ -23,6 +25,9 @@ struct ISTANAOPEN_API FBlueSensorProfile
     // x=RF, y=radar, z=EO, w=thermal.
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FVector4 RangesM = FVector4(0, 100, 0, 0);
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FVector4 Strengths = FVector4(0, .86, 0, 0);
+    // Optional generic directional capability. Non-directional profiles retain
+    // the legacy radial model; Boson+ is the first configured real profile.
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) FDirectionalSensorProfile Directional;
 };
 
 USTRUCT(BlueprintType)
@@ -31,6 +36,8 @@ struct ISTANAOPEN_API FBlueSensorPlacement
     GENERATED_BODY()
     UPROPERTY(EditAnywhere, BlueprintReadWrite) FString ProfileId;
     UPROPERTY(EditAnywhere, BlueprintReadWrite) int32 SiteId = INDEX_NONE;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) double YawDegrees = 0;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite) double PitchDegrees = 0;
 };
 
 /** Visible presentation of accepted sensors; no collision and no independent sensing clock. */
@@ -42,9 +49,11 @@ public:
     ABlueSensorMarker();
     void SetMastHeight(double HeightM);
     void ConfigureSensor(const FString& ProfileId, double HeightM);
+    void ConfigureOrientation(double YawDegrees, double PitchDegrees);
 private:
     UStaticMeshComponent* Part(UStaticMesh* Mesh, UMaterialInterface* Material,
-        const FVector& Position, const FVector& SizeCm, const FRotator& Rotation = FRotator::ZeroRotator);
+        const FVector& Position, const FVector& SizeCm, const FRotator& Rotation = FRotator::ZeroRotator,
+        USceneComponent* Parent = nullptr);
     void Strut(const FVector& A, const FVector& B, double DiameterCm);
     UPROPERTY() TObjectPtr<UStaticMesh> CubeMesh;
     UPROPERTY() TObjectPtr<UStaticMesh> CylinderMesh;
@@ -53,6 +62,7 @@ private:
     UPROPERTY() TObjectPtr<UMaterialInterface> PaintMaterial;
     UPROPERTY() TObjectPtr<UMaterialInterface> LensMaterial;
     UPROPERTY() TObjectPtr<UMaterialInterface> RubberMaterial;
+    UPROPERTY() TObjectPtr<USceneComponent> OpticalHead;
     UPROPERTY(Transient) TArray<TObjectPtr<UStaticMeshComponent>> Parts;
 };
 
@@ -93,6 +103,9 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Blue Team|Weather") double RFNoise = .1;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Blue Team|Presentation") bool bSpawnSensorMarkers = true;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Blue Team|Presentation") bool bDrawCoverage = true;
+    // -1 draws every placed sensor; otherwise draws one selected placement's
+    // frustum and per-target diagnostics to keep the view readable.
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Blue Team|Presentation") int32 DebugSelectedSensorIndex = 0;
     // Observer-only capture overlays; never part of the public policy snapshot.
     UPROPERTY(Transient) bool bCapturePresentation = false;
 
@@ -116,6 +129,10 @@ private:
         FVector PreviousPosition = FVector::ZeroVector;
         TArray<int64> HitLooks;
         double FirstDetection = -1, FirstConfirmation = -1, ZoneEntry = -1, ReportTime = -1;
+        double FirstDetectionPixels = 0, FirstDetectionProbability = 0;
+        double LastDistanceM = 0, LastPixelsOnTarget = 0, LastDetectionProbability = 0;
+        bool bLastInsideFov = false, bLastLineOfSight = false, bLastBlockedByGeometry = false;
+        FString LastSensorId;
         FVector ReportPositionM = FVector::ZeroVector, ReportVelocityMps = FVector::ZeroVector;
         int32 PublicTrackId = INDEX_NONE;
         bool bHasPrevious = false;
@@ -127,7 +144,9 @@ private:
     bool SurfaceUnchanged(int32 SiteId) const;
     TArray<FVector> SiteSurfacesCm;
     TArray<bool> SupportedSites;
-    double DetectionProbability(const FBlueSensorProfile& Profile, const FVector& Sensor, const FVector& Target, bool bEmitting) const;
+    FDirectionalSensorLook DetectionLook(const FBlueSensorProfile& Profile, const FBlueSensorPlacement& Placement,
+        const FVector& Target, double TargetSizeM, bool bEmitting) const;
+    bool HasLineOfSight(const FVector& Sensor, const FVector& Target) const;
     double Uniform(int32 DroneId, int32 SensorId, int64 Look, uint32 Salt) const;
     TMap<int32, FTargetEvidence> Evidence;
     TArray<FBlueSensorPlacement> Placements;

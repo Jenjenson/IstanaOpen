@@ -90,9 +90,12 @@ def main():
     args.output.mkdir(parents=True, exist_ok=False)
     root = Path(__file__).resolve().parents[3]
     source_paths = [Path(__file__), Path(__file__).parent / "triad_rl/warning_policy.py",
+                    Path(__file__).parent / "triad_rl/directional_inputs.py",
                     Path(__file__).parent / "triad_rl/istana_live.py",
                     root / "Source/IstanaOpen/Simulation/BlueTeam/BlueTeamCoordinator.cpp",
-                    root / "Source/IstanaOpen/Simulation/BlueTeam/BlueWarningTime.h"]
+                    root / "Source/IstanaOpen/Simulation/BlueTeam/BlueWarningTime.h",
+                    root / "Source/IstanaOpen/Simulation/Sensing/DirectionalSensorModel.cpp",
+                    root / "Source/IstanaOpen/Simulation/Sensing/DirectionalSensorModel.h"]
     protocol = {"schema": "istana.native_warning_training.v1", "episodes": args.episodes,
                 "batch_size": args.batch_size, "learning_rate": .12, "training_seed": args.seed,
                 "checkpoints": [0] + [args.episodes * i // 4 for i in range(1, 5)],
@@ -103,7 +106,7 @@ def main():
                 "team_warning": "max(0, first zone entry among all Red - first detection among all Red)",
                 "endpoint": "20m objective zone entry, not physical crash",
                 "red_policy": "scripted radial swarms, seeded rotation; not learned Red or self-play",
-                "blue_policy": "from-scratch masked type/site REINFORCE, stochastic evaluation",
+                "blue_policy": "from-scratch masked profile/site/yaw/pitch REINFORCE, stochastic evaluation",
                 "baseline": "same untrained policy and non-RL temporal public greedy, same budget and scenarios",
                 "selection": "fixed endpoints; all checkpoints retained; visual case index 0 chosen before outcomes",
                 "source_sha256": {str(p.relative_to(root)): hashlib.sha256(p.read_bytes()).hexdigest() for p in source_paths},
@@ -150,7 +153,7 @@ def main():
         write_json(args.output / "summary.json", {"protocol": protocol, "checkpoints": checkpoints,
                    "evaluations": evaluations, "final_minus_control": comparisons,
                    "wall_seconds": time.monotonic() - started,
-                   "limitations": "Single-seed pilot, eight default held-out scenarios; synthetic sensor probabilities, no sensing occlusion. Not a real-world response-time or collision validation."})
+                   "limitations": "Single-seed pilot with synthetic probability assumptions. Directional thermal LOS uses Unreal world-static geometry; non-directional legacy profiles remain radial. Not a real-world response-time or collision validation."})
     print(f"Completed: {args.output}", flush=True)
 
 

@@ -9,6 +9,8 @@ ABlueSensorMarker::ABlueSensorMarker()
 {
     PrimaryActorTick.bCanEverTick = false;
     SetRootComponent(CreateDefaultSubobject<USceneComponent>(TEXT("SurfaceMount")));
+    OpticalHead = CreateDefaultSubobject<USceneComponent>(TEXT("OpticalHead"));
+    OpticalHead->SetupAttachment(RootComponent);
     static ConstructorHelpers::FObjectFinder<UStaticMesh> Cube(TEXT("/Engine/BasicShapes/Cube.Cube"));
     static ConstructorHelpers::FObjectFinder<UStaticMesh> Cylinder(TEXT("/Engine/BasicShapes/Cylinder.Cylinder"));
     static ConstructorHelpers::FObjectFinder<UStaticMesh> Sphere(TEXT("/Engine/BasicShapes/Sphere.Sphere"));
@@ -21,10 +23,10 @@ ABlueSensorMarker::ABlueSensorMarker()
 }
 
 UStaticMeshComponent* ABlueSensorMarker::Part(UStaticMesh* Mesh, UMaterialInterface* Material,
-    const FVector& Position, const FVector& SizeCm, const FRotator& Rotation)
+    const FVector& Position, const FVector& SizeCm, const FRotator& Rotation, USceneComponent* Parent)
 {
     auto* Component = NewObject<UStaticMeshComponent>(this);
-    Component->SetupAttachment(RootComponent);
+    Component->SetupAttachment(Parent ? Parent : GetRootComponent());
     Component->SetMobility(EComponentMobility::Movable);
     Component->SetStaticMesh(Mesh); Component->SetMaterial(0, Material);
     Component->SetRelativeLocationAndRotation(Position, Rotation);
@@ -44,11 +46,19 @@ void ABlueSensorMarker::Strut(const FVector& A, const FVector& B, double Diamete
 
 void ABlueSensorMarker::SetMastHeight(double HeightM) { ConfigureSensor(TEXT("eo"), HeightM); }
 
+void ABlueSensorMarker::ConfigureOrientation(double YawDegrees, double PitchDegrees)
+{
+    SetActorRotation(FRotator(0, YawDegrees, 0));
+    if (OpticalHead) OpticalHead->SetRelativeRotation(FRotator(PitchDegrees, 0, 0));
+}
+
 void ABlueSensorMarker::ConfigureSensor(const FString& ProfileId, double HeightM)
 {
     for (const auto& Component : Parts) if (IsValid(Component)) Component->DestroyComponent();
     Parts.Reset();
     const double H = FMath::Max(30., HeightM * 100.);
+    OpticalHead->SetRelativeLocation(FVector(0,0,H));
+    OpticalHead->SetRelativeRotation(FRotator::ZeroRotator);
     // All hardware fits inside the already-validated 80 cm mount footprint.
     // Cosmetic parts have NO collision, navigation, clock, reward or RNG effects.
     Part(CubeMesh, MetalMaterial, FVector(0,0,5), FVector(60,60,10));
@@ -82,21 +92,24 @@ void ABlueSensorMarker::ConfigureSensor(const FString& ProfileId, double HeightM
     auto Camera = [&](double Y, bool Thermal)
     {
         // Rounded gimbal, weather hood, separate lens barrel, glass and trim.
-        Part(SphereMesh, PaintMaterial, FVector(0,Y,H), FVector(28,30,28));
-        Part(CubeMesh, PaintMaterial, FVector(11,Y,H+5), FVector(34,27,23));
-        Part(CubeMesh, MetalMaterial, FVector(12,Y,H+18), FVector(43,33,3));
-        Part(CylinderMesh, RubberMaterial, FVector(29,Y,H+5), FVector(22,22,12), Face);
-        Part(CylinderMesh, MetalMaterial, FVector(35,Y,H+5), FVector(24,24,3), Face);
-        Part(CylinderMesh, LensMaterial, FVector(37,Y,H+5), FVector(Thermal?17:19,Thermal?17:19,1), Face);
+        auto HeadPart = [&](UStaticMesh* Mesh, UMaterialInterface* Material, const FVector& Position,
+            const FVector& Size, const FRotator& Rotation)
+        { return Part(Mesh, Material, Position, Size, Rotation, OpticalHead.Get()); };
+        HeadPart(SphereMesh, PaintMaterial, FVector(0,Y,0), FVector(28,30,28), FRotator::ZeroRotator);
+        HeadPart(CubeMesh, PaintMaterial, FVector(11,Y,5), FVector(34,27,23), FRotator::ZeroRotator);
+        HeadPart(CubeMesh, MetalMaterial, FVector(12,Y,18), FVector(43,33,3), FRotator::ZeroRotator);
+        HeadPart(CylinderMesh, RubberMaterial, FVector(29,Y,5), FVector(22,22,12), Face);
+        HeadPart(CylinderMesh, MetalMaterial, FVector(35,Y,5), FVector(24,24,3), Face);
+        HeadPart(CylinderMesh, LensMaterial, FVector(37,Y,5), FVector(Thermal?17:19,Thermal?17:19,1), Face);
         if (Thermal)
         {
-            Part(CylinderMesh, RubberMaterial, FVector(29,Y-9,H-9), FVector(8,8,7), Face);
-            Part(CylinderMesh, LensMaterial, FVector(33,Y-9,H-9), FVector(6,6,1), Face);
+            HeadPart(CylinderMesh, RubberMaterial, FVector(29,Y-9,-9), FVector(8,8,7), Face);
+            HeadPart(CylinderMesh, LensMaterial, FVector(33,Y-9,-9), FVector(6,6,1), Face);
         }
         for (double Side : {-1.,1.})
         {
-            Part(CubeMesh, MetalMaterial, FVector(0,Y+Side*17,H-4), FVector(10,4,30));
-            Part(CylinderMesh, RubberMaterial, FVector(0,Y+Side*20,H), FVector(11,11,4), FRotator(0,0,90));
+            HeadPart(CubeMesh, MetalMaterial, FVector(0,Y+Side*17,-4), FVector(10,4,30), FRotator::ZeroRotator);
+            HeadPart(CylinderMesh, RubberMaterial, FVector(0,Y+Side*20,0), FVector(11,11,4), FRotator(0,0,90));
         }
     };
     auto Radar = [&](double Y)

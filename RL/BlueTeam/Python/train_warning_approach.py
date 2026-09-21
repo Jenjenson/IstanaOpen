@@ -157,7 +157,8 @@ def main():
             for label, sites in layouts.items():
                 rows = []
                 for seed in (4800000, 4800001, 4800002, 4800008):
-                    row, _ = episode(client, policy, seed, placements=[{"profileId": "eo", "siteId": s} for s in sites],
+                    row, _ = episode(client, policy, seed, placements=[{"profileId": "eo", "siteId": s,
+                                                                        "yawDeg": 0., "pitchDeg": 0.} for s in sites],
                                      capture=True, contract=contract)
                     rows.append(row)
                     write_json(args.output / f"{label}-{seed}.json", row)

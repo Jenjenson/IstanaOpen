@@ -80,7 +80,8 @@ class ConsoleState:
                 "position": [(p[k] - origin[k]) / 100 for k in ("x", "y", "z")],
                 "active": drone.get("bActive", True), "observer_truth": True})
         return {"time": blue["elapsedSeconds"], "threats": threats, "detections": [],
-                "tracks": blue["publicSnapshot"]["tracks"], "completedSteps": blue["completedSteps"]}
+                "tracks": blue["publicSnapshot"]["tracks"], "completedSteps": blue["completedSteps"],
+                "directionalDiagnostics": blue.get("directionalDiagnosticsForPresentationOnly", [])}
 
     def action(self, operation, payload):
         with self.lock:
@@ -116,7 +117,13 @@ class ConsoleState:
                     row = layouts[key]
                     self.client.reset(row["seed"])
                     self.context = self.client.get_blue_context()
-                    self.client.deploy(row["placements"])
+                    # Archived layouts predate orientation. Keep their positions
+                    # unchanged and use the first advertised neutral bins only
+                    # for this explicitly labelled saved-output preview.
+                    preview_placements = [{**placement,
+                        "yawDeg": placement.get("yawDeg", 0.), "pitchDeg": placement.get("pitchDeg", 0.)}
+                        for placement in row["placements"]]
+                    self.client.deploy(preview_placements)
                     capture(self.client, PROJECT_ROOT/"Saved", "layout")
                     time.sleep(.3)
                     shot = capture(self.client, PROJECT_ROOT/"Saved", "layout")
@@ -124,7 +131,8 @@ class ConsoleState:
                     audit_dir = PROJECT_ROOT/"Saved/ConsoleModelDemo"
                     audit_dir.mkdir(parents=True, exist_ok=True)
                     (audit_dir/f"{self.context['runId']}.json").write_text(json.dumps(
-                        dict(model=key, **row, shot=shot, completed_steps=self.client.completed_steps), indent=2))
+                        {**row, "model": key, "placements": preview_placements, "shot": shot,
+                         "completed_steps": self.client.completed_steps}, indent=2))
                     self.view = {"mode": "live", "label": f"{row['label']} · saved layout",
                         "coordinateLabel": "Native Unreal · archived output preview",
                         "catalogue": self.context["catalogue"], "placements": blue["publicSnapshot"]["placements"],
@@ -156,7 +164,8 @@ class ConsoleState:
                         "placements": blue["publicSnapshot"]["placements"],
                         "sites": self.context["publicSnapshot"]["sites"],
                         "blockedSites": self.context["publicSnapshot"].get("blocked_sites", []),
-                        "surfaceMounted": self.context.get("placementRule") == "static_surface_mast_v1",
+                        "surfaceMounted": self.context.get("placementRule") in
+                            ("static_surface_mast_v1", "static_surface_directional_mast_v2"),
                         "budget": self.context["publicSnapshot"]["budget_total"],
                         "objectiveRadius": self.context["temporalConfig"]["objective_radius_m"],
                         "fixedStepSeconds": self.context.get("fixedStepSeconds", .05),

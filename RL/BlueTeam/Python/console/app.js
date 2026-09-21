@@ -51,7 +51,8 @@ function sensorDetails(){
  for(const [i,p] of (view?.placements||[]).entries()){
   const c=view.catalogue.find(c=>c.id===p.sensor_id)||{};
   const row=element('div','','sensor-row'),symbol=element('span',String(i+1).padStart(2,'0'),'sensor-symbol');
-  const text=element('div','');text.append(element('strong',c.label||p.sensor_id),element('small',`${fmt(p.position[0],0)}, ${fmt(p.position[1],0)} m · ${fmt(c.cost)} units`));row.append(symbol,text);$('sensors').append(row);
+  const orientation=c.directional?` · yaw ${fmt(p.yaw_deg,0)}° pitch ${fmt(p.pitch_deg,0)}°`:'';
+  const text=element('div','');text.append(element('strong',c.label||p.sensor_id),element('small',`${fmt(p.position[0],0)}, ${fmt(p.position[1],0)} m${orientation} · ${fmt(c.cost)} units`));row.append(symbol,text);$('sensors').append(row);
  }
  if(!view?.placements.length)$('sensors').append(element('p',view?'Policy chose STOP. No sensors.':'No layout committed.','helper'));
  $('sensor-count').textContent=view?view.placements.length:'—';
@@ -67,7 +68,7 @@ function results(){
  $('results-tag').textContent=mode==='recorded'?'RECORDED FINAL':m?'MEASURED FINAL':'AWAITING EPISODE END';
  $('outcome-label').textContent=mode==='recorded'?'Recorded final result':'Episode status';
  $('detected-label').textContent=mode==='recorded'?'Detected so far':'Public tracks';
- $('result-note').textContent=mode==='recorded'?'Synthetic sensing outcomes. Timely confirmation means detection before the deadline; no interception is simulated. Warning is unavailable when the replay does not contain the exact metric.':'Live metrics appear when the native episode ends. Synthetic analytical sensors; terrain occlusion is not modeled. Warning values are measured lower bounds from detection to 20 m objective-zone arrival.';
+ $('result-note').textContent=mode==='recorded'?'Synthetic sensing outcomes. Timely confirmation means detection before the deadline; no interception is simulated. Warning is unavailable when the replay does not contain the exact metric.':'Live metrics appear when the native episode ends. Directional sensors use Unreal world-static line-of-sight; probability parameters remain simulator assumptions. Warning values are measured lower bounds to objective-zone arrival.';
 }
 function setView(data){view=data;nativeImage=null;eventSignature='';if(data.nativePreview){const image=new Image();image.onload=()=>{if(view===data){nativeImage=image;render();}};image.src=data.nativePreview.image;}$('map').setAttribute('aria-label',data.nativePreview?'Native Unreal sensor placement preview':'Top-down simulation view');document.body.classList.toggle('native-preview',Boolean(data.nativePreview));frameIndex=0;elapsed=0;$('empty').hidden=true;syncTimeline();$('episode-title').textContent=view.label;$('coordinates').textContent=view.coordinateLabel;sensorDetails();results();render();controls();}
 async function loadReplay(){
@@ -130,14 +131,17 @@ function draw(frame){
  const bar=50*scale;line([w-30-bar,h-62],[w-30,h-62],'#708aa3',2);label('50 m',w-30,h-69,undefined,'right');
  if(!view||!frame)return;
  if($('sites').checked)for(const [i,site] of (view.sites||[]).entries())if(!(view.blockedSites||[]).includes(i))circle(xy(site),2,'#566d87');
- for(const [i,p] of view.placements.entries()){
-  const c=view.catalogue.find(c=>c.id===p.sensor_id),[x,y]=xy(p.position),range=Math.max(...Object.values(c?.ranges||{r:0}));
-  if($('ranges').checked){ctx.setLineDash([4,5]);circle([x,y],range*scale,'#70b7ff06','#70b7ff45');ctx.setLineDash([]);}
-  ctx.fillStyle='#70b7ff';ctx.fillRect(x-4,y-4,8,8);label(`S${i+1}`,x+9,y-7,'#8fc9ff');
- }
+	 for(const [i,p] of view.placements.entries()){
+	  const c=view.catalogue.find(c=>c.id===p.sensor_id),[x,y]=xy(p.position),range=Math.max(...Object.values(c?.ranges||{r:0}));
+	  if($('ranges').checked&&c?.directional){const assumptions=c.simulation_assumptions||{},hardware=c.manufacturer_specifications||{};
+	   const radius=(assumptions.max_evaluation_distance_m||range)*scale,yaw=(p.yaw_deg||0)*Math.PI/180,half=(hardware.horizontal_fov_deg||24)*Math.PI/360;
+	   ctx.beginPath();ctx.moveTo(x,y);ctx.arc(x,y,radius,-yaw-half,-yaw+half);ctx.closePath();ctx.fillStyle='#70b7ff0c';ctx.fill();ctx.strokeStyle='#70b7ff70';ctx.setLineDash([5,5]);ctx.stroke();ctx.setLineDash([]);
+	  }else if($('ranges').checked){ctx.setLineDash([4,5]);circle([x,y],range*scale,'#70b7ff06','#70b7ff45');ctx.setLineDash([]);}
+	  ctx.fillStyle='#70b7ff';ctx.fillRect(x-4,y-4,8,8);label(`S${i+1}`,x+9,y-7,'#8fc9ff');
+	 }
  if($('trails').checked)for(const t of frame.threats){ctx.beginPath();let first=true;for(const f of view.frames.slice(0,frameIndex+1)){const p=f.threats.find(v=>v.id===t.id);if(!p)continue;const q=xy(p.position);if(first){ctx.moveTo(...q);first=false;}else ctx.lineTo(...q);}ctx.strokeStyle='#ff8b8045';ctx.lineWidth=1.2;ctx.stroke();}
  for(const d of frame.detections||[]){const p=view.placements[d.sensor_index],t=frame.threats.find(t=>t.id===d.target_id);if(p&&t){ctx.setLineDash([3,4]);line(xy(p.position),xy(t.position),'#f4cf7866');ctx.setLineDash([]);}}
- for(const t of frame.threats){const [x,y]=xy(t.position);if($('drone-rings').checked&&(t.detected||t.tracked))circle([x,y],10,null,t.tracked?'#6ce8c8':'#f4cf78');ctx.save();ctx.translate(x,y);ctx.rotate(Math.PI/4);ctx.fillStyle=t.breached?'#ff5757':t.tracked?'#6ce8c8':'#ff8b80';ctx.fillRect(-3.5,-3.5,7,7);ctx.restore();if(w>470&&frame.threats.length<=8)label(t.id,x+12,y+4,'#c2ccda');}
+	 for(const t of frame.threats){const [x,y]=xy(t.position),id=Number(String(t.id).replace('drone-','')),diag=(frame.directionalDiagnostics||[]).find(d=>d.droneId===id);if($('drone-rings').checked&&(t.detected||t.tracked))circle([x,y],10,null,t.tracked?'#6ce8c8':'#f4cf78');ctx.save();ctx.translate(x,y);ctx.rotate(Math.PI/4);ctx.fillStyle=t.breached?'#ff5757':t.tracked?'#6ce8c8':'#ff8b80';ctx.fillRect(-3.5,-3.5,7,7);ctx.restore();if(w>470&&frame.threats.length<=8){label(t.id,x+12,y+4,'#c2ccda');if(diag)label(`${diag.insideFov?'IN':'OUT'} · ${diag.lineOfSight?'LOS':'BLOCKED'} · ${fmt(diag.pixelsOnTarget,2)} px · P ${fmt(diag.detectionProbability,3)}`,x+12,y+17,diag.blockedByGeometry?'#ff756b':'#9adbc9');}}
  for(const t of frame.tracks||[]){const p=xy(t.position);if($('drone-rings').checked)circle(p,9,null,t.confirmed?'#6ce8c8':'#f4cf78');if(w>470)label(t.id,p[0]+12,p[1]-9,'#f4cf78');}
 }
 async function liveAction(op,payload={}){

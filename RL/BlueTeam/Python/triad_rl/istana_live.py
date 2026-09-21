@@ -141,7 +141,7 @@ class IstanaLiveClient:
         return deepcopy(context)
 
     def deploy(self, placements):
-        """Atomically commit profile/site identifiers, including an empty STOP layout."""
+        """Atomically commit profile/site/orientation, including an empty STOP layout."""
         self._require_reset()
         if self.blue_context is None:
             raise RuntimeError("Read Blue context before deploying")
@@ -149,10 +149,11 @@ class IstanaLiveClient:
             raise ValueError("The initial Blue layout can only be committed once at step zero")
         rows = []
         for row in placements:
-            if set(row) != {"profileId", "siteId"} or not isinstance(row["profileId"], str):
-                raise ValueError("Deployment requires only profileId and siteId")
-            rows.append({"profileId": row["profileId"], "siteId": _integer(row["siteId"], "siteId", 0, 511)})
-        action = {"schemaVersion": 1, "runId": self.blue_context["runId"],
+            if set(row) != {"profileId", "siteId", "yawDeg", "pitchDeg"} or not isinstance(row["profileId"], str):
+                raise ValueError("Deployment requires profileId, siteId, yawDeg and pitchDeg")
+            rows.append({"profileId": row["profileId"], "siteId": _integer(row["siteId"], "siteId", 0, 511),
+                         "yawDeg": _finite(row["yawDeg"], "yawDeg"), "pitchDeg": _finite(row["pitchDeg"], "pitchDeg")})
+        action = {"schemaVersion": 2, "runId": self.blue_context["runId"],
                   "revision": self.blue_context["revision"], "requestId": self.blue_request_id,
                   "expectedStep": self.completed_steps, "placements": rows, "commit": True}
         self.blue_request_id += 1
@@ -250,13 +251,16 @@ def scripted_red_centers(context):
 
 def public_planning_inputs(context):
     """Extract and validate an allowlisted snapshot; never forward the envelope."""
-    from .adaptive_inputs import validate_catalogue, validate_public_state
     from .temporal_inputs import TemporalConfig
 
     if context.get("coordinateSystem") != COORDINATE_SYSTEM:
         raise ValueError("Expected objective-relative Unreal XY meters with Z up")
     if _integer(context["completedSteps"], "completedSteps") != 0 or context.get("committed"):
         raise ValueError("This runner plans one initial layout before the episode advances")
+    if any(row.get("directional") for row in context["catalogue"]):
+        from .directional_inputs import validate_catalogue, validate_public_state
+    else:
+        from .adaptive_inputs import validate_catalogue, validate_public_state
     catalogue = validate_catalogue(context["catalogue"])
     state = validate_public_state(context["publicSnapshot"], catalogue)
     if state["timestamp"] != 0 or state["done"] or state["placements"]:
@@ -282,22 +286,27 @@ def make_plan(context, *, checkpoint=None, temporal_public_control=False):
     if (checkpoint is not None) == bool(temporal_public_control):
         raise ValueError("Choose an explicit checkpoint OR temporal public control")
     state, catalogue, config = public_planning_inputs(context)
+    directional = any(row.get("directional") for row in catalogue)
+    planning_state, planning_catalogue = state, catalogue
+    if directional:
+        from .directional_inputs import to_legacy_inputs
+        planning_state, planning_catalogue = to_legacy_inputs(state, catalogue)
     if checkpoint is not None:
         from recommend_temporal import recommend_layout
         policy = TemporalPolicy.load(checkpoint, config=config)
-        plan = recommend_layout(policy, state, config=config, catalogue=catalogue)
+        plan = recommend_layout(policy, planning_state, config=config, catalogue=planning_catalogue)
         plan["selection"] = {"kind": "explicit_checkpoint", "checkpoint": str(checkpoint),
                              "actor_updates": policy.actor_update_count,
                              "claim": "User-selected experimental checkpoint; no winner or transfer-performance claim"}
     else:
         builder, policy = TemporalObservationBuilder(config), TemporalPublicGreedy()
-        decisions, final = [], deepcopy(state)
-        for _ in range(state["max_sites"] + 1):
-            observation = builder.observe(final, catalogue)
+        decisions, final = [], deepcopy(planning_state)
+        for _ in range(planning_state["max_sites"] + 1):
+            observation = builder.observe(final, planning_catalogue)
             action = policy.act(observation)
             row = LiveObservationAdapter.recommendation(observation, action)
             decisions.append(row)
-            final = apply_placement(final, action, catalogue)
+            final = apply_placement(final, action, planning_catalogue)
             if row["stop"]:
                 break
         else:
@@ -306,12 +315,27 @@ def make_plan(context, *, checkpoint=None, temporal_public_control=False):
                 "new_placements": [row for row in decisions if not row["stop"]],
                 "final_public_state": final, "temporal_config": asdict(config),
                 "selection": {"kind": "temporal_public_control", "claim": "Non-RL public-model control"}}
+    if directional:
+        from .directional_inputs import best_orientation
+        oriented = []
+        for row in plan["new_placements"]:
+            sensor = next(item for item in catalogue if item["id"] == row["sensor_id"])
+            yaw, pitch = best_orientation(state, sensor, row["position"])
+            oriented.append({**row, "yaw_deg": yaw, "pitch_deg": pitch})
+        plan["new_placements"] = oriented
+        non_stop = iter(oriented)
+        plan["decisions"] = [row if row["stop"] else next(non_stop) for row in plan["decisions"]]
+        plan["selection"]["orientation_adapter"] = {
+            "kind": "public_prior_directional_adapter_v1",
+            "claim": "Frozen type/site policy did not learn orientation; yaw/pitch use only public forecast priors",
+        }
     # Do not rewrite the existing offline recommendation's no-device-command
     # status; this separate wrapper records when Unreal accepts the layout.
     return {"schema": "istana.blue_live_plan.v1", "runId": context["runId"],
             "revision": context["revision"], "public_only": True,
             "coordinateSystem": COORDINATE_SYSTEM, "recommendation": plan,
-            "placements": [{"profileId": row["sensor_id"], "siteId": row["site_index"]}
+            "placements": [{"profileId": row["sensor_id"], "siteId": row["site_index"],
+                            "yawDeg": row.get("yaw_deg", 0.), "pitchDeg": row.get("pitch_deg", 0.)}
                            for row in plan["new_placements"]]}
 
 
@@ -333,7 +357,7 @@ def placement_world_cm(context, placement):
                 and math.isclose(y, origin["y"] + north * 100., abs_tol=.1)):
             raise ValueError("Surface does not match approved site")
         return {"x": x, "y": y, "z": z + profile["height_m"] * 100.}
-    if context.get("placementRule") == "static_surface_mast_v1":
+    if context.get("placementRule") in {"static_surface_mast_v1", "static_surface_directional_mast_v2"}:
         raise ValueError("Surface-mounted context is missing surface coordinates")
     # Backward-compatible audit of older recorded wire contexts only.
     return {"x": origin["x"] + east * 100., "y": origin["y"] + north * 100.,

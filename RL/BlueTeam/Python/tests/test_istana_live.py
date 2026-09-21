@@ -2,6 +2,7 @@
 from copy import deepcopy
 import io
 import json
+import math
 from pathlib import Path
 
 import pytest
@@ -97,9 +98,10 @@ def test_explicit_published_checkpoints_and_control_create_legal_initial_plan(co
     assert plan['coordinateSystem'] == context['coordinateSystem']
     assert len(plan['placements']) <= context['publicSnapshot']['max_sites']
     for placement in plan['placements']:
-        assert set(placement) == {'siteId', 'profileId'}
+        assert set(placement) == {'siteId', 'profileId', 'yawDeg', 'pitchDeg'}
         assert placement['profileId'] in context['publicSnapshot']['available_sensor_ids']
         assert 0 <= placement['siteId'] < len(context['publicSnapshot']['sites'])
+        assert math.isfinite(placement['yawDeg']) and math.isfinite(placement['pitchDeg'])
 
 
 @pytest.mark.parametrize('value', [True, '20', float('nan')])

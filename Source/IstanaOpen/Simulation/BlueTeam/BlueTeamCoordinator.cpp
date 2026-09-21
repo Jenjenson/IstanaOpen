@@ -38,7 +38,58 @@ namespace
         for (int32 I = 0; I < 4; ++I)
         { Ranges->SetNumberField(Modalities[I], Profile.RangesM[I]); Strengths->SetNumberField(Modalities[I], Profile.Strengths[I]); }
         Object->SetObjectField(TEXT("ranges"), Ranges); Object->SetObjectField(TEXT("strengths"), Strengths);
+        if (Profile.Directional.bEnabled)
+        {
+            const auto& D = Profile.Directional;
+            Object->SetBoolField(TEXT("directional"), true);
+            auto Hardware = MakeShared<FJsonObject>();
+            Hardware->SetStringField(TEXT("manufacturer"), D.Manufacturer); Hardware->SetStringField(TEXT("model"), D.Model);
+            Hardware->SetStringField(TEXT("modality"), D.Modality); Hardware->SetStringField(TEXT("source"), D.SpecificationSource);
+            Hardware->SetArrayField(TEXT("resolution"), {Number(D.ResolutionX), Number(D.ResolutionY)});
+            Hardware->SetNumberField(TEXT("pixel_pitch_um"), D.PixelPitchMicrometres);
+            Hardware->SetNumberField(TEXT("horizontal_fov_deg"), D.HorizontalFovDegrees);
+            Hardware->SetNumberField(TEXT("ifov_mrad"), D.IfovMilliradians);
+            Hardware->SetNumberField(TEXT("frame_rate_hz"), D.FrameRateHz);
+            Hardware->SetNumberField(TEXT("selectable_frame_rate_hz"), D.SelectableFrameRateHz);
+            Hardware->SetNumberField(TEXT("industrial_nedt_mk_max"), D.NedtMillikelvin);
+            Object->SetObjectField(TEXT("manufacturer_specifications"), Hardware);
+            auto Derived = MakeShared<FJsonObject>(); Derived->SetNumberField(TEXT("vertical_fov_deg"), D.VerticalFovDegrees);
+            Derived->SetStringField(TEXT("method"), TEXT("rectilinear HFOV and 640:512 detector aspect ratio"));
+            Object->SetObjectField(TEXT("calculated_geometry"), Derived);
+            auto Assumptions = MakeShared<FJsonObject>();
+            Assumptions->SetStringField(TEXT("detection_model"), D.DetectionModel);
+            Assumptions->SetNumberField(TEXT("max_evaluation_distance_m"), D.MaxEvaluationDistanceM);
+            Assumptions->SetNumberField(TEXT("nominal_thermal_contrast_k"), D.NominalThermalContrastK);
+            Assumptions->SetNumberField(TEXT("contrast_noise_multiplier"), D.ContrastNoiseMultiplier);
+            Assumptions->SetNumberField(TEXT("pixels_for_63_percent"), D.PixelsFor63Percent);
+            Assumptions->SetNumberField(TEXT("atmospheric_attenuation_distance_m"), D.AtmosphericAttenuationDistanceM);
+            Assumptions->SetNumberField(TEXT("rain_loss_at_maximum"), D.RainLossAtMaximum);
+            Assumptions->SetNumberField(TEXT("humidity_loss_at_maximum"), D.HumidityLossAtMaximum);
+            Assumptions->SetNumberField(TEXT("edge_falloff_exponent"), D.EdgeFalloffExponent);
+            Assumptions->SetBoolField(TEXT("requires_line_of_sight"), D.bRequireLineOfSight);
+            Object->SetObjectField(TEXT("simulation_assumptions"), Assumptions);
+            FValues Yaws, Pitches;
+            for (double Value : D.YawBinsDegrees) Yaws.Add(Number(Value));
+            for (double Value : D.PitchBinsDegrees) Pitches.Add(Number(Value));
+            Object->SetArrayField(TEXT("yaw_bins_deg"), Yaws); Object->SetArrayField(TEXT("pitch_bins_deg"), Pitches);
+        }
+        else Object->SetBoolField(TEXT("directional"), false);
         return Object;
+    }
+    void DrawFrustum(UWorld* World, const FVector& Position, const FRotator& Rotation,
+        const FDirectionalSensorProfile& Profile, const FColor& Color)
+    {
+        const double Length = Profile.MaxEvaluationDistanceM * 100.;
+        const FRotationMatrix Axes(Rotation);
+        const FVector Forward = Axes.GetScaledAxis(EAxis::X), Right = Axes.GetScaledAxis(EAxis::Y), Up = Axes.GetScaledAxis(EAxis::Z);
+        const FVector Centre = Position + Forward * Length;
+        const double HalfWidth = Length * FMath::Tan(FMath::DegreesToRadians(Profile.HorizontalFovDegrees * .5));
+        const double HalfHeight = Length * FMath::Tan(FMath::DegreesToRadians(Profile.VerticalFovDegrees * .5));
+        const FVector Corners[] = {Centre-Right*HalfWidth-Up*HalfHeight, Centre+Right*HalfWidth-Up*HalfHeight,
+            Centre+Right*HalfWidth+Up*HalfHeight, Centre-Right*HalfWidth+Up*HalfHeight};
+        for (const FVector& Corner : Corners) DrawDebugLine(World, Position, Corner, Color, false, -1, 0, 2);
+        for (int32 I = 0; I < 4; ++I) DrawDebugLine(World, Corners[I], Corners[(I+1)%4], Color, false, -1, 0, 2);
+        DrawDebugDirectionalArrow(World, Position, Centre, 150, Color, false, -1, 0, 4);
     }
 }
 
@@ -54,7 +105,15 @@ ABlueTeamCoordinator::ABlueTeamCoordinator()
     Add(TEXT("rf"), TEXT("Passive RF"), .8, FVector4(130,0,0,0), FVector4(.88,0,0,0));
     Add(TEXT("radar"), TEXT("Search radar"), 1.2, FVector4(0,100,0,0), FVector4(0,.86,0,0));
     Add(TEXT("eo"), TEXT("Electro-optical"), .7, FVector4(0,0,100,0), FVector4(0,0,.94,0));
-    Add(TEXT("thermal"), TEXT("Thermal"), 1, FVector4(0,0,0,115), FVector4(0,0,0,.86));
+    Add(TEXT("thermal"), TEXT("Teledyne FLIR Boson+ 640 18 mm"), 1, FVector4(0,0,0,500), FVector4(0,0,0,.98));
+    auto& Boson = Catalogue.Last().Directional;
+    Boson.bEnabled = true; Boson.Manufacturer = TEXT("Teledyne FLIR");
+    Boson.Model = TEXT("Boson+ 640, 24deg HFOV, 18 mm"); Boson.Modality = TEXT("uncooled LWIR thermal");
+    Boson.SpecificationSource = TEXT("https://oem.flir.com/products/boson-plus/?model=22640A024");
+    Boson.ResolutionX = 640; Boson.ResolutionY = 512; Boson.PixelPitchMicrometres = 12;
+    Boson.HorizontalFovDegrees = 24; Boson.VerticalFovDegrees = IstanaDirectionalSensor::VerticalFovFromHorizontal(24, 640, 512);
+    Boson.IfovMilliradians = .667; Boson.FrameRateHz = 60; Boson.SelectableFrameRateHz = 30; Boson.NedtMillikelvin = 20;
+    Boson.YawBinsDegrees = {0,45,90,135,180,225,270,315}; Boson.PitchBinsDegrees = {0,10,20};
     Add(TEXT("fused"), TEXT("Radar + thermal"), 2, FVector4(0,100,0,125), FVector4(0,.86,0,.86));
     for (double Radius : {30., 45.})
         for (int32 I = 0; I < 16; ++I)
@@ -103,6 +162,30 @@ bool ABlueTeamCoordinator::ValidateConfiguration(double Step, FString& Error) co
             bRange |= Profile.RangesM[I] > 0;
         }
         if (!bRange) return Fail(TEXT("Blue profiles require a positive sensing range."));
+        if (Profile.Directional.bEnabled)
+        {
+            const auto& D = Profile.Directional;
+            if (D.Manufacturer.IsEmpty() || D.Model.IsEmpty() || D.Modality.IsEmpty() || D.SpecificationSource.IsEmpty()
+                || D.ResolutionX < 1 || D.ResolutionY < 1 || !InRange(D.PixelPitchMicrometres, .1, 100)
+                || !InRange(D.HorizontalFovDegrees, .1, 179) || !InRange(D.VerticalFovDegrees, .1, 179)
+                || !InRange(D.IfovMilliradians, .001, 100) || !InRange(D.FrameRateHz, .1, 1000)
+                || !InRange(D.SelectableFrameRateHz, .1, 1000) || !InRange(D.NedtMillikelvin, .1, 1000)
+                || D.DetectionModel != TEXT("pixels_on_target_v1") || !InRange(D.MaxEvaluationDistanceM, 1, 2000)
+                || !InRange(D.NominalThermalContrastK, .001, 1000) || !InRange(D.ContrastNoiseMultiplier, .001, 1000)
+                || !InRange(D.PixelsFor63Percent, .01, 1000) || !InRange(D.AtmosphericAttenuationDistanceM, 1, 100000)
+                || !InRange(D.RainLossAtMaximum, 0, 1) || !InRange(D.HumidityLossAtMaximum, 0, 1)
+                || !InRange(D.EdgeFalloffExponent, .01, 20) || D.YawBinsDegrees.IsEmpty() || D.PitchBinsDegrees.IsEmpty()
+                || D.YawBinsDegrees.Num() > 72 || D.PitchBinsDegrees.Num() > 19)
+                return Fail(TEXT("Invalid directional sensor hardware specification or simulation assumption."));
+            if (!FMath::IsNearlyEqual(D.VerticalFovDegrees,
+                    IstanaDirectionalSensor::VerticalFovFromHorizontal(D.HorizontalFovDegrees, D.ResolutionX, D.ResolutionY), .01))
+                return Fail(TEXT("Directional vertical FOV must match the declared rectilinear detector geometry."));
+            TSet<double> Yaws, Pitches;
+            for (double Value : D.YawBinsDegrees)
+            { if (!InRange(Value, 0, 360) || Yaws.Contains(Value)) return Fail(TEXT("Invalid or duplicate yaw bin.")); Yaws.Add(Value); }
+            for (double Value : D.PitchBinsDegrees)
+            { if (!InRange(Value, -89, 89) || Pitches.Contains(Value)) return Fail(TEXT("Invalid or duplicate pitch bin.")); Pitches.Add(Value); }
+        }
     }
     for (const auto& Id : AvailableSensorIds) if (!Ids.Contains(Id)) return Fail(TEXT("Unknown available sensor ID."));
     for (const auto& Site : ApprovedSitesM)
@@ -213,25 +296,30 @@ TSharedRef<FJsonObject> ABlueTeamCoordinator::DeployJson(const FJsonObject& Acti
     Error.Reset(); double Schema, ActionRevision, RequestId, ExpectedStep;
     FString ActionRun; FGuid ParsedRun; bool bCommit = false;
     const TArray<TSharedPtr<FJsonValue>>* Entries = nullptr;
-    if (!Integer(Action, TEXT("schemaVersion"), 1, 1, Schema)
+    if (!Integer(Action, TEXT("schemaVersion"), 2, 2, Schema)
         || !Integer(Action, TEXT("revision"), 0, 9007199254740991., ActionRevision)
         || !Integer(Action, TEXT("requestId"), 0, 9007199254740991., RequestId)
         || !Integer(Action, TEXT("expectedStep"), 0, 0, ExpectedStep)
         || !Action.TryGetStringField(TEXT("runId"), ActionRun) || !FGuid::Parse(ActionRun, ParsedRun)
         || !Action.TryGetBoolField(TEXT("commit"), bCommit) || !bCommit
         || !Action.TryGetArrayField(TEXT("placements"), Entries) || Entries->Num() > 32)
-        return Fail(TEXT("Invalid Blue action: schemaVersion, runId, revision, requestId, expectedStep=0, placements and commit=true required."));
+        return Fail(TEXT("Invalid Blue action: schemaVersion=2, runId, revision, requestId, expectedStep=0, placements and commit=true required."));
     if (ParsedRun != RunId || int64(ActionRevision) != Revision || !RunId.IsValid()) return Fail(TEXT("Stale Blue runId/revision."));
     // Canonicalize only supported semantic fields so object-key ordering is irrelevant.
     TArray<FBlueSensorPlacement> Proposed;
     FString Payload = FString::Printf(TEXT("%lld/%lld/"), int64(ActionRevision), int64(RequestId));
     for (const auto& Value : *Entries)
     {
-        const TSharedPtr<FJsonObject>* Entry = nullptr; FString Id; double Site;
+        const TSharedPtr<FJsonObject>* Entry = nullptr; FString Id; double Site, Yaw, Pitch;
         if (!Value->TryGetObject(Entry) || !(*Entry)->TryGetStringField(TEXT("profileId"), Id)
-            || !Integer(**Entry, TEXT("siteId"), 0, 511, Site)) return Fail(TEXT("Each Blue placement needs profileId and integer siteId."));
-        FBlueSensorPlacement Placement; Placement.ProfileId = Id; Placement.SiteId = int32(Site); Proposed.Add(Placement);
-        Payload += FString::Printf(TEXT("%d:%s:%d/"), Id.Len(), *Id, Placement.SiteId);
+            || !Integer(**Entry, TEXT("siteId"), 0, 511, Site)
+            || !(*Entry)->TryGetNumberField(TEXT("yawDeg"), Yaw) || !InRange(Yaw, 0, 360)
+            || !(*Entry)->TryGetNumberField(TEXT("pitchDeg"), Pitch) || !InRange(Pitch, -89, 89))
+            return Fail(TEXT("Each Blue placement needs profileId, integer siteId, yawDeg and pitchDeg."));
+        FBlueSensorPlacement Placement; Placement.ProfileId = Id; Placement.SiteId = int32(Site);
+        Placement.YawDegrees = Yaw; Placement.PitchDegrees = Pitch; Proposed.Add(Placement);
+        Payload += FString::Printf(TEXT("%d:%s:%d:%.9g:%.9g/"), Id.Len(), *Id, Placement.SiteId,
+            Placement.YawDegrees, Placement.PitchDegrees);
     }
     if (int64(RequestId) == LastActionId)
     {
@@ -253,6 +341,10 @@ TSharedRef<FJsonObject> ABlueTeamCoordinator::DeployJson(const FJsonObject& Acti
     {
         const auto* Profile = Catalogue.FindByPredicate([&](const auto& P) { return P.Id == Placement.ProfileId; });
         if (!Profile || !AvailableSensorIds.Contains(Placement.ProfileId)) return Fail(TEXT("Unknown or unavailable Blue profile."));
+        if (Profile->Directional.bEnabled
+            ? !IstanaDirectionalSensor::IsOrientationBin(Profile->Directional, Placement.YawDegrees, Placement.PitchDegrees)
+            : (!FMath::IsNearlyZero(Placement.YawDegrees) || !FMath::IsNearlyZero(Placement.PitchDegrees)))
+            return Fail(TEXT("Blue orientation must use the selected profile's advertised yaw/pitch bins."));
         if (!ApprovedSitesM.IsValidIndex(Placement.SiteId) || BlockedSites.Contains(Placement.SiteId) || Seen.Contains(Placement.SiteId))
             return Fail(TEXT("Blue site is unknown, blocked or duplicated."));
         if (!SurfaceUnchanged(Placement.SiteId))
@@ -275,8 +367,7 @@ TSharedRef<FJsonObject> ABlueTeamCoordinator::DeployJson(const FJsonObject& Acti
             if (Marker)
             {
                 Marker->ConfigureSensor(Profile->Id, Profile->HeightM);
-                // Cosmetic outward heading only: sensing remains the same radial model.
-                Marker->SetActorRotation(FRotator(0, FMath::RadiansToDegrees(FMath::Atan2(ApprovedSitesM[Placement.SiteId].Y, ApprovedSitesM[Placement.SiteId].X)), 0));
+                Marker->ConfigureOrientation(Placement.YawDegrees, Placement.PitchDegrees);
                 Markers.Add(Marker);
             }
         }
@@ -295,22 +386,42 @@ double ABlueTeamCoordinator::Uniform(int32 DroneId, int32 SensorId, int64 Look, 
     return (double(Value) + .5) / 4294967296.;
 }
 
-double ABlueTeamCoordinator::DetectionProbability(const FBlueSensorProfile& Profile, const FVector& Sensor,
-    const FVector& Target, bool bEmitting) const
+bool ABlueTeamCoordinator::HasLineOfSight(const FVector& Sensor, const FVector& Target) const
 {
-    const double Distance = FVector::Distance(Sensor, Target) / 100.;
-    // Deliberately analytical: no terrain, occlusion, false positives or classified sensor data.
+    if (!GetWorld()) return false;
+    FCollisionQueryParams Query(SCENE_QUERY_STAT(BlueSensorLineOfSight), true, this);
+    Query.AddIgnoredActor(Manager);
+    for (const auto& Marker : Markers) if (IsValid(Marker)) Query.AddIgnoredActor(Marker);
+    FHitResult Hit;
+    return !GetWorld()->LineTraceSingleByObjectType(Hit, Sensor, Target,
+        FCollisionObjectQueryParams(ECC_WorldStatic), Query);
+}
+
+FDirectionalSensorLook ABlueTeamCoordinator::DetectionLook(const FBlueSensorProfile& Profile,
+    const FBlueSensorPlacement& Placement, const FVector& Target, double TargetSizeM, bool bEmitting) const
+{
+    const FVector Sensor = SiteWorldCm(Placement.SiteId, Profile);
+    if (Profile.Directional.bEnabled)
+        return IstanaDirectionalSensor::Evaluate(Profile.Directional, Sensor,
+            FRotator(Placement.PitchDegrees, Placement.YawDegrees, 0), Target, TargetSizeM,
+            Profile.Strengths.W, Visibility, Rain, Humidity, HasLineOfSight(Sensor, Target));
+
+    FDirectionalSensorLook Result;
+    Result.DistanceM = FVector::Distance(Sensor, Target) / 100.; Result.bInFront = true;
+    Result.bInsideFov = true; Result.bWithinEvaluationDistance = true; Result.bHasLineOfSight = true;
     const double Weather[] = {bEmitting ? 1 - .7 * RFNoise : 0, 1 - .4 * Rain,
         Visibility * (.15 + .85 * Illumination) * (1 - .5 * Rain), (1 - .45 * Humidity) * (1 - .3 * Rain)};
     double Miss = 1;
     for (int32 I = 0; I < 4; ++I)
     {
         const double Range = Profile.RangesM[I];
-        if (Range <= 0 || Distance > Range) continue;
-        const double Probability = FMath::Clamp(Profile.Strengths[I] * Weather[I] * (1 - .5 * FMath::Square(Distance / Range)), 0., 1.);
+        if (Range <= 0 || Result.DistanceM > Range) continue;
+        const double Probability = FMath::Clamp(Profile.Strengths[I] * Weather[I]
+            * (1 - .5 * FMath::Square(Result.DistanceM / Range)), 0., 1.);
         Miss *= 1 - Probability;
     }
-    return 1 - Miss;
+    Result.DetectionProbability = 1 - Miss;
+    return Result;
 }
 
 void ABlueTeamCoordinator::Evaluate(FRedTeamEpisodeObservation& Observation)
@@ -347,18 +458,46 @@ void ABlueTeamCoordinator::Evaluate(FRedTeamEpisodeObservation& Observation)
         // One fused hit per target per sensing look, independent of sensor count.
         if (Drone.bActive && CompletedSteps % LookSteps == 0 && (Item.ZoneEntry < 0 || Now <= Item.ZoneEntry + 1.e-8))
         {
-            bool bHit = false;
+            bool bHit = false; FDirectionalSensorLook SuccessfulLook, DiagnosticLook;
+            bool bHaveSuccessfulLook = false, bHaveDirectionalDiagnostic = false;
             const bool bEmitting = Uniform(Drone.DroneId, -1, 0, 0x18231u) < .5;
-            for (const auto& Placement : Placements)
+            const auto& Motion = Manager->MovementPreset ? Manager->MovementPreset->Settings : Manager->Settings;
+            const double TargetSizeM = 2. * Motion.DroneRadiusCm / 100.;
+            for (int32 PlacementIndex = 0; PlacementIndex < Placements.Num(); ++PlacementIndex)
             {
+                const auto& Placement = Placements[PlacementIndex];
                 const auto* Profile = Catalogue.FindByPredicate([&](const auto& P) { return P.Id == Placement.ProfileId; });
-                if (Uniform(Drone.DroneId, Placement.SiteId, Look, 0x763afu) < DetectionProbability(*Profile, SiteWorldCm(Placement.SiteId, *Profile), Drone.PositionCm, bEmitting)) bHit = true;
+                const auto SensorLook = DetectionLook(*Profile, Placement, Drone.PositionCm, TargetSizeM, bEmitting);
+                if (Profile->Directional.bEnabled && (!bHaveDirectionalDiagnostic
+                    || SensorLook.DetectionProbability > DiagnosticLook.DetectionProbability))
+                { DiagnosticLook = SensorLook; Item.LastSensorId = Profile->Id; bHaveDirectionalDiagnostic = true; }
+                // Site ID is the stable sensor key: reordering an identical
+                // layout must not change its common random sensing draws.
+                if (Uniform(Drone.DroneId, Placement.SiteId, Look, 0x763afu) < SensorLook.DetectionProbability)
+                {
+                    bHit = true;
+                    if (!bHaveSuccessfulLook || SensorLook.DetectionProbability > SuccessfulLook.DetectionProbability)
+                    { SuccessfulLook = SensorLook; bHaveSuccessfulLook = true; }
+                }
+            }
+            if (bHaveDirectionalDiagnostic)
+            {
+                Item.LastDistanceM = DiagnosticLook.DistanceM; Item.LastPixelsOnTarget = DiagnosticLook.PixelsOnTarget;
+                Item.LastDetectionProbability = DiagnosticLook.DetectionProbability;
+                Item.bLastInsideFov = DiagnosticLook.bInsideFov; Item.bLastLineOfSight = DiagnosticLook.bHasLineOfSight;
+                Item.bLastBlockedByGeometry = DiagnosticLook.bInsideFov && DiagnosticLook.bWithinEvaluationDistance
+                    && !DiagnosticLook.bHasLineOfSight;
             }
             Item.HitLooks.RemoveAll([&](int64 Previous) { return Previous <= Look - ConfirmationWindow; });
             if (bHit)
             {
                 Item.HitLooks.Add(Look);
-                if (Item.FirstDetection < 0) { Item.FirstDetection = Now; Item.PublicTrackId = NextTrackId++; }
+                if (Item.FirstDetection < 0)
+                {
+                    Item.FirstDetection = Now; Item.PublicTrackId = NextTrackId++;
+                    if (bHaveSuccessfulLook)
+                    { Item.FirstDetectionPixels = SuccessfulLook.PixelsOnTarget; Item.FirstDetectionProbability = SuccessfulLook.DetectionProbability; }
+                }
                 if (Item.FirstConfirmation < 0 && Item.HitLooks.Num() >= RequiredConfirmations) Item.FirstConfirmation = Now;
                 Item.ReportTime = Now;
                 // Quantized reported measurements are updated only on successful looks.
@@ -407,7 +546,9 @@ TSharedRef<FJsonObject> ABlueTeamCoordinator::PublicSnapshotJson() const
         if (Index == INDEX_NONE || !ApprovedSitesM.IsValidIndex(Placement.SiteId)) continue;
         auto Row = MakeShared<FJsonObject>(); Row->SetStringField(TEXT("sensor_id"), Placement.ProfileId);
         Row->SetNumberField(TEXT("sensor_index"), Index); Row->SetNumberField(TEXT("cost"), Catalogue[Index].Cost);
-        Row->SetArrayField(TEXT("position"), VectorArray(ApprovedSitesM[Placement.SiteId])); Placed.Add(MakeShared<FJsonValueObject>(Row));
+        Row->SetArrayField(TEXT("position"), VectorArray(ApprovedSitesM[Placement.SiteId]));
+        Row->SetNumberField(TEXT("yaw_deg"), Placement.YawDegrees); Row->SetNumberField(TEXT("pitch_deg"), Placement.PitchDegrees);
+        Placed.Add(MakeShared<FJsonValueObject>(Row));
     }
     for (const auto& Id : AvailableSensorIds) Available.Add(String(Id));
     for (int32 Index = 0; Index < ApprovedSitesM.Num(); ++Index)
@@ -439,6 +580,8 @@ TSharedRef<FJsonObject> ABlueTeamCoordinator::PublicSnapshotJson() const
     auto Forecast = MakeShared<FJsonObject>(); Forecast->SetArrayField(TEXT("approach_weights"), Weights);
     Forecast->SetNumberField(TEXT("altitude"), PriorAltitudeM); Forecast->SetNumberField(TEXT("speed"), PriorSpeedMps);
     Forecast->SetNumberField(TEXT("emitter_probability"), PriorEmitterProbability); Forecast->SetNumberField(TEXT("swarm_size"), PriorSwarmSize);
+    const auto& Motion = Manager->MovementPreset ? Manager->MovementPreset->Settings : Manager->Settings;
+    Forecast->SetNumberField(TEXT("target_size_m"), 2. * Motion.DroneRadiusCm / 100.);
     Forecast->SetNumberField(TEXT("angular_uncertainty"), .4); Object->SetObjectField(TEXT("forecast"), Forecast);
     Object->SetBoolField(TEXT("done"), IsValid(Manager) && (Manager->EpisodePhase == ERedTeamEpisodePhase::Completed || Manager->EpisodePhase == ERedTeamEpisodePhase::Cancelled));
     return Object;
@@ -460,7 +603,7 @@ TSharedRef<FJsonObject> ABlueTeamCoordinator::ContextJson() const
             ? TSharedPtr<FJsonValue>(MakeShared<FJsonValueArray>(VectorArray(SiteSurfacesCm[I])))
             : TSharedPtr<FJsonValue>(MakeShared<FJsonValueNull>()));
     Object->SetArrayField(TEXT("siteSurfacesWorldCm"), Surfaces);
-    Object->SetStringField(TEXT("placementRule"), TEXT("static_surface_mast_v1"));
+    Object->SetStringField(TEXT("placementRule"), TEXT("static_surface_directional_mast_v2"));
     auto Temporal = MakeShared<FJsonObject>(); Temporal->SetNumberField(TEXT("objective_radius_m"), ObjectiveRadiusM);
     Temporal->SetNumberField(TEXT("lead_time_s"), DefenceLeadTimeSeconds); Temporal->SetNumberField(TEXT("look_interval_s"), LookIntervalSeconds);
     Temporal->SetNumberField(TEXT("required_confirmations"), RequiredConfirmations); Temporal->SetNumberField(TEXT("confirmation_window"), ConfirmationWindow);
@@ -468,7 +611,7 @@ TSharedRef<FJsonObject> ABlueTeamCoordinator::ContextJson() const
     Temporal->SetNumberField(TEXT("altitude_uncertainty_m"), 10); Temporal->SetNumberField(TEXT("max_hypotheses"), 64);
     Temporal->SetNumberField(TEXT("rf_persistent_weight"), .5); Object->SetObjectField(TEXT("temporalConfig"), Temporal);
     Object->SetNumberField(TEXT("fixedStepSeconds"), FixedStepSeconds); Object->SetNumberField(TEXT("timeLimitSeconds"), TimeLimitSeconds);
-    Object->SetStringField(TEXT("sensorModel"), TEXT("surface-mounted mast; synthetic radial falloff and weather; no sensing occlusion"));
+    Object->SetStringField(TEXT("sensorModel"), TEXT("generic directional profile v1; 3D frustum + world-static LOS + pixels-on-target probability; temporal confirmation unchanged"));
     return Object;
 }
 
@@ -503,6 +646,15 @@ TSharedRef<FJsonObject> ABlueTeamCoordinator::ObservationJson() const
             Time(TEXT("firstConfirmationSeconds"), Item.FirstConfirmation);
             Time(TEXT("zoneEntrySeconds"), Item.ZoneEntry);
             Time(TEXT("warningSeconds"), Item.ZoneEntry >= 0 ? Warning : -1);
+            Row->SetNumberField(TEXT("pixelsOnTargetAtFirstDetection"), Item.FirstDetectionPixels);
+            Row->SetNumberField(TEXT("probabilityAtFirstDetection"), Item.FirstDetectionProbability);
+            Row->SetBoolField(TEXT("lastLookInsideFov"), Item.bLastInsideFov);
+            Row->SetBoolField(TEXT("lastLookLineOfSight"), Item.bLastLineOfSight);
+            Row->SetBoolField(TEXT("lastLookBlockedByGeometry"), Item.bLastBlockedByGeometry);
+            Row->SetNumberField(TEXT("lastLookDistanceM"), Item.LastDistanceM);
+            Row->SetNumberField(TEXT("lastLookPixelsOnTarget"), Item.LastPixelsOnTarget);
+            Row->SetNumberField(TEXT("lastLookDetectionProbability"), Item.LastDetectionProbability);
+            Row->SetStringField(TEXT("lastLookSensorId"), Item.LastSensorId);
             WarningRows.Add(MakeShared<FJsonValueObject>(Row));
         }
         // Terminal evaluator truth only; NEVER included in publicSnapshot or planning inputs.
@@ -523,6 +675,19 @@ TSharedRef<FJsonObject> ABlueTeamCoordinator::ObservationJson() const
         Metrics->SetNumberField(TEXT("unresolved_fraction"), (Count - Entered) / Count); Metrics->SetNumberField(TEXT("cost"), Cost);
         Reward = 2 * Detected / Count + 3 * Confirmed / Count + 5 * Timely / Count - 5 * Breached / Count - Cost / Budget;
     }
+    FValues DirectionalDiagnostics;
+    TArray<int32> DiagnosticIds; Evidence.GetKeys(DiagnosticIds); DiagnosticIds.Sort();
+    for (int32 Id : DiagnosticIds)
+    {
+        const auto& Item = Evidence[Id]; auto Row = MakeShared<FJsonObject>();
+        Row->SetNumberField(TEXT("droneId"), Id); Row->SetStringField(TEXT("sensorId"), Item.LastSensorId);
+        Row->SetBoolField(TEXT("insideFov"), Item.bLastInsideFov); Row->SetBoolField(TEXT("lineOfSight"), Item.bLastLineOfSight);
+        Row->SetBoolField(TEXT("blockedByGeometry"), Item.bLastBlockedByGeometry);
+        Row->SetNumberField(TEXT("distanceM"), Item.LastDistanceM); Row->SetNumberField(TEXT("pixelsOnTarget"), Item.LastPixelsOnTarget);
+        Row->SetNumberField(TEXT("detectionProbability"), Item.LastDetectionProbability);
+        DirectionalDiagnostics.Add(MakeShared<FJsonValueObject>(Row));
+    }
+    Object->SetArrayField(TEXT("directionalDiagnosticsForPresentationOnly"), DirectionalDiagnostics);
     Object->SetObjectField(TEXT("metrics"), Metrics); Object->SetNumberField(TEXT("reward"), Reward);
     Object->SetObjectField(TEXT("publicSnapshot"), PublicSnapshotJson()); return Object;
 }
@@ -552,17 +717,44 @@ void ABlueTeamCoordinator::Tick(float DeltaSeconds)
             DrawDebugPoint(GetWorld(), SiteWorldCm(Placement.SiteId, *Profile), 15, FColor(65,190,255), false, -1, 1);
         }
         DrawDebugCircle(GetWorld(), OriginWorldCm, ObjectiveRadiusM * 100, 96, FColor(255,170,65), false, -1, 1, 5, FVector(1,0,0), FVector(0,1,0), false);
-        return;
     }
     if (!bDrawCoverage) return;
-    for (const auto& Placement : Placements)
+    const auto& Motion = Manager->MovementPreset ? Manager->MovementPreset->Settings : Manager->Settings;
+    const double TargetSizeM = 2. * Motion.DroneRadiusCm / 100.;
+    for (int32 PlacementIndex = 0; PlacementIndex < Placements.Num(); ++PlacementIndex)
     {
+        const auto& Placement = Placements[PlacementIndex];
         const auto* Profile = Catalogue.FindByPredicate([&](const auto& P) { return P.Id == Placement.ProfileId; });
         if (!Profile || !ApprovedSitesM.IsValidIndex(Placement.SiteId)) continue;
         const FVector Position = SiteWorldCm(Placement.SiteId, *Profile);
-        DrawDebugString(GetWorld(), Position + FVector(0,0,130), Profile->Label, nullptr, FColor::Cyan, 0, true);
-        double Range = 0; for (int32 I = 0; I < 4; ++I) Range = FMath::Max(Range, double(Profile->RangesM[I]));
-        DrawDebugCircle(GetWorld(), Position, Range * 100, 64, FColor(30,130,255), false, -1, 0, 4, FVector(1,0,0), FVector(0,1,0), false);
+        const bool bSelected = DebugSelectedSensorIndex < 0 || DebugSelectedSensorIndex == PlacementIndex;
+        DrawDebugString(GetWorld(), Position + FVector(0,0,130),
+            FString::Printf(TEXT("%s | yaw %.0f pitch %.0f"), *Profile->Label, Placement.YawDegrees, Placement.PitchDegrees),
+            nullptr, bSelected ? FColor::Cyan : FColor(60,100,120), 0, true);
+        if (Profile->Directional.bEnabled)
+        {
+            if (!bSelected) continue;
+            DrawFrustum(GetWorld(), Position, FRotator(Placement.PitchDegrees, Placement.YawDegrees, 0),
+                Profile->Directional, FColor(45,170,255));
+            for (const auto& Drone : Manager->GetEpisodeObservation().Drones)
+            {
+                const auto Look = DetectionLook(*Profile, Placement, Drone.PositionCm, TargetSizeM, false);
+                const FColor Color = Look.bInsideFov && Look.bWithinEvaluationDistance
+                    ? (Look.bHasLineOfSight ? FColor(70,255,150) : FColor(255,95,70)) : FColor(130,135,150);
+                DrawDebugLine(GetWorld(), Position, Drone.PositionCm, Color, false, -1, 0, 1.5);
+                DrawDebugString(GetWorld(), Drone.PositionCm + FVector(0,0,80), FString::Printf(
+                    TEXT("%s | %s | %.1fm | %.2fpx | P %.3f"),
+                    Look.bInsideFov ? TEXT("IN FOV") : TEXT("OUT OF FOV"),
+                    Look.bHasLineOfSight ? TEXT("LOS") : TEXT("BLOCKED"), Look.DistanceM,
+                    Look.PixelsOnTarget, Look.DetectionProbability), nullptr, Color, 0, true);
+            }
+        }
+        else
+        {
+            double Range = 0; for (int32 I = 0; I < 4; ++I) Range = FMath::Max(Range, double(Profile->RangesM[I]));
+            DrawDebugCircle(GetWorld(), Position, Range * 100, 64, FColor(30,130,255), false, -1, 0, 4,
+                FVector(1,0,0), FVector(0,1,0), false);
+        }
     }
     DrawDebugCircle(GetWorld(), OriginWorldCm, ObjectiveRadiusM * 100, 64, FColor::Orange, false, -1, 0, 8, FVector(1,0,0), FVector(0,1,0), false);
 }

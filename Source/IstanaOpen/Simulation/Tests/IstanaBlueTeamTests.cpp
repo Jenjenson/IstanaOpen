@@ -40,11 +40,11 @@ bool FBlueLiveApproachModes::RunTest(const FString& Parameters)
     TestEqual(TEXT("Ordinary live mode preserves the map maximum"), Manager->MaxSpawnRadiusCm, 10000.);
 
     AIstanaGameMode::ConfigureBlueLiveApproach(*Manager, *Blue, false, true);
-    TestEqual(TEXT("Delayed demo minimum"), Manager->MinSpawnRadiusCm, 19000.);
-    TestEqual(TEXT("Delayed demo maximum"), Manager->MaxSpawnRadiusCm, 21000.);
+    TestEqual(TEXT("Delayed demo minimum"), Manager->MinSpawnRadiusCm, 56000.);
+    TestEqual(TEXT("Delayed demo maximum"), Manager->MaxSpawnRadiusCm, 58000.);
     TestEqual(TEXT("Delayed demo preserves height"), Manager->SpawnHeightOffsetCm, 0.);
-    TestEqual(TEXT("Delayed demo preserves the frozen temporal prior"), Blue->PriorSpawnRadiusM, 320.);
-    TestEqual(TEXT("Delayed demo preserves the frozen horizon"), Blue->TimeLimitSeconds, 96.);
+    TestEqual(TEXT("Delayed demo advertises its approach radius"), Blue->PriorSpawnRadiusM, 570.);
+    TestEqual(TEXT("Delayed demo allows physical approach time"), Blue->TimeLimitSeconds, 220.);
     double MaximumSiteRadiusM = 0, MaximumSensorRangeM = 0;
     for (const FVector2D& Site : Blue->ApprovedSitesM) MaximumSiteRadiusM = FMath::Max(MaximumSiteRadiusM, Site.Size());
     for (const FBlueSensorProfile& Profile : Blue->Catalogue)
@@ -65,6 +65,31 @@ bool FBlueLiveApproachModes::RunTest(const FString& Parameters)
     TestEqual(TEXT("Warning benchmark prior is unchanged"), Blue->PriorSpawnRadiusM, 280.);
     GEngine->DestroyWorldContext(World);
     World->DestroyWorld(false);
+    return true;
+}
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FBlueDirectionalSensorModel, "Istana.Simulation.BlueTeam.DirectionalSensorModel",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FBlueDirectionalSensorModel::RunTest(const FString& Parameters)
+{
+    FDirectionalSensorProfile Profile; Profile.bEnabled = true; Profile.ResolutionX = 640; Profile.ResolutionY = 512;
+    Profile.HorizontalFovDegrees = 24; Profile.VerticalFovDegrees = IstanaDirectionalSensor::VerticalFovFromHorizontal(24,640,512);
+    Profile.IfovMilliradians = .667; Profile.NedtMillikelvin = 20; Profile.YawBinsDegrees = {0,45}; Profile.PitchBinsDegrees = {0,10};
+    TestTrue(TEXT("Calculated VFOV follows detector aspect ratio"), FMath::IsNearlyEqual(Profile.VerticalFovDegrees, 19.31, .05));
+    const auto Near = IstanaDirectionalSensor::Evaluate(Profile, FVector::ZeroVector, FRotator::ZeroRotator,
+        FVector(10000,0,0), .5, 1, 1, 0, 0, true);
+    TestTrue(TEXT("Centred target is inside 3D frustum"), Near.bInsideFov);
+    TestTrue(TEXT("0.5m target at 100m is about 7.5 pixels"), FMath::IsNearlyEqual(Near.PixelsOnTarget, 7.5, .05));
+    TestTrue(TEXT("Probability is neither automatic nor zero"), Near.DetectionProbability > 0 && Near.DetectionProbability < 1);
+    const auto Far = IstanaDirectionalSensor::Evaluate(Profile, FVector::ZeroVector, FRotator::ZeroRotator,
+        FVector(50000,0,0), .5, 1, 1, 0, 0, true);
+    TestTrue(TEXT("0.5m target at 500m is about 1.5 pixels"), FMath::IsNearlyEqual(Far.PixelsOnTarget, 1.5, .05));
+    TestTrue(TEXT("Probability degrades with distance"), Far.DetectionProbability < Near.DetectionProbability);
+    const auto Outside = IstanaDirectionalSensor::Evaluate(Profile, FVector::ZeroVector, FRotator::ZeroRotator,
+        FRotator(0,30,0).Vector() * 10000, .5, 1, 1, 0, 0, true);
+    TestFalse(TEXT("Target outside 24 degree HFOV is rejected"), Outside.bInsideFov);
+    const auto Blocked = IstanaDirectionalSensor::Evaluate(Profile, FVector::ZeroVector, FRotator::ZeroRotator,
+        FVector(10000,0,0), .5, 1, 1, 0, 0, false);
+    TestEqual(TEXT("Blocked LOS has zero detection probability"), Blocked.DetectionProbability, 0.);
     return true;
 }
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FBlueInitialLayoutContract, "Istana.Simulation.BlueTeam.InitialLayoutContract",
@@ -117,7 +142,7 @@ bool FBlueInitialLayoutContract::RunTest(const FString& Parameters)
     {
         TestFalse(TEXT("Stepping gated before Blue commit"), Blue->CanAdvance(Error));
         auto Action = MakeShared<FJsonObject>();
-        Action->SetNumberField(TEXT("schemaVersion"), 1);
+        Action->SetNumberField(TEXT("schemaVersion"), 2);
         Action->SetStringField(TEXT("runId"), Context.RunId.ToString());
         Action->SetNumberField(TEXT("revision"), Context.Revision);
         Action->SetNumberField(TEXT("requestId"), 0);
@@ -126,12 +151,20 @@ bool FBlueInitialLayoutContract::RunTest(const FString& Parameters)
         auto Placement = MakeShared<FJsonObject>();
         Placement->SetStringField(TEXT("profileId"), TEXT("unavailable-profile"));
         Placement->SetNumberField(TEXT("siteId"), 0);
+        Placement->SetNumberField(TEXT("yawDeg"), 0);
+        Placement->SetNumberField(TEXT("pitchDeg"), 0);
         TArray<TSharedPtr<FJsonValue>> Rows;
         Rows.Add(MakeShared<FJsonValueObject>(Placement));
         Action->SetArrayField(TEXT("placements"), Rows);
         TestFalse(TEXT("Unknown profile rejected atomically"), Blue->DeployJson(*Action, Error)->GetBoolField(TEXT("accepted")));
         TestFalse(TEXT("Rejected action does not commit"), Blue->IsCommitted());
+        Placement->SetStringField(TEXT("profileId"), TEXT("thermal"));
+        Placement->SetNumberField(TEXT("yawDeg"), 13);
+        Placement->SetNumberField(TEXT("pitchDeg"), 10);
+        TestFalse(TEXT("Off-bin directional orientation rejected"), Blue->DeployJson(*Action, Error)->GetBoolField(TEXT("accepted")));
         Placement->SetStringField(TEXT("profileId"), TEXT("rf"));
+        Placement->SetNumberField(TEXT("yawDeg"), 0);
+        Placement->SetNumberField(TEXT("pitchDeg"), 0);
         const auto Accepted = Blue->DeployJson(*Action, Error);
         TestTrue(TEXT("Valid initial sensor accepted"), Accepted->GetBoolField(TEXT("accepted")));
         TestTrue(TEXT("Layout committed"), Blue->IsCommitted());

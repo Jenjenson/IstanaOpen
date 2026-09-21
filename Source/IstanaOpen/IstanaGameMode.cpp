@@ -68,12 +68,13 @@ void AIstanaGameMode::ConfigureBlueLiveApproach(ARedTeamManager& Manager, ABlueT
     }
     else if (bDelayedDetectionDemo)
     {
-        // With a 10 m swarm spread, 45 m outer sites and a 130 m maximum
-        // sensor range, the 190 m inner bound leaves at least 5 m clearance.
-        // The scripted radial demo uses the 200 m midpoint, then flies inward.
-        Manager.MinSpawnRadiusCm = 19000;
-        Manager.MaxSpawnRadiusCm = 21000;
-        UE_LOG(LogTemp, Display, TEXT("Delayed-detection demo: 190-210m Red spawn annulus; frozen Blue planner inputs unchanged."));
+        // 10 m swarm spread + 45 m outer sites + 500 m Boson evaluation
+        // boundary leaves 5 m minimum clearance at the 560 m inner bound.
+        Manager.MinSpawnRadiusCm = 56000;
+        Manager.MaxSpawnRadiusCm = 58000;
+        Coordinator.TimeLimitSeconds = 220;
+        Coordinator.PriorSpawnRadiusM = 570;
+        UE_LOG(LogTemp, Display, TEXT("Directional delayed-detection demo: 560-580m Red spawn annulus, beyond the 500m evaluation boundary."));
     }
 }
 

@@ -175,7 +175,7 @@ def test_saved_preview_deploys_exact_output_without_planning_or_red(monkeypatch,
     state = ConsoleState(planner=forbidden_plan)
     state.client = PreviewClient()
     view = state.action('preview', {'policy': 'saved-rl'})
-    assert calls == [('reset', 27), ('deploy', placements)]
+    assert calls == [('reset', 27), ('deploy', [{**placements[0], 'yawDeg': 0., 'pitchDeg': 0.}])]
     assert view['nativePreview']['image'].startswith('data:image/png;base64,')
     assert view['metrics'] is None and view['ended']
     assert not view['frames'][0]['threats']
