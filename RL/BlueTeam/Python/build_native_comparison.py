@@ -145,7 +145,7 @@ def capture(client, seed, policy, *, step_batch=20):
 
 
 def write_json(path, data):
-    Path(path).write_text(json.dumps(data, indent=2, allow_nan=False) + "\n", encoding="utf-8")
+    Path(path).write_text(json.dumps(data, indent=2, allow_nan=False) + "\n", encoding="utf-8", newline="\n")
 
 
 def main(argv=None):
