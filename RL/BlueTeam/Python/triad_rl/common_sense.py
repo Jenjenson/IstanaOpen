@@ -63,10 +63,23 @@ def plan_common_sense(public_state: Mapping, catalogue: Sequence | None = None) 
     likelihood. Scores are planning estimates, never measured detection rates.
     Existing placements are retained and consume the shared budget/site limits.
     """
-    state, catalogue = _inputs(public_state, catalogue)
+    # Native directional profiles must be scored as frustums, not as the old
+    # radial range proxy. Reuse the current public feature/legality contract;
+    # no simulator outcome or future drone path enters this fixed rule.
+    directional = any(sensor.get("directional") for sensor in (catalogue or []))
+    observe, place = build_observation, apply_placement
+    if directional:
+        from . import directional_inputs
+        catalogue = directional_inputs.validate_catalogue(catalogue)
+        state = directional_inputs.validate_public_state(public_state, catalogue)
+        if state["done"]:
+            raise ValueError("Planning snapshot is done")
+        observe, place = directional_inputs.build_observation, directional_inputs.apply_placement
+    else:
+        state, catalogue = _inputs(public_state, catalogue)
     decisions = []
     for _ in range(state["max_sites"] - len(state["placements"]) + 1):
-        observation = build_observation(state, catalogue)
+        observation = observe(state, catalogue)
         names, features = observation["feature_names"], observation["option_features"]
         column = lambda name: features[:, names.index(name)].astype(float)
         gain, coverage, overlap = (column(name) for name in
@@ -95,9 +108,12 @@ def plan_common_sense(public_state: Mapping, catalogue: Sequence | None = None) 
             row["rationale"] = {"explanation": "No legal sensor adds useful public estimated coverage."}
         row.update(action_index=int(action), reason=row["rationale"]["explanation"])
         decisions.append(row)
-        state = apply_placement(state, action, catalogue)
+        state = place(state, action, catalogue)
         if row["stop"]:
-            return _report("common_sense", decisions, state)
+            report = _report("common_sense", decisions, state)
+            if directional:
+                report["selection"]["sensor_model"] = "directional public coverage with joint type/site/yaw/pitch choices"
+            return report
     raise RuntimeError("Common-sense placement did not stop within the site limit")
 
 

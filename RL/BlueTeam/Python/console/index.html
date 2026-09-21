@@ -3,22 +3,22 @@
 <body>
 <header class="topbar"><a class="brand" href="/" aria-label="Istana console home"><span class="brand-mark">I</span><span>ISTANA<span class="brand-sub">SIMULATION LAB</span></span></a><div class="top-context">RED + BLUE <span>/</span> SENSOR PLACEMENT</div><span id="connection" class="connection"><i></i><span id="connection-label">Replay ready</span></span></header>
 <main>
- <section class="intro"><div><p class="eyebrow">Observe. Compare. Understand.</p><h1>The simulation, in view.</h1><p class="subtitle">Follow the threats. Inspect the sensing. Compare RL with your own judgement.</p></div><div class="mode-switch" role="group" aria-label="Data source"><button id="recorded-mode" aria-pressed="true">Recorded replay</button><button id="comparison-mode" aria-pressed="false">Compare placements</button><button id="live-mode" aria-pressed="false">Live Unreal</button></div></section>
+ <section class="intro"><div><p class="eyebrow">Observe. Compare. Understand.</p><h1>The simulation, in view.</h1><p class="subtitle">Follow the threats. Inspect the sensing. Compare learned sensor placement with a fixed common-sense layout.</p></div><div class="mode-switch" role="group" aria-label="Data source"><button id="recorded-mode" aria-pressed="true">Recorded replay</button><button id="comparison-mode" aria-pressed="false">Compare placements</button><button id="live-mode" aria-pressed="false">Live Unreal</button></div></section>
  <label class="check"><input id="presentation" type="checkbox"><span>Presentation view · hide performance metrics</span></label>
  <div id="error" role="alert" hidden></div>
  <section class="workspace">
   <aside class="controls">
    <div class="section-heading"><span class="section-num">01</span><h2>Episode</h2></div>
    <div id="recorded-controls">
-    <label for="profile">Scenario conditions</label><select id="profile"><option value="normal">Normal</option><option value="stress">Stress</option><option value="capability">Varied capabilities</option></select>
-    <label for="policy">Trained checkpoint</label><select id="policy"><option value="406">Temporal · seed 406</option><option value="407">Temporal · seed 407</option><option value="408">Temporal · seed 408</option></select>
-    <label for="case">Recorded case</label><select id="case"><option value="1">Case 01</option><option value="2">Case 02</option></select>
-    <p class="helper">All three checkpoints and all 18 published cases are available, including failures.</p>
+    <label id="profile-label" for="profile">Scenario conditions</label><select id="profile"><option value="normal">Normal</option><option value="stress">Stress</option><option value="capability">Varied capabilities</option></select>
+    <label id="policy-label" for="policy">Trained checkpoint</label><select id="policy"><option value="406">Temporal RL · policy A</option><option value="407">Temporal RL · policy B</option><option value="408">Temporal RL · policy C</option></select>
+    <label id="case-label" for="case">Recorded case</label><select id="case"><option value="1">Case 01</option><option value="2">Case 02</option></select>
+    <p id="episode-help" class="helper">All three checkpoints and all 18 published cases are available, including failures.</p>
    </div>
    <div id="live-controls" hidden>
     <p class="helper live-note">Connect to the compiled Istana project running with <code>-IstanaBlueLive</code>. The scene runs in Unreal; this view shows its telemetry.</p>
     <button id="connect" class="secondary full">Connect to Unreal</button>
-    <label for="live-policy">Blue planner</label><select id="live-policy"><option value="406">Temporal · seed 406</option><option value="407">Temporal · seed 407</option><option value="408">Temporal · seed 408</option><option value="greedy">Greedy · non-RL</option><option value="common_sense">Common sense · non-RL</option></select>
+    <label for="live-policy">Blue planner</label><select id="live-policy"><option value="406">Temporal RL · policy A</option><option value="407">Temporal RL · policy B</option><option value="408">Temporal RL · policy C</option><option value="greedy">Greedy · non-RL</option><option value="common_sense">Common sense · non-RL</option></select>
     <p class="helper">Greedy adds the legal sensor/site with the greatest predicted marginal return, then repeats within budget. Selection applies when you plan a new episode.</p>
     <label for="seed">Episode seed</label><input id="seed" type="number" step="1" value="12345" min="-2147483648" max="2147483647">
     <button id="plan" class="primary full" disabled>Plan new episode</button>
@@ -28,27 +28,19 @@
    </div>
    <div id="comparison-controls" hidden>
     <div class="separator"></div>
-    <label for="comparison-baseline">Compare RL against</label><select id="comparison-baseline"><option value="common_sense">Common-sense layout</option><option value="manual">My manual layout</option></select>
-    <p class="helper">Common sense is a transparent coverage heuristic, not a human study. It uses public scenario information to cover likely approaches.</p>
-    <div id="comparison-editor" hidden>
-     <label for="comparison-sensor">Sensor to place</label><select id="comparison-sensor"></select>
-     <p id="comparison-sensor-info" class="helper"></p>
-     <label for="comparison-site">Approved site</label><select id="comparison-site"></select>
-     <button id="comparison-add" class="secondary full">Add sensor</button>
-     <p id="comparison-site-help" class="helper">Choose a site above or click a site on the map. Each site holds one sensor; budget and spacing limits apply.</p>
-     <div id="comparison-placements" class="manual-placements" aria-label="Your sensor layout"></div>
-     <div class="editor-actions"><button id="comparison-suggest" class="icon-button">Use suggestion</button><button id="comparison-clear" class="icon-button">Clear layout</button></div>
-    </div>
+    <p class="eyebrow">FIXED BASELINE</p><h2>Common-sense coverage</h2>
+    <p class="helper">Favor affordable sensors, spread coverage across approaches, and avoid redundant coverage. The baseline stays fixed for each episode.</p>
     <p id="comparison-budget" class="helper"></p>
-    <details class="comparison-reasoning"><summary>How the suggestion works</summary><p id="comparison-reasoning" class="helper">Loading public scenario information…</p></details>
-    <button id="comparison-evaluate" class="primary full">Evaluate both layouts</button>
-    <p id="comparison-status" class="helper" role="status" aria-live="polite">Choose a scenario to begin.</p>
+    <details class="comparison-reasoning"><summary>How the comparison works</summary><p id="comparison-reasoning" class="helper">Loading the sensor model and evaluation details…</p></details>
+    <p id="comparison-status" class="helper" role="status" aria-live="polite">Choose an episode to begin.</p>
    </div>
+   <div id="deployment-controls">
    <div class="separator"></div>
    <div class="section-heading"><span class="section-num">02</span><h2>Blue deployment</h2><span id="sensor-count" class="count">—</span></div>
    <div id="sensors" class="sensor-list"></div>
    <div class="budget-row"><span>Deployment cost</span><strong id="cost">—</strong></div><div class="budget-track"><span id="budget-bar"></span></div><p class="helper">Synthetic catalogue units</p>
    <div class="separator"></div>
+   </div>
    <div class="layer-heading">Map layers</div>
    <label class="check"><input id="ranges" type="checkbox" checked><span>Sensor FOV / ranges</span></label>
    <label class="check"><input id="trails" type="checkbox" checked><span>Threat paths</span></label>
@@ -58,13 +50,26 @@
   <section class="stage" aria-label="Simulation viewer">
    <div class="stage-header"><div><span id="source-badge" class="source-badge">RECORDED</span><h2 id="episode-title">Loading episode…</h2></div><div class="stage-clock"><span>SIMULATION TIME</span><strong id="clock">00:00.0</strong></div></div>
    <section id="comparison-panel" class="comparison-panel" aria-label="Placement comparison" hidden>
-    <div class="comparison-heading"><div><h2>RL and everyday judgement</h2><p id="comparison-fairness" class="helper">Build a layout before revealing adversary paths. No Unreal connection needed.</p></div><span id="comparison-tag" class="source-badge">LAYOUT PREVIEW</span></div>
-    <details class="comparison-brief" open><summary>Public planning brief · forecast, not future paths</summary><p id="comparison-forecast" class="helper">Loading scenario information…</p><p id="comparison-weather" class="helper"></p><p id="comparison-reports" class="helper"></p></details>
-    <div class="comparison-results"><table><caption class="sr-only">Final sensing results for the same recorded scenario</caption><thead><tr><th scope="col">Final results</th><th scope="col">Reinforcement learning</th><th scope="col" id="comparison-baseline-heading">Common-sense heuristic</th></tr></thead><tbody><tr><th scope="row">Adversaries detected</th><td id="comparison-rl-detected">—</td><td id="comparison-baseline-detected">—</td></tr><tr><th scope="row">Confirmed tracks</th><td id="comparison-rl-confirmed">—</td><td id="comparison-baseline-confirmed">—</td></tr><tr><th scope="row">Timely confirmations</th><td id="comparison-rl-timely">—</td><td id="comparison-baseline-timely">—</td></tr><tr><th scope="row">Deployment cost</th><td id="comparison-rl-cost">—</td><td id="comparison-baseline-cost">—</td></tr></tbody></table><p id="comparison-verdict" class="helper">Evaluate both layouts to see their results.</p></div>
-    <div class="comparison-map-controls"><span>Map shows</span><div role="group" aria-label="Layout shown on shared replay timeline"><button id="comparison-show-rl" aria-pressed="false" disabled>RL layout</button><button id="comparison-show-baseline" aria-pressed="true" disabled>Common sense</button></div><span id="comparison-timeline-note">Suggested layout · paths hidden</span></div>
+    <div class="comparison-heading"><div><h2>Reinforcement learning vs common sense</h2><p id="comparison-fairness" class="helper">Two layouts. The same adversaries, sensor model and deployment limits.</p></div><span id="comparison-tag" class="source-badge">NATIVE EVALUATION</span></div>
+    <div class="comparison-map-grid">
+     <article class="comparison-map-card"><div class="comparison-map-title"><h3 id="comparison-rl-label">Reinforcement learning</h3><span id="comparison-rl-layout" class="helper">Loading layout…</span></div><div class="comparison-map-surface"><canvas id="comparison-map-rl" role="img" aria-label="Reinforcement learning sensor layout and threat movement"></canvas></div><div id="comparison-rl-now" class="comparison-now">Awaiting episode</div></article>
+     <article class="comparison-map-card baseline-card"><div class="comparison-map-title"><h3>Common-sense coverage</h3><span id="comparison-baseline-layout" class="helper">Loading layout…</span></div><div class="comparison-map-surface"><canvas id="comparison-map-baseline" role="img" aria-label="Fixed common-sense sensor layout and threat movement"></canvas></div><div id="comparison-baseline-now" class="comparison-now">Awaiting episode</div></article>
+    </div>
+    <div class="comparison-legend"><span><i class="key-threat"></i>Adversary</span><span><i class="key-sensor"></i>Sensor</span><span><i class="key-detected"></i>Detection / track</span><span><i class="key-zone"></i>Objective</span><span id="comparison-timeline-note">Both maps share the playback time and map scale.</span></div>
+    <div id="comparison-results" class="comparison-results"><table><caption>Final episode results <span>RL difference = RL − common sense</span></caption><thead><tr><th scope="col">Metric</th><th scope="col">RL</th><th scope="col">Common sense</th><th scope="col">RL difference</th></tr></thead><tbody>
+     <tr><th scope="row">Adversaries detected</th><td id="comparison-rl-detected">—</td><td id="comparison-baseline-detected">—</td><td id="comparison-delta-detected">—</td></tr>
+     <tr><th scope="row">Confirmed tracks</th><td id="comparison-rl-confirmed">—</td><td id="comparison-baseline-confirmed">—</td><td id="comparison-delta-confirmed">—</td></tr>
+     <tr><th scope="row">Timely confirmations</th><td id="comparison-rl-timely">—</td><td id="comparison-baseline-timely">—</td><td id="comparison-delta-timely">—</td></tr>
+     <tr><th scope="row">First detection in episode</th><td id="comparison-rl-first-detection">—</td><td id="comparison-baseline-first-detection">—</td><td id="comparison-delta-first-detection">—</td></tr>
+     <tr><th scope="row">Mean first detection <small>Adversaries detected by both</small></th><td id="comparison-rl-detection-time">—</td><td id="comparison-baseline-detection-time">—</td><td id="comparison-delta-detection-time">—</td></tr>
+     <tr><th scope="row">Mean confirmation <small>Adversaries confirmed by both</small></th><td id="comparison-rl-confirmation-time">—</td><td id="comparison-baseline-confirmation-time">—</td><td id="comparison-delta-confirmation-time">—</td></tr>
+     <tr><th scope="row">Mean warning time <small>All adversaries; missed detections count as zero</small></th><td id="comparison-rl-warning">—</td><td id="comparison-baseline-warning">—</td><td id="comparison-delta-warning">—</td></tr>
+     <tr><th scope="row">Deployment cost</th><td id="comparison-rl-cost">—</td><td id="comparison-baseline-cost">—</td><td id="comparison-delta-cost">—</td></tr>
+    </tbody></table><p id="comparison-verdict" class="comparison-verdict">Select an episode to see the comparison.</p><p id="comparison-timing-note" class="helper"></p></div>
+    <details class="comparison-brief"><summary>Episode and sensor details</summary><p id="comparison-forecast" class="helper"></p><p id="comparison-weather" class="helper"></p><p id="comparison-reports" class="helper"></p></details>
    </section>
-   <div class="map-container"><canvas id="map" role="img" aria-label="Top-down view of sensor positions, coverage and drone movement"></canvas><div class="map-label"><span class="crosshair">+</span><span id="coordinates">Objective-relative metres</span></div><div id="empty" hidden><h3>Connect your Unreal scene</h3><p>Build the integration and launch Istana with<br><code>-IstanaBlueLive</code>, then connect from the left panel.</p><span>Recorded replays are available now.</span></div><div class="map-key"><span><i class="key-threat"></i>Red threat</span><span><i class="key-sensor"></i>Blue sensor</span><span><i class="key-detected"></i>Detected / track</span><span><i class="key-zone"></i>Objective</span></div></div>
-   <div class="transport"><button id="play" class="primary">Play replay</button><button id="step" class="icon-button" aria-label="Advance one frame">Step →</button><button id="restart" class="icon-button">Restart</button><div class="scrubber"><label class="sr-only" for="timeline">Replay timeline</label><input id="timeline" type="range" min="0" max="1" value="0"><span id="progress">0 / 0 frames</span></div><label class="speed-label" for="speed">Speed<select id="speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select></label></div>
+   <div id="single-map-container" class="map-container"><canvas id="map" role="img" aria-label="Top-down view of sensor positions, coverage and drone movement"></canvas><div class="map-label"><span class="crosshair">+</span><span id="coordinates">Objective-relative metres</span></div><div id="empty" hidden><h3>Connect your Unreal scene</h3><p>Build the integration and launch Istana with<br><code>-IstanaBlueLive</code>, then connect from the left panel.</p><span>Recorded replays are available now.</span></div><div class="map-key"><span><i class="key-threat"></i>Red threat</span><span><i class="key-sensor"></i>Blue sensor</span><span><i class="key-detected"></i>Detected / track</span><span><i class="key-zone"></i>Objective</span></div></div>
+   <div id="transport" class="transport"><button id="play" class="primary">Play replay</button><button id="step" class="icon-button" aria-label="Advance one frame">Step →</button><button id="restart" class="icon-button">Restart</button><div class="scrubber"><label class="sr-only" for="timeline">Replay timeline</label><input id="timeline" type="range" min="0" max="1" value="0"><span id="progress">0 / 0 frames</span></div><label class="speed-label" for="speed">Speed<select id="speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select></label></div>
    <div class="telemetry"><div><span id="threats-label">Threats</span><strong id="threat-count">—</strong></div><div><span id="detected-label">Detected so far</span><strong id="detected-count">—</strong></div><div><span>Confirmed tracks</span><strong id="confirmed-count">—</strong></div><div><span id="outcome-label">Recorded final result</span><strong id="outcome">—</strong></div></div>
   </section>
  </section>

@@ -1,0 +1,64 @@
+{
+  "schema": "istana.native_comparison_capture.v1",
+  "createdUtc": "2026-09-21T17:41:44.897479+00:00",
+  "baseCommit": "edfdf04425e5fcc4727d48340c71d394c6ad42b5",
+  "sourceSha256": {
+    "RL/BlueTeam/Python/build_native_comparison.py": "30af820e9b283db64e8c67d5897ee89d1de410c7b24e08d00f010b32ee76a18d",
+    "RL/BlueTeam/Python/train_warning_live.py": "ffb4bd12045c8a732ddc23de1c28f2fe57fe5d14cddd49e501bf6403897bddeb",
+    "RL/BlueTeam/Python/triad_rl/istana_live.py": "93722ec7b2722103e5a3840b7e4896afa385c030455df78fdefce79bd78c8677",
+    "RL/BlueTeam/Python/triad_rl/common_sense.py": "9d04c60addbd03c2ec5267995de6f08c98e661ca2ce6d28862afa488c1b98c36",
+    "RL/BlueTeam/Python/triad_rl/directional_inputs.py": "43e650e4286ebcb8eb3d7cf556d378a34ead606452666957adbaee5d77219271",
+    "RL/BlueTeam/Python/triad_rl/temporal_policy.py": "55c48c66cc6c8f11efd02e65b42cbb6b37c4933fb5d1c2220dc1b734f908b140",
+    "Source/IstanaOpen/IstanaGameMode.cpp": "762002d44e3476be9bb95570160302f8677a63b853c83bf780b200629050b4ce",
+    "Source/IstanaOpen/Simulation/BlueTeam/BlueTeamCoordinator.cpp": "48697c678529d14324de980861697020f24af5dcf075e158e4ed0d18556b2a2a",
+    "Source/IstanaOpen/Simulation/BlueTeam/BlueWarningTime.h": "55fe61b66379623756fa471dfb8913d4382ce7535ac2b9c4dd76c5fea4c5f90b",
+    "Source/IstanaOpen/Simulation/RedTeam/RedTeamManager.cpp": "8842f0d253322f376b8d9bf565750e5c1960f976bfeb82a4e31159dc37589bd5",
+    "Source/IstanaOpen/Simulation/Swarm/IstanaSwarmSimulation.cpp": "8519c329626e37f2ef88474858213a8528215a9d24d1221569d3a8ed26dae624",
+    "Source/IstanaOpen/Simulation/Sensing/DirectionalSensorModel.cpp": "6a614eea5040c96e75273e6377bf5486fb340c83c79eb5bfa36f6d420720feb1",
+    "Source/IstanaOpen/Simulation/Sensing/DirectionalSensorModel.h": "f44b285565c0eaaf2217453775dc0e705cfdb302c45f840ce4557dcc81afb62f"
+  },
+  "nativeSourceSha256": {
+    "Source/IstanaOpen/IstanaGameMode.cpp": "762002d44e3476be9bb95570160302f8677a63b853c83bf780b200629050b4ce",
+    "Source/IstanaOpen/Simulation/BlueTeam/BlueTeamCoordinator.cpp": "345203fb154a2391c01d221207806ad6ca6bde182ed9cec7661727db51f7d2f9",
+    "Source/IstanaOpen/Simulation/BlueTeam/BlueWarningTime.h": "55fe61b66379623756fa471dfb8913d4382ce7535ac2b9c4dd76c5fea4c5f90b",
+    "Source/IstanaOpen/Simulation/RedTeam/RedTeamManager.cpp": "8842f0d253322f376b8d9bf565750e5c1960f976bfeb82a4e31159dc37589bd5",
+    "Source/IstanaOpen/Simulation/Swarm/IstanaSwarmSimulation.cpp": "8519c329626e37f2ef88474858213a8528215a9d24d1221569d3a8ed26dae624",
+    "Source/IstanaOpen/Simulation/Sensing/DirectionalSensorModel.cpp": "6a614eea5040c96e75273e6377bf5486fb340c83c79eb5bfa36f6d420720feb1",
+    "Source/IstanaOpen/Simulation/Sensing/DirectionalSensorModel.h": "f44b285565c0eaaf2217453775dc0e705cfdb302c45f840ce4557dcc81afb62f"
+  },
+  "nativeBinarySha256": "3f31a0ff551a04f3234a85c111187d6ec5b49fcc9a3828f6a61f6e0056185fc3",
+  "nativeRuntimeNote": "Compiled Training workbench checkout. Native sensing, movement, map and default configuration match the merged sensor model. Additional optional training reset configuration is not used.",
+  "nativeLaunchFlags": [
+    "/Game/Maps/Istana",
+    "-game",
+    "-IstanaBlueLive",
+    "-nullrhi",
+    "-unattended"
+  ],
+  "episodeSeeds": [
+    2800001,
+    2800002,
+    2800003
+  ],
+  "captureStepBatch": 20,
+  "redPolicy": "Seeded rotation of equally spaced swarm centers; current native scripted objective-following movement. No learned Red placement or self-play is claimed.",
+  "bluePolicy": "Published temporal RL policies with the merged public-prior directional orientation adapter; type/site choices are learned, orientations are not learned.",
+  "baseline": "Fixed affordable coverage rule; same baseline layout for all policies and episodes sharing this public context.",
+  "selection": "Three scenario seeds fixed before evaluation; all three published RL policies retained, irrespective of outcome.",
+  "warningDefinition": "Per-drone max(0, zone entry - first detection), undetected contributes zero; unresolved entries are reported separately.",
+  "sensingDrawRule": "Native indexed Uniform(episode seed, drone ID, site ID, sensing look, salt); independent of layout order and step batching.",
+  "checkpointSha256": {
+    "406": {
+      "checkpoint.json": "1aa89bf59a9f7b9c51b428ce5a893269b4646f69eb53b5175258f94b2f86f884",
+      "arrays.npz": "e2a47d324aaf39c098b1550a53a0ad0aff46ace01fb9bea6e101f3ee54758648"
+    },
+    "407": {
+      "checkpoint.json": "fa059b0db250e60febe1826d5d3ac86a44fa2354fa433ff026a81cf0c684cd14",
+      "arrays.npz": "e96a41ff20e267448ded7a8bf0d3d51ce12d1b30949432735a496f6988f2ec88"
+    },
+    "408": {
+      "checkpoint.json": "be6a29b8e2a38bf3ebe605d8c693ce119cde41b2ec1afff3615acbd0a1437ae7",
+      "arrays.npz": "9eb768da011a0e3757e572b05780f1466640f58bb9cc610125e6b11e21042891"
+    }
+  }
+}
