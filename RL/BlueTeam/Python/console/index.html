@@ -12,8 +12,8 @@
    <div id="recorded-controls">
     <label for="profile">Scenario conditions</label><select id="profile"><option value="normal">Normal</option><option value="stress">Stress</option><option value="capability">Varied capabilities</option></select>
     <label for="policy">Trained checkpoint</label><select id="policy"><option value="406">Temporal · seed 406</option><option value="407">Temporal · seed 407</option><option value="408">Temporal · seed 408</option></select>
-    <label for="case">Recorded case</label><select id="case"><option value="1">Case 01</option><option value="2">Case 02</option></select>
-    <p class="helper">All three checkpoints and all 18 published cases are available, including failures.</p>
+    <label id="case-label" for="case">Recorded case</label><select id="case"><option value="1">Case 01</option><option value="2">Case 02</option></select>
+    <p id="case-help" class="helper">All three checkpoints and all 18 published cases are available, including failures.</p>
    </div>
    <div id="live-controls" hidden>
     <p class="helper live-note">Connect to the compiled Istana project running with <code>-IstanaBlueLive</code>. The scene runs in Unreal; this view shows its telemetry.</p>
@@ -28,26 +28,17 @@
    </div>
    <div id="comparison-controls" hidden>
     <div class="separator"></div>
+    <label for="comparison-population">Swarm size</label><select id="comparison-population"><option value="60" selected>Large swarm · 60 drones</option><option value="8">Training range · 8 drones</option><option value="archived">Original recorded swarm</option></select>
+    <p id="comparison-population-help" class="helper">Larger stress demo. These Temporal models trained with 1–8 drones; the documented native setup used 60.</p>
     <label for="comparison-baseline">Compare RL against</label><select id="comparison-baseline"><option value="common_sense">Common-sense layout</option><option value="manual">My manual layout</option></select>
     <p class="helper">Common sense is a transparent coverage heuristic, not a human study. It uses public scenario information to cover likely approaches.</p>
-    <div id="comparison-editor" hidden>
-     <label for="comparison-sensor">Sensor to place</label><select id="comparison-sensor"></select>
-     <p id="comparison-sensor-info" class="helper"></p>
-     <label for="comparison-site">Approved site</label><select id="comparison-site"></select>
-     <button id="comparison-add" class="secondary full">Add sensor</button>
-     <p id="comparison-site-help" class="helper">Choose a site above or click a site on the map. Each site holds one sensor; budget and spacing limits apply.</p>
-     <div id="comparison-placements" class="manual-placements" aria-label="Your sensor layout"></div>
-     <div class="editor-actions"><button id="comparison-suggest" class="icon-button">Use suggestion</button><button id="comparison-clear" class="icon-button">Clear layout</button></div>
-    </div>
-    <p id="comparison-budget" class="helper"></p>
+    <button id="comparison-jump-map" class="secondary full" hidden>Build my layout on the map ↓</button>
     <details class="comparison-reasoning"><summary>How the suggestion works</summary><p id="comparison-reasoning" class="helper">Loading public scenario information…</p></details>
-    <button id="comparison-evaluate" class="primary full">Evaluate both layouts</button>
-    <p id="comparison-status" class="helper" role="status" aria-live="polite">Choose a scenario to begin.</p>
    </div>
    <div class="separator"></div>
    <div class="section-heading"><span class="section-num">02</span><h2>Blue deployment</h2><span id="sensor-count" class="count">—</span></div>
    <div id="sensors" class="sensor-list"></div>
-   <div class="budget-row"><span>Deployment cost</span><strong id="cost">—</strong></div><div class="budget-track"><span id="budget-bar"></span></div><p class="helper">Synthetic catalogue units</p>
+   <div class="budget-row"><span>Deployment cost</span><strong id="cost">—</strong></div><div class="budget-track"><span id="budget-bar"></span></div><p id="budget-help" class="helper">Synthetic catalogue units</p>
    <div class="separator"></div>
    <div class="layer-heading">Map layers</div>
    <label class="check"><input id="ranges" type="checkbox" checked><span>Sensor ranges</span></label>
@@ -58,12 +49,23 @@
   <section class="stage" aria-label="Simulation viewer">
    <div class="stage-header"><div><span id="source-badge" class="source-badge">RECORDED</span><h2 id="episode-title">Loading episode…</h2></div><div class="stage-clock"><span>SIMULATION TIME</span><strong id="clock">00:00.0</strong></div></div>
    <section id="comparison-panel" class="comparison-panel" aria-label="Placement comparison" hidden>
-    <div class="comparison-heading"><div><h2>RL and everyday judgement</h2><p id="comparison-fairness" class="helper">Build a layout before revealing adversary paths. No Unreal connection needed.</p></div><span id="comparison-tag" class="source-badge">LAYOUT PREVIEW</span></div>
-    <details class="comparison-brief" open><summary>Public planning brief · forecast, not future paths</summary><p id="comparison-forecast" class="helper">Loading scenario information…</p><p id="comparison-weather" class="helper"></p><p id="comparison-reports" class="helper"></p></details>
-    <div class="comparison-results"><table><caption class="sr-only">Final sensing results for the same recorded scenario</caption><thead><tr><th scope="col">Final results</th><th scope="col">Reinforcement learning</th><th scope="col" id="comparison-baseline-heading">Common-sense heuristic</th></tr></thead><tbody><tr><th scope="row">Adversaries detected</th><td id="comparison-rl-detected">—</td><td id="comparison-baseline-detected">—</td></tr><tr><th scope="row">Confirmed tracks</th><td id="comparison-rl-confirmed">—</td><td id="comparison-baseline-confirmed">—</td></tr><tr><th scope="row">Timely confirmations</th><td id="comparison-rl-timely">—</td><td id="comparison-baseline-timely">—</td></tr><tr><th scope="row">Deployment cost</th><td id="comparison-rl-cost">—</td><td id="comparison-baseline-cost">—</td></tr></tbody></table><p id="comparison-verdict" class="helper">Evaluate both layouts to see their results.</p></div>
+    <div class="comparison-heading"><div><h2>RL and everyday judgement</h2><p id="comparison-population-summary" class="helper"></p><p id="comparison-fairness" class="helper">Build a layout before revealing adversary paths. No Unreal connection needed.</p></div><span id="comparison-tag" class="source-badge">LAYOUT PREVIEW</span></div>
+    <details class="comparison-brief"><summary>Public planning brief · forecast, not future paths</summary><p id="comparison-forecast" class="helper">Loading scenario information…</p><p id="comparison-weather" class="helper"></p><p id="comparison-reports" class="helper"></p></details>
+    <div class="comparison-results"><table><caption class="sr-only">Final sensing results for the same matched scenario</caption><thead><tr><th scope="col">Final results</th><th scope="col">Reinforcement learning</th><th scope="col" id="comparison-baseline-heading">Common-sense heuristic</th></tr></thead><tbody><tr><th scope="row">Adversaries detected</th><td id="comparison-rl-detected">—</td><td id="comparison-baseline-detected">—</td></tr><tr><th scope="row">Confirmed tracks</th><td id="comparison-rl-confirmed">—</td><td id="comparison-baseline-confirmed">—</td></tr><tr><th scope="row">Timely confirmations</th><td id="comparison-rl-timely">—</td><td id="comparison-baseline-timely">—</td></tr><tr><th scope="row">Deployment cost</th><td id="comparison-rl-cost">—</td><td id="comparison-baseline-cost">—</td></tr></tbody></table><p id="comparison-verdict" class="helper">Evaluate both layouts to see their results.</p></div>
     <div class="comparison-map-controls"><span>Map shows</span><div role="group" aria-label="Layout shown on shared replay timeline"><button id="comparison-show-rl" aria-pressed="false" disabled>RL layout</button><button id="comparison-show-baseline" aria-pressed="true" disabled>Common sense</button></div><span id="comparison-timeline-note">Suggested layout · paths hidden</span></div>
    </section>
+   <section id="comparison-editor" class="map-editor" aria-label="Build your sensor layout" hidden>
+    <div class="map-editor-heading"><div><h2>Choose a sensor, then click the map</h2><p class="helper">Click or tap in the shaded deployment area. We snap to the nearest available position and handle spacing for you.</p></div><div class="map-tools" role="group" aria-label="Map editing tool"><button id="comparison-tool-add" aria-pressed="true">Place sensor</button><button id="comparison-tool-remove" aria-pressed="false">Remove</button><button id="comparison-undo" disabled>Undo</button><button id="comparison-zoom">Full scene</button></div></div>
+    <div id="comparison-palette" class="sensor-palette" role="group" aria-label="Choose a sensor to place"></div>
+    <p id="comparison-sensor-info" class="helper"></p>
+    <div class="editor-budget"><strong id="comparison-budget"></strong><div class="budget-track"><span id="comparison-editor-budget-bar"></span></div></div>
+    <p id="comparison-map-hint" class="map-edit-hint" role="status" aria-live="polite">Select a sensor above, then click or tap the map.</p>
+    <details class="keyboard-placement"><summary>Keyboard placement</summary><div class="keyboard-placement-fields"><div><label for="comparison-sensor">Sensor</label><select id="comparison-sensor"></select></div><div><label for="comparison-site">Available position</label><select id="comparison-site"></select></div><button id="comparison-add" class="secondary">Place at this position</button></div><p id="comparison-site-help" class="helper">Available positions match the dots on the map. Budget and spacing are handled automatically.</p></details>
+    <div id="comparison-placements" class="manual-placements" aria-label="Your sensor layout"></div>
+    <div class="editor-actions"><button id="comparison-suggest" class="icon-button">Use common-sense suggestion</button><button id="comparison-clear" class="icon-button">Clear layout</button></div>
+   </section>
    <div class="map-container"><canvas id="map" role="img" aria-label="Top-down view of sensor positions, coverage and drone movement"></canvas><div class="map-label"><span class="crosshair">+</span><span id="coordinates">Objective-relative metres</span></div><div id="empty" hidden><h3>Connect your Unreal scene</h3><p>Build the integration and launch Istana with<br><code>-IstanaBlueLive</code>, then connect from the left panel.</p><span>Recorded replays are available now.</span></div><div class="map-key"><span><i class="key-threat"></i>Red threat</span><span><i class="key-sensor"></i>Blue sensor</span><span><i class="key-detected"></i>Detected / track</span><span><i class="key-zone"></i>Objective</span></div></div>
+   <div id="comparison-actions" class="comparison-actions" hidden><button id="comparison-evaluate" class="primary">Evaluate both layouts</button><button id="comparison-edit" class="secondary" hidden>Edit my layout</button><p id="comparison-status" class="helper" role="status" aria-live="polite">Choose a scenario to begin.</p></div>
    <div class="transport"><button id="play" class="primary">Play replay</button><button id="step" class="icon-button" aria-label="Advance one frame">Step →</button><button id="restart" class="icon-button">Restart</button><div class="scrubber"><label class="sr-only" for="timeline">Replay timeline</label><input id="timeline" type="range" min="0" max="1" value="0"><span id="progress">0 / 0 frames</span></div><label class="speed-label" for="speed">Speed<select id="speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option><option value="4">4×</option></select></label></div>
    <div class="telemetry"><div><span id="threats-label">Threats</span><strong id="threat-count">—</strong></div><div><span id="detected-label">Detected so far</span><strong id="detected-count">—</strong></div><div><span>Confirmed tracks</span><strong id="confirmed-count">—</strong></div><div><span id="outcome-label">Recorded final result</span><strong id="outcome">—</strong></div></div>
   </section>

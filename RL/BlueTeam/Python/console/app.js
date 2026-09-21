@@ -3,7 +3,7 @@ const $ = id => document.getElementById(id);
 let token='', catalog=[], view=null, frameIndex=0, mode='recorded', playing=false, busy=false, busyOperation='', connected=false;
 let elapsed=0, lastWall=0, liveWall=0, loadSequence=0;
 let nativeImage=null, eventSignature='';
-const comparison={scenario:null,result:null,placements:[],method:'baseline',loading:false,replayId:null,mapTransform:null,sequence:0,revealed:false};
+const comparison={scenario:null,result:null,placements:[],method:'baseline',loading:false,replayId:null,mapTransform:null,sequence:0,revealed:false,tool:'add',hover:null,history:[],manualDraft:[],mapZoom:'placement'};
 const fmt=(v,n=1)=>Number.isFinite(v)?v.toFixed(n):'—';
 const pct=v=>Number.isFinite(v)?`${Math.round(v*100)}%`:'—';
 function warningText(value){
@@ -53,12 +53,13 @@ function sensorDetails(){
  for(const [i,p] of (view?.placements||[]).entries()){
   const c=view.catalogue.find(c=>c.id===p.sensor_id)||{};
   const row=element('div','','sensor-row'),symbol=element('span',String(i+1).padStart(2,'0'),'sensor-symbol');
-  const text=element('div','');text.append(element('strong',c.label||p.sensor_id),element('small',`${fmt(p.position[0],0)}, ${fmt(p.position[1],0)} m · ${fmt(c.cost)} units`));row.append(symbol,text);$('sensors').append(row);
+  const text=element('div','');text.append(element('strong',c.label||p.sensor_id),element('small',mode==='comparison'?`${pct(c.cost/view.budget)} of budget`:`${fmt(p.position[0],0)}, ${fmt(p.position[1],0)} m · ${fmt(c.cost)} units`));row.append(symbol,text);$('sensors').append(row);
  }
- if(!view?.placements.length)$('sensors').append(element('p',view?'Policy chose STOP. No sensors.':'No layout committed.','helper'));
+ if(!view?.placements.length)$('sensors').append(element('p',comparisonEditing()?'Click the map to place your first sensor.':view?'Policy chose STOP. No sensors.':'No layout committed.','helper'));
+ $('budget-help').textContent=mode==='comparison'?'Budget and spacing are handled automatically.':'Synthetic catalogue units';
  $('sensor-count').textContent=view?view.placements.length:'—';
  const cost=view?.placements.reduce((sum,p)=>sum+(p.cost??view.catalogue.find(c=>c.id===p.sensor_id)?.cost??0),0)||0;
- $('cost').textContent=view?`${fmt(cost)} / ${fmt(view.budget)}`:'—';$('budget-bar').style.width=`${view?Math.min(100,cost/view.budget*100):0}%`;
+ $('cost').textContent=view?(mode==='comparison'?`${pct(cost/view.budget)} used`:`${fmt(cost)} / ${fmt(view.budget)}`):'—';$('budget-bar').style.width=`${view?Math.min(100,cost/view.budget*100):0}%`;
 }
 function results(){
  const m=view?.metrics;$('result-detected').textContent=pct(m?.detected_fraction);$('result-confirmed').textContent=pct(m?.confirmed_fraction);
@@ -69,7 +70,7 @@ function results(){
  $('results-tag').textContent=mode==='recorded'?'RECORDED FINAL':mode==='comparison'?(m?'RESCORED FINAL':'LAYOUT PREVIEW'):m?'MEASURED FINAL':'AWAITING EPISODE END';
  $('outcome-label').textContent=mode==='recorded'?'Recorded final result':mode==='comparison'?'Rescored final result':'Episode status';
  $('detected-label').textContent=mode!=='live'?'Detected so far':'Public tracks';
- $('result-note').textContent=mode==='recorded'?'Synthetic sensing outcomes. Timely confirmation means detection before the deadline; no interception is simulated. Warning is unavailable when the replay does not contain the exact metric.':mode==='comparison'?'Matched synthetic sensing outcomes. Both layouts use the same archived scenario and sensing draws. Timely confirmation is before the objective-zone deadline; no interception is simulated.':'Live metrics appear when the native episode ends. Synthetic analytical sensors; terrain occlusion is not modeled. Warning values are measured lower bounds from detection to 20 m objective-zone arrival.';
+ $('result-note').textContent=mode==='recorded'?'Synthetic sensing outcomes. Timely confirmation means detection before the deadline; no interception is simulated. Warning is unavailable when the replay does not contain the exact metric.':mode==='comparison'?'Matched synthetic sensing outcomes. Both layouts use the same scenario and sensing draws. Timely confirmation is before the objective-zone deadline; no interception is simulated.':'Live metrics appear when the native episode ends. Synthetic analytical sensors; terrain occlusion is not modeled. Warning values are measured lower bounds from detection to 20 m objective-zone arrival.';
 }
 function setView(data){view=data;nativeImage=null;eventSignature='';if(data.nativePreview){const image=new Image();image.onload=()=>{if(view===data){nativeImage=image;render();}};image.src=data.nativePreview.image;}$('map').setAttribute('aria-label',data.nativePreview?'Native Unreal sensor placement preview':'Top-down simulation view');document.body.classList.toggle('native-preview',Boolean(data.nativePreview));frameIndex=0;elapsed=0;$('empty').hidden=true;syncTimeline();$('episode-title').textContent=view.label;$('coordinates').textContent=view.coordinateLabel;sensorDetails();results();render();controls();}
 async function loadReplay(){
@@ -82,9 +83,10 @@ async function switchMode(next){
  pause();mode=next;++loadSequence;showError('');
  for(const id of ['recorded','live','comparison'])$(id+'-mode').setAttribute('aria-pressed',String(mode===id));
  document.body.classList.toggle('comparison-mode',mode==='comparison');
- $('recorded-controls').hidden=mode==='live';$('live-controls').hidden=mode!=='live';$('comparison-controls').hidden=mode!=='comparison';$('comparison-panel').hidden=mode!=='comparison';
+ $('recorded-controls').hidden=mode==='live';$('live-controls').hidden=mode!=='live';$('comparison-controls').hidden=mode!=='comparison';$('comparison-panel').hidden=mode!=='comparison';$('comparison-actions').hidden=mode!=='comparison';
  $('source-badge').textContent=mode==='recorded'?'RECORDED · SYNTHETIC':mode==='comparison'?'COMPARISON · SYNTHETIC':'LIVE UNREAL · SYNTHETIC';
- $('provenance').textContent=mode==='recorded'?'Published temporal-v6 evidence · 18 recorded cases':mode==='comparison'?'Matched synthetic evaluation · archived scenarios and RL layouts':'Local Unreal bridge · scripted Red · experimental Blue';
+ $('provenance').textContent=mode==='recorded'?'Published temporal-v6 evidence · 18 recorded cases':mode==='comparison'?comparisonPopulationLabel():'Local Unreal bridge · scripted Red · experimental Blue';
+ comparisonEpisodeLabels();
  if(mode==='recorded')await loadReplay();else if(mode==='comparison')await loadComparisonScenario();else{view=null;$('empty').hidden=false;$('episode-title').textContent='Awaiting live episode';$('clock').textContent='00:00.0';$('progress').textContent='Fixed-step simulation';sensorDetails();results();render();controls();}
  connectionStatus();
 }
@@ -120,11 +122,11 @@ function draw(frame){
  const pixelWidth=Math.max(1,Math.round(bounds.width*dpr)),pixelHeight=Math.max(1,Math.round(bounds.height*dpr));
  if(canvas.width!==pixelWidth||canvas.height!==pixelHeight){canvas.width=pixelWidth;canvas.height=pixelHeight;}
  const ctx=canvas.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);
- const w=bounds.width,h=bounds.height;ctx.fillStyle='#0b141e';ctx.fillRect(0,0,w,h);
+ const w=bounds.width,h=bounds.height,editing=comparisonEditing();ctx.fillStyle='#0b141e';ctx.fillRect(0,0,w,h);
  if(view?.nativePreview){if(nativeImage){const s=Math.min(w/1920,h/1080),ox=(w-1920*s)/2,oy=(h-1080*s)/2;ctx.drawImage(nativeImage,ox,oy,1920*s,1080*s);for(const a of view.nativePreview.anchors){const x=ox+a.x*s,y=oy+a.y*s;ctx.strokeStyle='#9fffe3';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x,y+2,12,6,0,0,Math.PI*2);ctx.stroke();ctx.font='12px Segoe UI';ctx.fillStyle='#ccfff0';ctx.fillText('Sensor',x+16,y-10);}}return;}
  const pts=view?view.frames.flatMap(f=>f.threats.map(t=>t.position)).concat(view.placements.map(p=>p.position),mode==='comparison'?view.sites||[]:[]):[];
- if(mode==='comparison'&&!comparison.result)for(const track of frame?.tracks||[])pts.push(track.position);
- let extent=120;for(const p of pts)extent=Math.max(extent,Math.abs(p[0]),Math.abs(p[1]));extent*=1.25;
+ if(mode==='comparison'&&!comparison.result&&(!editing||comparison.mapZoom==='full'))for(const track of frame?.tracks||[])pts.push(track.position);
+ let extent=editing&&comparison.mapZoom==='placement'?Math.max(120,comparisonDeploymentRadii().max):120;for(const p of pts)extent=Math.max(extent,Math.abs(p[0]),Math.abs(p[1]));extent*=1.25;
  const scale=Math.min(w-70,h-105)/(extent*2),cx=w/2,cy=h/2+1;
  const xy=p=>[cx+p[0]*scale,cy-p[1]*scale];
  comparison.mapTransform=mode==='comparison'?{cx,cy,scale}:null;
@@ -132,26 +134,27 @@ function draw(frame){
  const circle=(p,r,fill,stroke)=>{ctx.beginPath();ctx.arc(...p,r,0,Math.PI*2);if(fill){ctx.fillStyle=fill;ctx.fill();}if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=1;ctx.stroke();}};
  const label=(txt,x,y,color='#8399ae',align='left')=>{ctx.fillStyle=color;ctx.font='10px Consolas,monospace';ctx.textAlign=align;ctx.fillText(txt,x,y);};
  const interval=extent>300?100:50;
- for(let m=-Math.floor(extent/interval)*interval;m<=extent;m+=interval){const [x,y]=xy([m,m]);line([x,45],[x,h-40],m===0?'#2c4055':'#192a3a');line([25,y],[w-25,y],m===0?'#2c4055':'#192a3a');if(m!==0&&y>65&&y<h-60)label(`${m}`,30,y-4);if(x>50&&x<w-50)label(`${m}`,x,h-42,undefined,'center');}
+ for(let m=-Math.floor(extent/interval)*interval;m<=extent;m+=interval){const [x,y]=xy([m,m]);line([x,45],[x,h-40],m===0?'#2c4055':'#192a3a');line([25,y],[w-25,y],m===0?'#2c4055':'#192a3a');if(!editing&&m!==0&&y>65&&y<h-60)label(`${m}`,30,y-4);if(!editing&&x>50&&x<w-50)label(`${m}`,x,h-42,undefined,'center');}
+ if(editing){const {min,max}=comparisonDeploymentRadii();ctx.beginPath();ctx.arc(cx,cy,max*scale,0,Math.PI*2);ctx.arc(cx,cy,min*scale,0,Math.PI*2,true);ctx.fillStyle='#6ce8c80a';ctx.fill('evenodd');ctx.setLineDash([5,5]);circle([cx,cy],max*scale,null,'#6ce8c83b');if(min>0)circle([cx,cy],min*scale,null,'#6ce8c83b');ctx.setLineDash([]);}
  const radius=(view?.objectiveRadius||20)*scale;circle([cx,cy],radius,'#6ce8c815','#52867e');circle([cx,cy],3,'#6ce8c8');label('OBJECTIVE',cx,cy+radius+16,'#a4c7bd','center');
  label(mode==='live'?'Y+':'N',w-30,60,'#b1c5d9','center');line([w-30,82],[w-30,66],'#b1c5d9');
  const bar=50*scale;line([w-30-bar,h-62],[w-30,h-62],'#708aa3',2);label('50 m',w-30,h-69,undefined,'right');
  if(!view||!frame)return;
  if($('sites').checked||mode==='comparison')for(const [i,site] of (view.sites||[]).entries())if(!(view.blockedSites||[]).includes(i)){
-  const editing=mode==='comparison'&&$('comparison-baseline').value==='manual';
   const legal=!editing||!comparisonPlacementError($('comparison-sensor').value,i);
-  circle(xy(site),editing?4:2,legal?'#566d87':'#3d3840');
-  if(editing&&String(i)===$('comparison-site').value)circle(xy(site),8,null,'#f4cf78');
+  circle(xy(site),editing?4:2,legal?(editing?'#80baa9':'#566d87'):'#3d3840');
+  if(editing&&$('comparison-site').closest('details').open&&String(i)===$('comparison-site').value)circle(xy(site),8,null,'#f4cf78');
  }
  for(const [i,p] of view.placements.entries()){
   const c=view.catalogue.find(c=>c.id===p.sensor_id),[x,y]=xy(p.position),range=Math.max(...Object.values(c?.ranges||{r:0}));
   if($('ranges').checked){ctx.setLineDash([4,5]);circle([x,y],range*scale,'#70b7ff06','#70b7ff45');ctx.setLineDash([]);}
   ctx.fillStyle='#70b7ff';ctx.fillRect(x-4,y-4,8,8);label(`S${i+1}`,x+9,y-7,'#8fc9ff');
  }
+ if(editing&&comparison.hover){const hover=comparison.hover;if(hover.siteIndex>=0){const p=xy(comparison.scenario.sites[hover.siteIndex]);if(comparison.tool==='add'){const c=comparison.scenario.catalogue.find(c=>c.id===$('comparison-sensor').value),range=Math.max(0,...Object.values(c?.ranges||{}));ctx.setLineDash([6,4]);circle(p,range*scale,'#6ce8c80c','#6ce8c877');ctx.setLineDash([]);circle(p,10,'#6ce8c833','#6ce8c8');line([p[0]-5,p[1]],[p[0]+5,p[1]],'#6ce8c8',2);line([p[0],p[1]-5],[p[0],p[1]+5],'#6ce8c8',2);label('CLICK TO PLACE',p[0]+15,p[1]-12,'#6ce8c8');}else{circle(p,14,'#ff8b8022','#ff8b80');label('CLICK TO REMOVE',p[0]+18,p[1]-12,'#ff8b80');}}}
  if($('trails').checked)for(const t of frame.threats){ctx.beginPath();let first=true;for(const f of view.frames.slice(0,frameIndex+1)){const p=f.threats.find(v=>v.id===t.id);if(!p)continue;const q=xy(p.position);if(first){ctx.moveTo(...q);first=false;}else ctx.lineTo(...q);}ctx.strokeStyle='#ff8b8045';ctx.lineWidth=1.2;ctx.stroke();}
  for(const d of frame.detections||[]){const p=view.placements[d.sensor_index],t=frame.threats.find(t=>t.id===d.target_id);if(p&&t){ctx.setLineDash([3,4]);line(xy(p.position),xy(t.position),'#f4cf7866');ctx.setLineDash([]);}}
  for(const t of frame.threats){const [x,y]=xy(t.position);if($('drone-rings').checked&&(t.detected||t.tracked))circle([x,y],10,null,t.tracked?'#6ce8c8':'#f4cf78');ctx.save();ctx.translate(x,y);ctx.rotate(Math.PI/4);ctx.fillStyle=t.breached?'#ff5757':t.tracked?'#6ce8c8':'#ff8b80';ctx.fillRect(-3.5,-3.5,7,7);ctx.restore();if(w>470&&frame.threats.length<=8)label(t.id,x+12,y+4,'#c2ccda');}
- for(const t of frame.tracks||[]){const p=xy(t.position),publicReport=mode==='comparison'&&!comparison.result;if(publicReport){circle(p,7,'#f4cf7818','#f4cf78');circle(p,2,'#f4cf78');label(`${t.id} · public report`,p[0]+12,p[1]-9,'#f4cf78');}else{if($('drone-rings').checked)circle(p,9,null,t.confirmed?'#6ce8c8':'#f4cf78');if(w>470)label(t.id,p[0]+12,p[1]-9,'#f4cf78');}}
+ for(const t of frame.tracks||[]){let p=xy(t.position);const publicReport=mode==='comparison'&&!comparison.result;if(publicReport){const dx=p[0]-cx,dy=p[1]-cy,edgeRatio=editing&&comparison.mapZoom==='placement'?Math.min(1,(w/2-25)/Math.max(1,Math.abs(dx)),(h/2-60)/Math.max(1,Math.abs(dy))):1;if(edgeRatio<1){p=[cx+dx*edgeRatio,cy+dy*edgeRatio];const angle=Math.atan2(dy,dx);ctx.save();ctx.translate(...p);ctx.rotate(angle);ctx.beginPath();ctx.moveTo(5,0);ctx.lineTo(-4,-3);ctx.lineTo(-4,3);ctx.closePath();ctx.fillStyle='#f4cf7888';ctx.fill();ctx.restore();}else{circle(p,7,'#f4cf7818','#f4cf78');circle(p,2,'#f4cf78');if((frame.tracks||[]).length<=8)label(`${t.id} · public report`,p[0]+12,p[1]-9,'#f4cf78');}}else{if($('drone-rings').checked)circle(p,9,null,t.confirmed?'#6ce8c8':'#f4cf78');if(w>470&&(frame.tracks||[]).length<=8)label(t.id,p[0]+12,p[1]-9,'#f4cf78');}}
 }
 async function liveAction(op,payload={}){
  if(busy)return;busy=true;busyOperation=op;controls();showError('');
@@ -173,54 +176,76 @@ function animate(now){
  requestAnimationFrame(animate);
 }
 function comparisonName(){return $('comparison-baseline').value==='manual'?'Your manual layout':'Common-sense heuristic';}
+function comparisonEpisodeLabels(){const generated=mode==='comparison'&&$('comparison-population').value!=='archived';$('case-label').textContent=generated?'Scenario template':'Recorded case';$('case-help').textContent=generated?'Choose conditions and a case template. Each swarm is generated reproducibly for both layouts.':'All three checkpoints and all 18 published cases are available, including failures.';}
+function comparisonPopulationLabel(){const population=$('comparison-population').value;return population==='archived'?'Original published scenario · archived RL layout':population==='60'?'60-drone synthetic stress test · fresh RL inference':'8-drone synthetic training-range demo · fresh RL inference';}
+function comparisonRequest(body){return $('comparison-population').value==='archived'?body:{...body,droneCount:Number($('comparison-population').value)};}
+function comparisonPopulationInfo(){const population=$('comparison-population').value,row=catalog.find(r=>r.id===comparison.replayId),count=comparison.scenario?.droneCount??(population==='archived'?row?.droneCount:Number(population));$('comparison-population-help').textContent=population==='60'?'Larger stress demo. These Temporal models trained with 1–8 drones; the documented native setup used 60.':population==='8'?'Eight drones, within the Temporal models’ training range.':'Original published case; original drone count.';$('comparison-population-summary').textContent=`${count?`${count} drones · `:''}${population==='60'?'Larger swarm, outside the Temporal training range':population==='8'?'Within the Temporal training range':'Original published swarm'}`;if(mode==='comparison')$('provenance').textContent=comparisonPopulationLabel();}
 function comparisonCost(placements=comparison.placements){return placements.reduce((sum,p)=>sum+(comparison.scenario?.catalogue.find(c=>c.id===p.sensor_id)?.cost||0),0);}
+function comparisonEditing(){return mode==='comparison'&&$('comparison-baseline').value==='manual'&&Boolean(comparison.scenario)&&!comparison.result;}
+function comparisonDeploymentRadii(){const s=comparison.scenario;return {min:Math.max(0,s?.deploymentMinRadius||0),max:s?.deploymentMaxRadius??Math.max(1,...(s?.sites||[]).map(p=>Math.hypot(p[0],p[1])))};}
+function comparisonPositionName(index){const site=comparison.scenario?.sites[index];if(!site)return 'Choose a position';const directions=['north','northeast','east','southeast','south','southwest','west','northwest'];return `Position ${index+1} · ${directions[(Math.round(Math.atan2(site[0],site[1])*4/Math.PI)+8)%8]}`;}
+function comparisonHasLegalSite(sensorId){return Boolean(comparison.scenario?.sites.some((_,index)=>!comparisonPlacementError(sensorId,index)));}
+function comparisonRemember(){comparison.history.push(comparison.placements.map(p=>({...p})));if(comparison.history.length>30)comparison.history.shift();}
+function comparisonMapHint(message){if($('comparison-map-hint').textContent!==message)$('comparison-map-hint').textContent=message;}
+function comparisonTool(tool){comparison.tool=tool;comparison.hover=null;comparisonControls();comparisonMapHint(tool==='remove'?'Click or tap a blue sensor to remove it. You can undo any layout change.':'Click or tap in the shaded area to place the selected sensor. Bright dots show available positions.');render();}
 function comparisonControls(){
  const locked=comparison.loading||busy, available=Boolean(comparison.scenario);
- for(const id of ['profile','policy','case','comparison-baseline'])$(id).disabled=locked;
- for(const id of ['comparison-sensor','comparison-site','comparison-suggest','comparison-clear'])$(id).disabled=locked||!available;
+ const manual=mode==='comparison'&&$('comparison-baseline').value==='manual',editing=comparisonEditing();
+ $('comparison-editor').hidden=!editing;$('comparison-edit').hidden=!manual||!comparison.result;$('comparison-edit').disabled=locked;
+ $('comparison-jump-map').hidden=!manual;$('comparison-jump-map').disabled=locked||!available;
+ document.body.classList.toggle('map-editing',editing);$('map').classList.toggle('remove-tool',editing&&comparison.tool==='remove');
+ for(const id of ['profile','policy','case','comparison-baseline','comparison-population'])$(id).disabled=locked;
+ $('comparison-panel').querySelector('.comparison-results').hidden=!comparison.result;$('comparison-panel').querySelector('.comparison-map-controls').hidden=!comparison.result;
+ for(const id of ['comparison-sensor','comparison-site','comparison-suggest','comparison-clear','comparison-tool-add','comparison-tool-remove','comparison-zoom'])$(id).disabled=locked||!available||!editing;
+ $('comparison-zoom').textContent=comparison.mapZoom==='placement'?'Full scene':'Placement area';
+ $('comparison-undo').disabled=locked||!editing||!comparison.history.length;
+ $('comparison-tool-add').setAttribute('aria-pressed',String(comparison.tool==='add'));$('comparison-tool-remove').setAttribute('aria-pressed',String(comparison.tool==='remove'));
+ for(const button of $('comparison-palette').querySelectorAll('button'))button.disabled=locked||!editing||!comparisonHasLegalSite(button.dataset.sensorId);
  $('comparison-evaluate').disabled=locked||!available;
  $('comparison-evaluate').textContent=comparison.loading?'Evaluating / loading…':'Evaluate both layouts';
- $('comparison-add').disabled=locked||!available||Boolean(comparisonPlacementError($('comparison-sensor').value,Number($('comparison-site').value)))||!$('comparison-site').value;
- for(const button of $('comparison-placements').querySelectorAll('button'))button.disabled=locked;
+ $('comparison-add').disabled=locked||!editing||Boolean(comparisonPlacementError($('comparison-sensor').value,Number($('comparison-site').value)))||!$('comparison-site').value;
+ for(const button of $('comparison-placements').querySelectorAll('button'))button.disabled=locked||!editing;
  $('comparison-show-rl').disabled=locked||!comparison.result;$('comparison-show-baseline').disabled=locked||!comparison.result;
 }
 function comparisonPlacementError(sensorId,siteIndex){
  const s=comparison.scenario;if(!s)return 'Load a scenario first.';
  const c=s.catalogue.find(c=>c.id===sensorId),site=s.sites[siteIndex];
- if(!c||!site)return 'Choose a sensor and an approved site.';
+ if(!c||!site)return 'Choose a sensor and an available position.';
  if(s.availableSensorIds&&!s.availableSensorIds.includes(sensorId))return 'This sensor is unavailable for the selected case.';
- if((s.blockedSites||[]).includes(siteIndex)||(s.eligibleSites&&!s.eligibleSites.includes(siteIndex)))return 'This site is outside the permitted deployment area.';
- if(comparison.placements.some(p=>p.site_index===siteIndex))return 'This site already has a sensor. Remove it before adding another.';
+ if((s.blockedSites||[]).includes(siteIndex)||(s.eligibleSites&&!s.eligibleSites.includes(siteIndex)))return 'This position is outside the permitted deployment area.';
+ if(comparison.placements.some(p=>p.site_index===siteIndex))return 'This position already has a sensor. Remove it before adding another.';
  if(comparison.placements.length>=s.maxSensors)return `The limit is ${s.maxSensors} sensors. Remove a sensor first.`;
  if(comparisonCost()+c.cost>s.budget+1e-8)return 'This sensor exceeds the remaining budget. Remove a sensor or choose a lower-cost sensor.';
- if(comparison.placements.some(p=>Math.hypot(site[0]-s.sites[p.site_index][0],site[1]-s.sites[p.site_index][1])<(s.minSeparation||0)-1e-8))return `Sensors need at least ${fmt(s.minSeparation,0)} m of separation. Choose a different site.`;
+ if(comparison.placements.some(p=>Math.hypot(site[0]-s.sites[p.site_index][0],site[1]-s.sites[p.site_index][1])<(s.minSeparation||0)-1e-8))return 'This position is too close to another sensor. Choose a bright available dot.';
  return '';
 }
 function comparisonFillEditor(){
  const s=comparison.scenario;$('comparison-placements').replaceChildren();
- $('comparison-editor').hidden=$('comparison-baseline').value!=='manual';
  $('comparison-baseline-heading').textContent=comparisonName();
  $('comparison-show-baseline').textContent=$('comparison-baseline').value==='manual'?'My layout':'Common sense';
  if(!s)return;
  const selectedSensor=s.catalogue.find(c=>c.id===$('comparison-sensor').value);
- $('comparison-sensor-info').textContent=selectedSensor?Object.entries(selectedSensor.ranges||{}).filter(([,range])=>range>0).map(([modality,range])=>`${modality.toUpperCase()} range ${fmt(range,0)} m`).join(' · '):'';
+ $('comparison-sensor-info').textContent=selectedSensor?`${selectedSensor.label||selectedSensor.name||selectedSensor.id} selected. The preview circle shows its maximum nominal range. Amber edge arrows show the direction of distant public reports; Full scene shows their positions.`:'';
+ $('comparison-palette').replaceChildren();
+ for(const c of s.catalogue){if(s.availableSensorIds&&!s.availableSensorIds.includes(c.id))continue;const card=element('button','','sensor-card');card.type='button';card.dataset.sensorId=c.id;card.setAttribute('aria-pressed',String(c.id===$('comparison-sensor').value));card.append(element('strong',c.label||c.name||c.id),element('span',`${pct(c.cost/s.budget)} of budget`),element('small',comparisonHasLegalSite(c.id)?Object.entries(c.ranges||{}).filter(([,range])=>range>0).map(([name])=>name.toUpperCase()).join(' + ')+' sensing':'No available position'));card.onclick=()=>{$('comparison-sensor').value=c.id;comparison.tool='add';comparison.hover=null;comparisonFillEditor();comparisonMapHint(`${c.label||c.name||c.id} selected. Click or tap in the shaded deployment area.`);render();};$('comparison-palette').append(card);}
  for(const [index,p] of comparison.placements.entries()){
   const c=s.catalogue.find(c=>c.id===p.sensor_id),row=element('div','','manual-placement');
-  row.append(element('span',`${c?.label||c?.name||p.sensor_id} · site ${p.site_index+1}`));
-  const remove=element('button','×','icon-button');remove.setAttribute('aria-label',`Remove ${c?.label||c?.name||p.sensor_id} from site ${p.site_index+1}`);
-  remove.onclick=()=>{comparison.placements.splice(index,1);comparisonChanged();};row.append(remove);$('comparison-placements').append(row);
+  row.append(element('span',`S${index+1} · ${c?.label||c?.name||p.sensor_id}`));
+  const remove=element('button','×','icon-button');remove.setAttribute('aria-label',`Remove sensor ${index+1}, ${c?.label||c?.name||p.sensor_id}`);
+  remove.onclick=()=>comparisonRemove(index);row.append(remove);$('comparison-placements').append(row);
  }
- if(!comparison.placements.length)$('comparison-placements').append(element('p','No sensors placed. An empty layout can be evaluated.','helper'));
- $('comparison-budget').textContent=`${comparison.placements.length} / ${s.maxSensors} sensors · ${fmt(comparisonCost())} / ${fmt(s.budget)} budget units · ${fmt(s.minSeparation||0,0)} m minimum spacing`;
+ if(!comparison.placements.length)$('comparison-placements').append(element('p','Your map is empty. Pick a sensor and place it on the map.','helper'));
+ $('comparison-budget').textContent=`${pct(Math.max(0,1-comparisonCost()/s.budget))} budget remaining · ${comparison.placements.length} of ${s.maxSensors} sensors placed`;
+ $('comparison-editor-budget-bar').style.width=`${Math.min(100,comparisonCost()/s.budget*100)}%`;
  for(const option of $('comparison-site').options){const error=comparisonPlacementError($('comparison-sensor').value,Number(option.value));option.disabled=Boolean(error);}
  if(!$('comparison-site').selectedOptions[0]||$('comparison-site').selectedOptions[0].disabled){const option=Array.from($('comparison-site').options).find(o=>!o.disabled);$('comparison-site').value=option?.value??'';}
- $('comparison-site-help').textContent=$('comparison-site').value?'Choose a site above or click a site on the map. Each site holds one sensor; budget and spacing limits apply.':'No legal site remains for this sensor. Remove a sensor or choose a lower-cost sensor to make room.';
+ $('comparison-site-help').textContent=$('comparison-site').value?'The selected position is highlighted on the map. Only positions that fit your budget and spacing are available.':'No available position remains for this sensor. Remove a sensor or choose a lower-cost sensor to make room.';
  comparisonControls();
 }
 function comparisonDraft(){
  const s=comparison.scenario;if(!s)return;
  const placements=comparison.placements.map(p=>({...p,position:s.sites[p.site_index],cost:s.catalogue.find(c=>c.id===p.sensor_id)?.cost||0}));
- setView({...s,label:s.label||'Placement comparison',coordinateLabel:'Objective-relative metres · approved sites',placements,frames:[{time:0,threats:[],detections:[],tracks:s.tracks||[]}],metrics:null,outcome:'layout_preview'});
+ setView({...s,label:s.label||'Placement comparison',coordinateLabel:$('comparison-baseline').value==='manual'?(comparison.mapZoom==='placement'?'PLACEMENT AREA · CLICK OR TAP TO PLACE':'FULL SCENE · CLICK IN THE SHADED AREA'):'Common-sense suggestion · paths hidden',placements,frames:[{time:0,threats:[],detections:[],tracks:s.tracks||[]}],metrics:null,outcome:'layout_preview'});
  $('map').setAttribute('aria-label',`Layout editor showing the objective, approved sensor sites, your current sensors, and ${(s.tracks||[]).length} initial public reports marked in amber. Adversary paths are hidden until evaluation.`);
  $('comparison-timeline-note').textContent='Layout preview · paths hidden';
  $('comparison-tag').textContent='LAYOUT PREVIEW';
@@ -232,14 +257,16 @@ function comparisonClearResults(){
  $('comparison-tag').textContent='LAYOUT PREVIEW';$('comparison-timeline-note').textContent='Layout preview · paths hidden';
  $('comparison-show-rl').setAttribute('aria-pressed','false');$('comparison-show-baseline').setAttribute('aria-pressed','true');
 }
-function comparisonChanged(){
- pause();showError('');comparison.result=null;comparison.method='baseline';comparisonClearResults();comparisonFillEditor();comparisonDraft();
+function comparisonChanged(message){
+ pause();showError('');comparison.result=null;comparison.hover=null;comparison.method='baseline';if($('comparison-baseline').value==='manual')comparison.manualDraft=comparison.placements.map(p=>({...p}));comparisonClearResults();comparisonFillEditor();comparisonDraft();
+ comparisonMapHint(message||'Choose a sensor above, then click or tap in the shaded deployment area.');
  $('comparison-status').textContent=comparison.revealed?'Layout changed. Previous scores cleared. This is practice on a scenario whose paths you have already seen.':'Layout ready. Evaluate both layouts to reveal adversary paths and matched sensing results.';
 }
 async function loadComparisonScenario(){
  pause();const sequence=++comparison.sequence;
+ comparisonEpisodeLabels();
  const row=catalog.find(r=>r.profile===$('profile').value&&String(r.policy)===$('policy').value&&String(r.case)===$('case').value);
- comparison.scenario=null;comparison.result=null;comparison.placements=[];comparison.revealed=false;comparison.method='baseline';comparison.replayId=row?.id;
+ comparison.scenario=null;comparison.result=null;comparison.placements=[];comparison.manualDraft=[];comparison.history=[];comparison.hover=null;comparison.tool='add';comparison.mapZoom='placement';comparison.revealed=false;comparison.method='baseline';comparison.replayId=row?.id;
  comparison.loading=true;view=null;eventSignature='';nativeImage=null;document.body.classList.remove('native-preview');$('empty').hidden=true;
  $('comparison-sensor').replaceChildren();$('comparison-site').replaceChildren();$('comparison-placements').replaceChildren();$('comparison-budget').textContent='';
  $('comparison-forecast').textContent='Loading scenario information…';$('comparison-weather').textContent='';$('comparison-reports').textContent='';
@@ -247,30 +274,41 @@ async function loadComparisonScenario(){
  comparisonClearResults();sensorDetails();results();render();controls();showError('');
  try{
   if(!row)throw new Error('This recorded case is unavailable. Choose another case.');
-  const s=await api('/api/comparison/scenario',{replayId:row.id});
+  comparisonPopulationInfo();const s=await api('/api/comparison/scenario',comparisonRequest({replayId:row.id}));
   if(sequence!==comparison.sequence||mode!=='comparison')return;
-  comparison.scenario=s;comparison.placements=(s.suggestedPlacements||[]).map(p=>({sensor_id:p.sensor_id,site_index:p.site_index}));
-  for(const c of s.catalogue){if(s.availableSensorIds&&!s.availableSensorIds.includes(c.id))continue;const option=element('option',`${c.label||c.name||c.id} · ${fmt(c.cost)} units`);option.value=c.id;$('comparison-sensor').append(option);}
-  for(const [i,site] of s.sites.entries()){if((s.blockedSites||[]).includes(i)||(s.eligibleSites&&!s.eligibleSites.includes(i)))continue;const option=element('option',`Site ${i+1} · ${fmt(site[0],0)}, ${fmt(site[1],0)} m`);option.value=i;$('comparison-site').append(option);}
+  comparison.scenario=s;comparison.placements=$('comparison-baseline').value==='manual'?[]:(s.suggestedPlacements||[]).map(p=>({sensor_id:p.sensor_id,site_index:p.site_index}));
+  comparisonPopulationInfo();
+  for(const c of s.catalogue){if(s.availableSensorIds&&!s.availableSensorIds.includes(c.id))continue;const option=element('option',`${c.label||c.name||c.id} · ${pct(c.cost/s.budget)} of budget`);option.value=c.id;$('comparison-sensor').append(option);}
+  for(const [i] of s.sites.entries()){if((s.blockedSites||[]).includes(i)||(s.eligibleSites&&!s.eligibleSites.includes(i)))continue;const option=element('option',comparisonPositionName(i));option.value=i;$('comparison-site').append(option);}
   $('comparison-reasoning').textContent=s.selection?.explanation||'The suggestion spreads affordable sensors over likely approaches using the public forecast and sensor coverage. It respects the same available sensors, approved sites, spacing and budget as RL, without seeing the realised adversary paths.';
   const directions=['E','NE','N','NW','W','SW','S','SE'],forecast=s.forecast||{},weather=s.weather||{};
   $('comparison-forecast').textContent=`Approach likelihood: ${(forecast.approach_weights||[]).map((weight,i)=>`${directions[i]} ${pct(weight)}`).join(' · ')}. Expected altitude ${fmt(forecast.altitude,0)} m; speed ${fmt(forecast.speed,0)} m/s; emitter likelihood ${pct(forecast.emitter_probability)}.`;
   $('comparison-weather').textContent=`Visibility ${pct(weather.visibility)} · light ${pct(weather.illumination)} · rain ${pct(weather.rain)} · RF noise ${pct(weather.rf_noise)}. Forecasts are public estimates; ranges and sensing are synthetic.`;
   const reports=s.tracks||[];
-  $('comparison-reports').textContent=`${reports.length} initial public report${reports.length===1?'':'s'}${reports.length?' (amber rings on the layout preview): '+reports.map(t=>`${t.id} at ${fmt(t.position[0],0)}, ${fmt(t.position[1],0)} m; ${pct(t.confidence)} confidence`).join(' · '):''}. These are reported observations, not future trajectories.`;
+  $('comparison-reports').textContent=`${reports.length} initial public report${reports.length===1?'':'s'}${reports.length?' shown as amber rings on the map':''}. These are reported observations, not future trajectories. Public reports may cover only part of the swarm.`;
   comparisonChanged();
  }catch(e){if(sequence===comparison.sequence){showError(`Could not prepare comparison: ${e.message}`);$('comparison-status').textContent='Choose another case or select Compare placements again to retry.';}}
  finally{if(sequence===comparison.sequence){comparison.loading=false;controls();}}
 }
 function comparisonAdd(siteIndex){
- if(comparison.loading||$('comparison-baseline').value!=='manual')return;
- const sensorId=$('comparison-sensor').value,error=comparisonPlacementError(sensorId,siteIndex);if(error)return showError(error);
- comparison.placements.push({sensor_id:sensorId,site_index:siteIndex});comparisonChanged();
+ if(comparison.loading||!comparisonEditing())return;
+ const sensorId=$('comparison-sensor').value,error=comparisonPlacementError(sensorId,siteIndex);if(error)return comparisonMapHint(error);
+ comparisonRemember();comparison.placements.push({sensor_id:sensorId,site_index:siteIndex});comparisonChanged(`Sensor ${comparison.placements.length} placed at the nearest available position. Add another, or evaluate your layout.`);
+}
+function comparisonRemove(index){if(!comparisonEditing()||comparison.loading||!comparison.placements[index])return;comparisonRemember();comparison.placements.splice(index,1);comparisonChanged('Sensor removed. Its budget is available again. Undo restores it.');}
+function comparisonMapTarget(event){
+ if(!comparison.mapTransform||!comparison.scenario)return {siteIndex:-1,message:'Load a scenario first.'};
+ const {cx,cy,scale}=comparison.mapTransform,bounds=$('map').getBoundingClientRect(),x=event.clientX-bounds.left,y=event.clientY-bounds.top,s=comparison.scenario;
+ if(comparison.tool==='remove'){let placementIndex=-1,distance=26;for(const [index,p] of comparison.placements.entries()){const site=s.sites[p.site_index],d=Math.hypot(cx+site[0]*scale-x,cy-site[1]*scale-y);if(d<distance){placementIndex=index;distance=d;}}return {placementIndex,siteIndex:placementIndex>=0?comparison.placements[placementIndex].site_index:-1,message:placementIndex>=0?`Click to remove sensor ${placementIndex+1}.`:'Click or tap a blue sensor to remove it.'};}
+ const {min,max}=comparisonDeploymentRadii(),radius=Math.hypot(x-cx,y-cy)/scale;
+ if(radius<min||radius>max)return {siteIndex:-1,message:'Click inside the shaded deployment area around the objective.'};
+ let siteIndex=-1,distance=Infinity;for(const [index,site] of s.sites.entries()){if(comparisonPlacementError($('comparison-sensor').value,index))continue;const d=Math.hypot(cx+site[0]*scale-x,cy-site[1]*scale-y);if(d<distance){siteIndex=index;distance=d;}}
+ return {siteIndex,message:siteIndex>=0?'Click to place here. The preview snaps to the nearest available position.':comparison.placements.length>=s.maxSensors?`All ${s.maxSensors} sensor slots are filled. Remove a sensor to make room.`:'No position is available for this sensor with the remaining budget and spacing. Choose another sensor or remove one.'};
 }
 function comparisonSummary(data){
  const metrics=data.metrics||{},total=metrics.target_results?.length||data.frames?.[0]?.threats?.length||0;
  const count=(fraction)=>Number.isFinite(fraction)?`${Math.round(fraction*total)} / ${total} (${pct(fraction)})`:'Unavailable';
- return {detected:count(metrics.detected_fraction),confirmed:count(metrics.confirmed_fraction),timely:count(metrics.timely_fraction??(total?metrics.target_results?.filter(t=>t.timely_confirmed).length/total:undefined)),cost:`${fmt(data.placements.reduce((sum,p)=>sum+(p.cost??data.catalogue.find(c=>c.id===p.sensor_id)?.cost??0),0))} / ${fmt(data.budget)}`,total};
+ return {detected:count(metrics.detected_fraction),confirmed:count(metrics.confirmed_fraction),timely:count(metrics.timely_fraction??(total?metrics.target_results?.filter(t=>t.timely_confirmed).length/total:undefined)),cost:`${pct(data.placements.reduce((sum,p)=>sum+(p.cost??data.catalogue.find(c=>c.id===p.sensor_id)?.cost??0),0)/data.budget)} of budget`,total};
 }
 function comparisonShow(method){
  if(!comparison.result)return;
@@ -279,6 +317,7 @@ function comparisonShow(method){
  frameIndex=Math.max(0,view.frames.findLastIndex(f=>f.time<=previousTime));
  $('comparison-show-rl').setAttribute('aria-pressed',String(method==='rl'));$('comparison-show-baseline').setAttribute('aria-pressed',String(method==='baseline'));
  $('episode-title').textContent=`${comparison.scenario.label} · ${method==='rl'?'RL layout':comparisonName()}`;
+ $('coordinates').textContent=`Shared scenario · ${comparisonSummary(view).total} drones · ${method==='rl'?'RL layout':comparisonName()}`;
  $('map').setAttribute('aria-label',`${method==='rl'?'Reinforcement learning':comparisonName()} sensor layout and adversary sensing, at the shared replay time.`);
  $('comparison-timeline-note').textContent='Shared time · switch layouts to compare';
  sensorDetails();results();render();controls();
@@ -288,32 +327,40 @@ async function runComparison(){
  pause();comparison.loading=true;controls();showError('');$('comparison-status').textContent='Evaluating both layouts against the same adversaries and sensing draws…';
  const sequence=comparison.sequence,baseline=$('comparison-baseline').value;
  try{
-  const body={replayId:comparison.replayId,baseline};if(baseline==='manual')body.placements=comparison.placements.map(p=>({sensor_id:p.sensor_id,site_index:p.site_index}));
+  const body=comparisonRequest({replayId:comparison.replayId,baseline});if(baseline==='manual')body.placements=comparison.placements.map(p=>({sensor_id:p.sensor_id,site_index:p.site_index}));
   const result=await api('/api/comparison/run',body);if(sequence!==comparison.sequence||mode!=='comparison')return;
   comparison.result=result;comparison.revealed=true;
   for(const method of ['rl','baseline']){const summary=comparisonSummary(result[method]);for(const metric of ['detected','confirmed','timely','cost'])$(`comparison-${method}-${metric}`).textContent=summary[metric];}
   const total=comparisonSummary(result.rl).total,rlDetected=Math.round(result.rl.metrics.detected_fraction*total),baselineDetected=Math.round(result.baseline.metrics.detected_fraction*total),difference=rlDetected-baselineDetected;
   $('comparison-verdict').textContent=`${difference===0?'Both layouts detected the same number of adversaries':`RL detected ${Math.abs(difference)} ${difference>0?'more':'fewer'} adversar${Math.abs(difference)===1?'y':'ies'}`} in this case. This single synthetic case does not establish overall performance.`;
   $('comparison-tag').textContent='MATCHED FINAL RESULTS';
-  $('comparison-fairness').textContent='Both layouts rescored with the same adversaries, sensing draws, sensor catalogue and limits. Timely means confirmed before the objective-zone deadline.';
+  $('comparison-fairness').textContent=`${$('comparison-population').value==='archived'?'Archived RL placements and the baseline were rescored':'RL generated a fresh layout; both layouts were scored'} against the same adversaries, sensing draws, sensor catalogue and limits. Timely means confirmed before the objective-zone deadline.`;
   $('comparison-status').textContent='Evaluation complete. Switch map layouts at any replay time. Editing clears these scores; repeat edits are practice on this revealed scenario.';
   frameIndex=0;elapsed=0;view=result.baseline;comparisonShow('baseline');
  }catch(e){showError(`Comparison failed: ${e.message}`);$('comparison-status').textContent='Check the layout and scenario limits, then evaluate again.';}
  finally{comparison.loading=false;controls();}
 }
 for(const id of ['profile','policy','case'])$(id).addEventListener('change',loadReplay);
- $('comparison-baseline').onchange=()=>{if(comparison.scenario){comparison.placements=(comparison.scenario.suggestedPlacements||[]).map(p=>({sensor_id:p.sensor_id,site_index:p.site_index}));comparisonChanged();}};
- $('comparison-sensor').onchange=()=>{comparisonFillEditor();render();};$('comparison-site').onchange=()=>{comparisonControls();render();};
+ $('comparison-population').onchange=loadComparisonScenario;
+ $('comparison-baseline').onchange=()=>{if(comparison.scenario){comparison.history=[];comparison.tool='add';comparison.placements=($('comparison-baseline').value==='manual'?comparison.manualDraft:comparison.scenario.suggestedPlacements||[]).map(p=>({sensor_id:p.sensor_id,site_index:p.site_index}));comparisonChanged();}};
+ $('comparison-sensor').onchange=()=>{comparison.tool='add';comparison.hover=null;comparisonFillEditor();comparisonMapHint('Sensor selected. Click or tap in the shaded deployment area.');render();};$('comparison-site').onchange=()=>{comparisonControls();render();};
+ $('comparison-site').closest('details').addEventListener('toggle',()=>render());
  $('comparison-add').onclick=()=>comparisonAdd(Number($('comparison-site').value));
- $('comparison-suggest').onclick=()=>{comparison.placements=(comparison.scenario?.suggestedPlacements||[]).map(p=>({sensor_id:p.sensor_id,site_index:p.site_index}));comparisonChanged();};
- $('comparison-clear').onclick=()=>{comparison.placements=[];comparisonChanged();};
+ $('comparison-suggest').onclick=()=>{comparisonRemember();comparison.placements=(comparison.scenario?.suggestedPlacements||[]).map(p=>({sensor_id:p.sensor_id,site_index:p.site_index}));comparisonChanged('Common-sense suggestion loaded. Remove sensors or add to it to make your own layout.');};
+ $('comparison-clear').onclick=()=>{if(comparison.placements.length)comparisonRemember();comparison.placements=[];comparisonChanged('Layout cleared. Pick a sensor and click or tap the map to start again.');};
+ $('comparison-tool-add').onclick=()=>comparisonTool('add');$('comparison-tool-remove').onclick=()=>comparisonTool('remove');
+ $('comparison-zoom').onclick=()=>{comparison.mapZoom=comparison.mapZoom==='placement'?'full':'placement';comparison.hover=null;comparisonDraft();comparisonMapHint(comparison.mapZoom==='placement'?'Placement area enlarged. Click or tap inside the shaded area.':'Full scene shown. Choose Placement area to zoom back in for easier editing.');};
+ $('comparison-undo').onclick=()=>{if(comparison.history.length){comparison.placements=comparison.history.pop();comparisonChanged('Last layout change undone.');}};
+ $('comparison-edit').onclick=()=>{comparisonChanged('Editing your layout. Previous scores are cleared; this is practice on paths you have already seen.');$('comparison-editor').scrollIntoView({block:'start',behavior:'smooth'});};
+ $('comparison-jump-map').onclick=()=>{if(comparison.result)comparisonChanged();$('comparison-editor').scrollIntoView({block:'start',behavior:'smooth'});};
  $('comparison-evaluate').onclick=runComparison;$('comparison-show-rl').onclick=()=>comparisonShow('rl');$('comparison-show-baseline').onclick=()=>comparisonShow('baseline');
  $('map').addEventListener('click',event=>{
-  if(mode!=='comparison'||$('comparison-baseline').value!=='manual'||comparison.loading||!comparison.scenario||!comparison.mapTransform)return;
-  const {cx,cy,scale}=comparison.mapTransform,bounds=$('map').getBoundingClientRect(),x=event.clientX-bounds.left,y=event.clientY-bounds.top;
-  let nearest=-1,distance=16;for(const [i,site] of comparison.scenario.sites.entries()){const d=Math.hypot(cx+site[0]*scale-x,cy-site[1]*scale-y);if(d<distance){nearest=i;distance=d;}}
-  if(nearest>=0)comparisonAdd(nearest);
+  if(!comparisonEditing()||comparison.loading)return;
+  const target=comparisonMapTarget(event);if(target.siteIndex<0){comparisonMapHint(target.message);return;}
+  if(comparison.tool==='remove')comparisonRemove(target.placementIndex);else comparisonAdd(target.siteIndex);
  });
+ $('map').addEventListener('pointermove',event=>{if(!comparisonEditing()||comparison.loading||event.pointerType==='touch')return;const target=comparisonMapTarget(event);comparison.hover=target;comparisonMapHint(target.message);draw(view?.frames[frameIndex]);});
+ $('map').addEventListener('pointerleave',()=>{if(comparison.hover){comparison.hover=null;draw(view?.frames[frameIndex]);}});
 for(const id of ['ranges','trails','drone-rings','sites'])$(id).addEventListener('change',()=>render());
 $('recorded-mode').onclick=()=>switchMode('recorded');$('live-mode').onclick=()=>switchMode('live');$('comparison-mode').onclick=()=>switchMode('comparison');
 $('connect').onclick=()=>{pause();liveAction(connected?'disconnect':'connect');};
