@@ -45,6 +45,15 @@ namespace
     }
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FIstanaSwarmPresentationDefaultsTest, "Istana.Simulation.Swarm.PresentationDefaults",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FIstanaSwarmPresentationDefaultsTest::RunTest(const FString& Parameters)
+{
+    const AIstanaSwarmManager* Defaults = GetDefault<AIstanaSwarmManager>();
+    TestTrue(TEXT("Standalone swarm diagnostics retain drone neighbor rings"), Defaults->bDrawDroneNeighborRings);
+    return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FIstanaSwarmSpawnTest, "Istana.Simulation.Swarm.SpawnAndReset",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FIstanaSwarmSpawnTest::RunTest(const FString& Parameters)

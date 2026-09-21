@@ -49,13 +49,21 @@ compatible Visual Studio 2022 C++ build tools (MSVC v143 14.38, Windows SDK
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\Tools\build.ps1 -Target Editor
-powershell -ExecutionPolicy Bypass -File .\Tools\start_blue_live.ps1
+powershell -ExecutionPolicy Bypass -File .\Tools\start_blue_live.ps1 -DelayedDetectionDemo
 ```
 
 The native `Istana.Simulation.BlueTeam.InitialLayoutContract` test passed.
 The map must contain exactly one Red Team Manager with a valid ObjectiveTarget.
 `-IstanaBlueLive` creates/wires the optional Blue coordinator and loopback bridge
 without editing the saved map; normal viewer/Red behavior remains opt-in unchanged.
+The optional delayed-detection demo changes only this live run's permitted Red
+spawn annulus from the map's 30–100 m to 190–210 m. With the map's 10 m swarm
+spread, 45 m outer sensor sites and 130 m maximum sensor range, every initial
+drone is outside every possible sensor range; the scripted radial control starts
+at 200 m and becomes detectable as it moves inward. The frozen temporal public
+prior and 406/407/408 checkpoints are intentionally unchanged. Omit the switch
+for live training/evaluation against the original map scenario; the standalone
+viewer and `-IstanaWarningApproachV2` benchmark are also unaffected.
 
 In the console choose **Live Unreal → Connect to Unreal → Plan new episode**,
 then **Run episode** or **Step**. Select an experimental checkpoint (406/407/408)

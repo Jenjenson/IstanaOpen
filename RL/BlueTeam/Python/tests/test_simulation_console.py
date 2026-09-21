@@ -2,11 +2,15 @@
 from copy import deepcopy
 import http.client
 import json
+from pathlib import Path
 import threading
 
 import pytest
 
 from simulation_console import ConsoleState, load_replays, make_server, replay_view
+
+
+CONSOLE = Path(__file__).resolve().parents[1] / 'console'
 
 
 @pytest.fixture(scope="module")
@@ -62,6 +66,39 @@ def test_http_session_replay_and_security_headers(http_server):
     assert "frame-ancestors 'none'" in headers['Content-Security-Policy']
     for path in ('/', '/app.js', '/style.css', '/api/replay/0', '/api/replay/17'):
         assert request(http_server, path)[0] == 200
+
+
+def test_drone_detection_rings_are_an_opt_in_map_layer():
+    html = (CONSOLE / 'index.html').read_text(encoding='utf-8')
+    script = (CONSOLE / 'app.js').read_text(encoding='utf-8')
+    assert '<input id="drone-rings" type="checkbox"><span>Drone detection rings</span>' in html
+    assert '<input id="drone-rings" type="checkbox" checked>' not in html
+    assert "if($('drone-rings').checked&&(t.detected||t.tracked))circle([x,y],10" in script
+    assert "if($('drone-rings').checked)circle(p,9" in script
+    assert "['ranges','trails','drone-rings','sites']" in script
+
+
+def test_episode_results_show_exact_warning_metrics_with_honest_fallbacks():
+    html = (CONSOLE / 'index.html').read_text(encoding='utf-8')
+    script = (CONSOLE / 'app.js').read_text(encoding='utf-8')
+    assert '<span>Team warning</span><strong id="result-team-warning">—</strong>' in html
+    assert '<span>Mean per-drone warning</span><strong id="result-mean-warning">—</strong>' in html
+    assert "warningText(m?.team_warning_seconds_lower_bound)" in script
+    assert "warningText(m?.mean_drone_warning_seconds_lower_bound)" in script
+    assert "if(mode==='live'&&(!view||!view.ended))return 'Pending'" in script
+    assert "Number.isFinite(value)?`${fmt(value,2)} s`:'Unavailable'" in script
+
+
+def test_live_transport_remains_stable_and_interactive_while_stepping():
+    html = (CONSOLE / 'index.html').read_text(encoding='utf-8')
+    script = (CONSOLE / 'app.js').read_text(encoding='utf-8')
+    assert '<span id="connection-label">Replay ready</span>' in html
+    assert "const blocking=busy&&busyOperation!=='step'" in script
+    assert "$('timeline').disabled=!view;$('speed').disabled=!view" in script
+    assert "interval=1000*(Number(view.stepDurationSeconds)||.5)/speed" in script
+    assert "if(mode==='live'){frameIndex=0;for(let i=1;i<view.frames.length" in script
+    assert "if(canvas.width!==pixelWidth||canvas.height!==pixelHeight)" in script
+    assert "ctx.setTransform(dpr,0,0,dpr,0,0)" in script
 
 
 @pytest.mark.parametrize('path', ['/../simulation_console.py', '/api/replay/18', '/api/replay/-1', '/secret'])
@@ -152,7 +189,8 @@ def test_controller_orders_public_plan_before_red_placement(replays, selection):
     public = deepcopy(sample['scenario']['public'])
     context = {'coordinateSystem': 'unreal_xy_relative_m_z_up', 'publicSnapshot': public,
                'catalogue': sample['catalogue'], 'worldOriginCm': {'x': 100, 'y': 200, 'z': 300},
-               'temporalConfig': {'objective_radius_m': 20}}
+               'temporalConfig': {'objective_radius_m': 20},
+               'fixedStepSeconds': .05, 'timeLimitSeconds': 96.}
     blue = {'elapsedSeconds': 0, 'completedSteps': 0, 'publicSnapshot': public}
 
     class FakeClient:
@@ -185,6 +223,8 @@ def test_controller_orders_public_plan_before_red_placement(replays, selection):
     assert events == ['reset', 'public_plan', 'deploy', 'place_red']
     assert view['frames'][0]['threats'][0]['position'] == [10, 20, 30]
     assert view['frames'][0]['threats'][0]['observer_truth']
+    assert view['fixedStepSeconds'] == .05 and view['timeLimitSeconds'] == 96.
+    assert view['stepDurationSeconds'] == .5
     assert view['metrics'] is None and view['mode'] == 'live'
     with pytest.raises(ConnectionError):
         state.action('step', {})

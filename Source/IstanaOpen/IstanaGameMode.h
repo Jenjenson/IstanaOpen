@@ -10,6 +10,8 @@
 class UCameraComponent;
 class USphereComponent;
 class UInstancedStaticMeshComponent;
+class ABlueTeamCoordinator;
+class ARedTeamManager;
 
 /** A persistent native owner for authored planting instances in saved/cooked maps. */
 UCLASS()
@@ -31,6 +33,10 @@ class ISTANAOPEN_API AIstanaGameMode : public AGameModeBase
 public:
     AIstanaGameMode();
     virtual void StartPlay() override;
+    // Applies only opt-in Blue-live scenario overrides. Kept separate from the
+    // saved map defaults so native automation can verify the mode boundary.
+    static void ConfigureBlueLiveApproach(ARedTeamManager& Manager, ABlueTeamCoordinator& Coordinator,
+        bool bWarningApproachV2, bool bDelayedDetectionDemo);
 };
 
 UCLASS()

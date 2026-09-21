@@ -387,7 +387,8 @@ void AIstanaSwarmManager::DrawDiagnostics() const
         {
             if (State.GroupId != Group.GroupId || !State.bActive) continue;
             GroupBounds += State.PositionCm;
-            if (bFirst) DrawDebugSphere(GetWorld(), State.PositionCm, S.NeighborRadiusCm, 16, FColor(90, 90, 90));
+            if (bFirst && bDrawDroneNeighborRings)
+                DrawDebugSphere(GetWorld(), State.PositionCm, S.NeighborRadiusCm, 16, FColor(90, 90, 90));
             bFirst = false;
         }
         if (GroupBounds.IsValid) DrawDebugBox(GetWorld(), GroupBounds.GetCenter(), GroupBounds.GetExtent() + FVector(S.DroneRadiusCm), FColor::Green);
