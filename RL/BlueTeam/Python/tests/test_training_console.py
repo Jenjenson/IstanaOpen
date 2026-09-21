@@ -8,6 +8,7 @@ import pytest
 
 from simulation_console import ConsoleState, make_server
 from triad_rl.training_environment import NATIVE_STEP_BATCH
+from triad_rl.training_manager import TrainingManager
 from test_training_manager import ProtocolFixture, configuration, finish
 
 
@@ -178,3 +179,45 @@ def test_incompatible_model_load_clears_old_live_state_after_native_reset(server
     assert status == 400 and "incompatible" in result["error"]
     assert state.view is None and state.context is None
     assert not state.status()["connected"]
+    assert request(server, "/api/action/connect", {})[0] == 200  # failed load released native access
+
+
+def test_foreign_manager_training_blocks_live_and_model_load_before_any_client_call(server):
+    assert request(server, "/api/training/start", configuration("saved", episodes=1))[0] == 200
+    assert finish(server.training_manager)["status"] == "completed"
+    bridge = server.fixture_bridge
+    foreign_bridge = ProtocolFixture(block_after=3)
+    foreign = TrainingManager(server.training_manager.root, client_factory=foreign_bridge)
+    foreign.start(configuration("foreign", episodes=10))
+    try:
+        assert foreign_bridge.blocked.wait(10.)
+        before = (list(bridge.timeouts), len(bridge.resets), len(bridge.layouts), bridge.closes)
+        # This ConsoleState does not own the worker, so its local flag alone is insufficient.
+        assert server.console_state.training_owner is None
+        assert request(server, "/api/status")[0] == 200
+        assert request(server, "/api/training/runs")[0] == 200
+        for action in ("connect", "disconnect", "reset", "step"):
+            status, result = request(server, f"/api/action/{action}", {})
+            assert status == 400 and "reserved" in result["error"]
+        status, result = request(server, "/api/training/load", {"runId": "saved", "checkpoint": "final"})
+        assert status == 400 and "reserved" in result["error"]
+        status, result = request(server, "/api/action/reset", {"policy": "trained:saved:final", "seed": 7})
+        assert status == 400 and "reserved" in result["error"]
+        assert before == (list(bridge.timeouts), len(bridge.resets), len(bridge.layouts), bridge.closes)
+    finally:
+        foreign.stop("foreign")
+        foreign_bridge.release.set()
+        assert finish(foreign)["status"] == "stopped"
+    status, result = request(server, "/api/training/load", {"runId": "saved", "checkpoint": "final"})
+    assert status == 200 and result["status"]["connected"]
+    # connect/load call status while already holding live_access; status must not acquire a second OS lease.
+    assert request(server, "/api/action/connect", {})[0] == 200
+
+
+def test_live_error_releases_operation_lease_for_following_commands(server):
+    assert request(server, "/api/action/connect", {})[0] == 200
+    status, result = request(server, "/api/action/reset", {"seed": True})
+    assert status == 400 and "seed" in result["error"]
+    assert request(server, "/api/status")[0] == 200
+    assert request(server, "/api/action/connect", {})[0] == 200
+    assert request(server, "/api/action/disconnect", {})[0] == 200

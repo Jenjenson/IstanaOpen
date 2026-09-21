@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import base64
 from copy import deepcopy
+from contextlib import contextmanager, nullcontext
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 from pathlib import Path
@@ -84,15 +85,21 @@ class ConsoleState:
             with self.client_factory(self.bridge_port, timeout=3.) as client:
                 return client.request("blue_context")["context"]
 
+    @contextmanager
+    def live_access(self):
+        with self.lock:
+            if self.training_owner:
+                raise ValueError("Training owns the native simulator. Stop training before using Live controls.")
+            with self.training_manager.native_access() if self.training_manager else nullcontext():
+                yield
+
     def load_trained_model(self, payload):
         from triad_rl.training_algorithms import load_algorithm
         from triad_rl.training_environment import blue_configuration, require_training_runtime
         if set(payload) - {"runId", "checkpoint"}:
             raise ValueError("Unexpected model load input")
         model = self.training_manager.model_spec(payload.get("runId"), payload.get("checkpoint", "best"))
-        with self.lock:
-            if self.training_owner:
-                raise ValueError("Stop the active training run before loading a model")
+        with self.live_access():
             self.view = self.context = None
             try:
                 if self.client is None or self.client.closed:
@@ -138,9 +145,7 @@ class ConsoleState:
             if len(parts) != 3 or self.training_manager is None:
                 raise ValueError("Select a saved native training model")
             selected_model = self.training_manager.model_spec(parts[1], parts[2])
-        with self.lock:
-            if self.training_owner:
-                raise ValueError("Training owns the native simulator. Stop training before using Live controls.")
+        with self.live_access():
             try:
                 if operation == "connect":
                     if self.client is None or self.client.closed:

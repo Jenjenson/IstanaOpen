@@ -2,6 +2,8 @@
 from copy import deepcopy
 import json
 from pathlib import Path
+import subprocess
+import sys
 import threading
 
 import pytest
@@ -260,7 +262,7 @@ def test_run_names_cannot_escape_directory_or_use_windows_reserved_paths(tmp_pat
     manager = TrainingManager(tmp_path, client_factory=ProtocolFixture())
     with pytest.raises(ValueError, match="name"):
         manager.start(configuration(name))
-    assert not list(tmp_path.iterdir())
+    assert not [path for path in tmp_path.iterdir() if path.name != ".training.lock"]
 
 
 def test_tampered_model_cannot_be_selected_for_live(tmp_path):
@@ -284,3 +286,88 @@ def test_initial_disk_failure_releases_native_ownership(tmp_path, monkeypatch):
         manager.start(configuration())
     assert owners == [("acquire", "trial"), ("release", "trial")]
     assert manager.current is None
+    monkeypatch.undo()
+    following = TrainingManager(tmp_path, client_factory=ProtocolFixture())
+    following.start(configuration("after-failure", episodes=1))
+    assert finish(following)["status"] == "completed"  # filesystem ownership was released too
+
+
+def test_second_manager_preserves_active_run_and_cannot_start_until_owner_finishes(tmp_path):
+    bridge = ProtocolFixture(block_after=3)  # completed initial evaluation, first training step in flight
+    owner = TrainingManager(tmp_path, client_factory=bridge)
+    owner.start(configuration(episodes=10))
+    try:
+        assert bridge.blocked.wait(10.)
+        path = tmp_path / "trial" / "run.json"
+        before = path.read_bytes()
+        assert json.loads(before)["status"] == "running"
+        other_bridge = ProtocolFixture()
+        observer = TrainingManager(tmp_path, client_factory=other_bridge)
+        assert path.read_bytes() == before  # constructor must not label another worker interrupted
+        assert observer.detail("trial")["status"] == "running"
+        assert not observer.options()["environment"]["available"]
+        assert other_bridge.timeouts == []  # a second console must not open even a probe socket
+        with pytest.raises(ValueError, match="[Aa]ctive|[Oo]wn|[Aa]nother|[Uu]se|[Rr]eserv"):
+            observer.start(configuration("second", episodes=1))
+        assert not other_bridge.resets
+        assert path.read_bytes() == before
+    finally:
+        owner.stop("trial")
+        bridge.release.set()
+        owner_run = finish(owner)
+    assert owner_run["status"] == "stopped"
+    observer.start(configuration("second", episodes=1))
+    assert finish(observer)["status"] == "completed"
+
+
+def test_native_ownership_failure_also_releases_training_store(tmp_path):
+    def reject(owner):
+        raise ValueError("Native simulator already reserved")
+    manager = TrainingManager(tmp_path, client_factory=ProtocolFixture(), acquire=reject)
+    with pytest.raises(ValueError, match="already reserved"):
+        manager.start(configuration())
+    following = TrainingManager(tmp_path, client_factory=ProtocolFixture())
+    following.start(configuration("after-rejection", episodes=1))
+    assert finish(following)["status"] == "completed"
+
+
+def test_store_lease_excludes_other_process_and_exit_allows_interrupted_recovery(tmp_path):
+    from triad_rl.training_store import TrainingStoreLease
+
+    directory = tmp_path / "abandoned"
+    directory.mkdir()
+    path = directory / "run.json"
+    path.write_text(json.dumps({"id": "abandoned", "status": "running"}))
+    child_code = """
+import sys
+sys.path.insert(0, sys.argv[2])
+from triad_rl.training_store import TrainingStoreLease
+lease = TrainingStoreLease(sys.argv[1])
+assert lease.acquire()
+print('lease held', flush=True)
+sys.stdin.readline()
+# Intentionally do not call release(): process exit must release the OS lock.
+"""
+    process = subprocess.Popen([sys.executable, "-c", child_code, str(tmp_path),
+                                str(Path(__file__).resolve().parents[1])],
+                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE, text=True)
+    try:
+        assert process.stdout.readline().strip() == "lease held"
+        competing = TrainingStoreLease(tmp_path)
+        assert not competing.acquire()
+        before = path.read_bytes()
+        TrainingManager(tmp_path, client_factory=ProtocolFixture())
+        assert path.read_bytes() == before
+        _, errors = process.communicate("\n", timeout=10.)
+        assert process.returncode == 0, errors
+        assert competing.acquire()
+        competing.release()
+        TrainingManager(tmp_path, client_factory=ProtocolFixture())
+        recovered = json.loads(path.read_text())
+        assert recovered["status"] == "interrupted"
+        assert "saved checkpoints" in recovered["error"]
+    finally:
+        if process.poll() is None:
+            process.kill()
+            process.communicate(timeout=10.)

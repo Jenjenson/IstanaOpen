@@ -6,6 +6,7 @@ algorithms receive public Blue context, and evaluator truth stays in episode log
 from __future__ import annotations
 
 from copy import deepcopy
+from contextlib import contextmanager
 import csv
 from datetime import datetime, timezone
 import hashlib
@@ -20,6 +21,7 @@ import threading
 import time
 
 from .istana_live import IstanaLiveClient
+from .training_store import TrainingStoreLease
 from .training_environment import (SUCCESS_DEFINITION, WARNING_DEFINITION, TrainingStopped,
                                    blue_configuration, require_training_runtime, run_episode)
 
@@ -52,6 +54,7 @@ class TrainingManager:
     def __init__(self, root, *, bridge_port=8765, client_factory=IstanaLiveClient,
                  acquire=None, release=None, probe=None):
         self.root = Path(root).resolve()
+        self.store_lease = TrainingStoreLease(self.root)
         self.bridge_port, self.client_factory = bridge_port, client_factory
         self.acquire = acquire or (lambda owner: None)
         self.release = release or (lambda owner: None)
@@ -68,23 +71,50 @@ class TrainingManager:
     def _recover(self):
         if not self.root.exists():
             return
-        for path in self.root.glob("*/run.json"):
-            try:
-                run = json.loads(path.read_text(encoding="utf-8"))
-                if run["status"] in ACTIVE:
-                    run.update(status="interrupted", error="Console stopped before this run finished; saved checkpoints and complete episodes are retained.")
-                    atomic_json(path, run)
-            except (OSError, ValueError, KeyError):
-                continue
+        try:
+            if not self.store_lease.acquire():
+                return
+        except OSError:
+            # Read-only history can still be displayed. Start reports any actual
+            # write failure rather than preventing the whole console from opening.
+            return
+        try:
+            for path in self.root.glob("*/run.json"):
+                try:
+                    run = json.loads(path.read_text(encoding="utf-8"))
+                    if run["status"] in ACTIVE:
+                        run.update(status="interrupted", error="Console stopped before this run finished; saved checkpoints and complete episodes are retained.")
+                        atomic_json(path, run)
+                except (OSError, ValueError, KeyError):
+                    continue
+        finally:
+            self.store_lease.release()
 
-    def options(self):
-        from .training_algorithms import ALGORITHMS
+    @contextmanager
+    def native_access(self):
+        """Exclude Live mutations while any console owns training in this store."""
+        self.root.mkdir(parents=True, exist_ok=True)
+        lease = TrainingStoreLease(self.root)
+        if not lease.acquire():
+            raise ValueError("The native simulator is reserved by training or another console operation. Stop training in its owning console first.")
+        try:
+            yield
+        finally:
+            lease.release()
+
+    def _refresh_context(self):
+        # Serialize this short readiness probe with this manager's start. An
+        # independent handle prevents a probe from releasing a worker's lease.
         with self.lock:
-            active = self.worker is not None and self.worker.is_alive()
-        if not active:
+            if self.worker is not None and self.worker.is_alive():
+                return
             owner = "training-options"
+            probe_lease = TrainingStoreLease(self.root)
             acquired = False
             try:
+                self.root.mkdir(parents=True, exist_ok=True)
+                if not probe_lease.acquire():
+                    raise ValueError("Training is active in another console. Use that console to watch or stop its run.")
                 if self.probe is not None:
                     context = self.probe()
                 else:
@@ -97,8 +127,15 @@ class TrainingManager:
             except (ValueError, RuntimeError, OSError) as exc:
                 self.probe_error = str(exc)
             finally:
-                if acquired:
-                    self.release(owner)
+                try:
+                    if acquired:
+                        self.release(owner)
+                finally:
+                    probe_lease.release()
+
+    def options(self):
+        from .training_algorithms import ALGORITHMS
+        self._refresh_context()
         context = self.context or {}
         catalogue = [{**row, "label": row.get("label", row.get("name", row["id"]))} for row in context.get("catalogue", [])]
         registry = list(ALGORITHMS.values()) if isinstance(ALGORITHMS, dict) else ALGORITHMS
@@ -154,22 +191,30 @@ class TrainingManager:
             if self.worker is not None and self.worker.is_alive():
                 raise ValueError("A training run is already active; stop it before starting another")
             self.root.mkdir(parents=True, exist_ok=True)
+            if not self.store_lease.acquire():
+                raise ValueError("Another console owns an active training run in this directory")
             base = config["runName"]
-            for number in range(1, 10000):
-                name = base if number == 1 else f"{base}-{number}"
-                directory = self.root / name
-                try:
-                    directory.mkdir()
-                    break
-                except FileExistsError:
-                    continue
-            else:
-                raise ValueError("Too many runs with this name")
-            config["runName"] = name
+            created = False
             try:
+                for number in range(1, 10000):
+                    name = base if number == 1 else f"{base}-{number}"
+                    directory = self.root / name
+                    try:
+                        directory.mkdir()
+                        created = True
+                        break
+                    except FileExistsError:
+                        continue
+                else:
+                    raise ValueError("Too many runs with this name")
+                config["runName"] = name
                 self.acquire(name)
             except Exception:
-                directory.rmdir()  # only our newly-created, empty directory
+                self.store_lease.release()
+                # Only remove our own newly-created empty directory; never a
+                # duplicate or a directory containing saved experiment results.
+                if created:
+                    directory.rmdir()
                 raise
             run = {"id": name, "runName": name, "algorithm": config["algorithm"], "config": config,
                    "status": "starting", "startedAt": utc_now(), "elapsedSeconds": 0., "episode": 0,
@@ -185,6 +230,7 @@ class TrainingManager:
                 self.worker.start()
             except Exception:
                 self.release(name)
+                self.store_lease.release()
                 self.current = None
                 raise
             return {"run": self.detail(name)}
@@ -380,6 +426,7 @@ class TrainingManager:
                     commit = None
                 source_files = [Path(__file__), Path(__file__).with_name("training_algorithms.py"),
                                 Path(__file__).with_name("training_environment.py"),
+                                Path(__file__).with_name("training_store.py"),
                                 *[Path(__file__).with_name(name) for name in ("warning_policy.py", "adaptive_policy.py", "directional_inputs.py", "istana_live.py")],
                                 source / "Source/IstanaOpen/Simulation/BlueTeam/BlueTeamCoordinator.cpp",
                                 source / "Source/IstanaOpen/Simulation/BlueTeam/BlueWarningTime.h",
@@ -439,7 +486,10 @@ class TrainingManager:
                     run.update(status="failed", error=f"Result save failed: {exc}; original error: {run.get('error')}")
                     self._persist(run)
             finally:
-                self.release(run["id"])
+                try:
+                    self.release(run["id"])
+                finally:
+                    self.store_lease.release()
 
     def model_spec(self, run_id, checkpoint="best"):
         if checkpoint not in {"best", "latest", "final"}:

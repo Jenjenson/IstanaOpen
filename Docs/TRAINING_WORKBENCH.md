@@ -40,6 +40,9 @@ Live mutation controls are unavailable while training reserves the bridge. The
 recorded replay/comparison views remain available. Run names receive `-2`, `-3`,
 etc. when already used. History survives console restarts; an interrupted process
 is labelled **interrupted**, with its completed logs/checkpoints retained.
+An operating-system file lock prevents another console from starting a run in
+the same directory or marking a still-running experiment as interrupted. The
+lock is released automatically if its owning process exits.
 
 Budget is passed into the native coordinator on every reset. It does not change
 other scene constraints: the current scene permits at most three sensors, so a
