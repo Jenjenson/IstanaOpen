@@ -64,6 +64,9 @@ private:
     FCollisionQuery CollisionQuery;
     FCollisionBatch CollisionBatch;
     TArray<FIstanaDroneState> NextStates;
+    // Previous-step commanded accelerations make jerk limiting deterministic.
+    TArray<FVector> Accelerations;
+    TArray<FVector> NextAccelerations;
     TArray<int32> StateGroups;
     FIstanaSwarmSettings Settings;
     double FixedStepSeconds = 0.05;

@@ -14,7 +14,12 @@ enum class EIstanaSwarmCommandType : uint8
     Stop
 };
 
-/** Kinematic tuning in cm and seconds. Defaults are synthetic, not flight calibration. */
+/**
+ * Deterministic flight-envelope tuning in centimetres and seconds.
+ * Defaults use the DJI Mavic 3 Enterprise normal-mode published limits where DJI
+ * specifies them. Acceleration and jerk are controller-model assumptions; this is
+ * a constrained kinematic model, not a motor, propeller or CFD simulation.
+ */
 USTRUCT(BlueprintType)
 struct ISTANAOPEN_API FIstanaSwarmSettings
 {
@@ -28,15 +33,30 @@ struct ISTANAOPEN_API FIstanaSwarmSettings
     int32 MaxNavigationNodes = 12000;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Motion")
-    double DroneRadiusCm = 20.0;
+    // Conservative spherical proxy for the 347.5 x 283 mm unfolded airframe.
+    double DroneRadiusCm = 25.0;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Motion")
-    double MaxSpeedCmPerSecond = 600.0;
+    double MaxSpeedCmPerSecond = 1500.0;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Motion")
-    double CruiseSpeedCmPerSecond = 300.0;
+    // DJI's endurance test uses 32.4 km/h (9 m/s) in windless conditions.
+    double CruiseSpeedCmPerSecond = 900.0;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Motion")
-    double MaxAccelerationCmPerSecondSquared = 200.0;
+    // g*tan(30 degrees), derived from the normal-mode maximum tilt.
+    double MaxAccelerationCmPerSecondSquared = 566.0;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Motion")
-    double MaxTurnDegreesPerSecond = 90.0;
+    double MaxTurnDegreesPerSecond = 200.0;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Motion")
+    double MaxAscentSpeedCmPerSecond = 600.0;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Motion")
+    double MaxDescentSpeedCmPerSecond = 600.0;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Motion", meta=(ClampMin="0", ClampMax="89"))
+    double MaxTiltDegrees = 30.0;
+    // Not published by DJI: limits control-command discontinuities for plausible motion.
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Motion")
+    double MaxJerkCmPerSecondCubed = 1200.0;
+    // Ground-track control compensates for this steady wind until the airspeed envelope saturates.
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Environment")
+    FVector WindVelocityCmPerSecond = FVector::ZeroVector;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Motion")
     double ResponseSeconds = 0.5;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Motion")
@@ -82,7 +102,7 @@ struct ISTANAOPEN_API FIstanaSwarmCommand
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Command") bool bLoop = false;
     // Objective following accepts obstructed destinations and approaches reachable space.
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Command") bool bAllowPartialPath = false;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Command") double CruiseSpeedCmPerSecond = 300.0;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Command") double CruiseSpeedCmPerSecond = 900.0;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Command") double SpacingCm = 140.0;
 };
 
@@ -113,8 +133,10 @@ struct ISTANAOPEN_API FIstanaSwarmDiagnostics
     UPROPERTY(BlueprintReadOnly, Category="Diagnostics") int64 ObstacleEmergencyStops = 0;
     UPROPERTY(BlueprintReadOnly, Category="Diagnostics") int64 SpeedViolationSteps = 0;
     UPROPERTY(BlueprintReadOnly, Category="Diagnostics") int64 AccelerationViolationSteps = 0;
+    UPROPERTY(BlueprintReadOnly, Category="Diagnostics") int64 JerkViolationSteps = 0;
     UPROPERTY(BlueprintReadOnly, Category="Diagnostics") double PeakSpeedCmPerSecond = 0.0;
     UPROPERTY(BlueprintReadOnly, Category="Diagnostics") double PeakAccelerationCmPerSecondSquared = 0.0;
+    UPROPERTY(BlueprintReadOnly, Category="Diagnostics") double PeakJerkCmPerSecondCubed = 0.0;
 };
 
 

@@ -71,16 +71,29 @@ void AIstanaDroneVisual::AnimateDisplayRotors(double PresentationSeconds)
         DisplayRotors[Index]->SetRelativeRotation(FRotator(0, PresentationSeconds*937 + Index*37, 0));
 }
 
-void AIstanaDroneVisual::ApplyState(const FIstanaDroneState& State)
+void AIstanaDroneVisual::ApplyState(const FIstanaDroneState& State, double FixedStepSeconds, double MaxTiltDegrees)
 {
     SetActorHiddenInGame(!State.bActive);
-    if (State.VelocityCmPerSecond.IsNearlyZero()) SetActorLocation(State.PositionCm);
-    else
+    const FVector2D HorizontalVelocity(State.VelocityCmPerSecond.X, State.VelocityCmPerSecond.Y);
+    if (!HorizontalVelocity.IsNearlyZero())
+        LastYawDegrees = FMath::RadiansToDegrees(FMath::Atan2(HorizontalVelocity.Y, HorizontalVelocity.X));
+
+    double PitchDegrees = 0.0;
+    double RollDegrees = 0.0;
+    if (bHasPreviousState && FixedStepSeconds > UE_SMALL_NUMBER)
     {
-        FRotator Heading = State.VelocityCmPerSecond.Rotation();
-        Heading.Pitch = FMath::Clamp(Heading.Pitch, -20.0, 20.0);
-        SetActorLocationAndRotation(State.PositionCm, Heading);
+        const FVector Acceleration = (State.VelocityCmPerSecond - PreviousVelocityCmPerSecond) / FixedStepSeconds;
+        const double YawRadians = FMath::DegreesToRadians(LastYawDegrees);
+        const FVector Forward(FMath::Cos(YawRadians), FMath::Sin(YawRadians), 0.0);
+        const FVector Right(-FMath::Sin(YawRadians), FMath::Cos(YawRadians), 0.0);
+        PitchDegrees = -FMath::RadiansToDegrees(FMath::Atan2(FVector::DotProduct(Acceleration, Forward), 980.665));
+        RollDegrees = FMath::RadiansToDegrees(FMath::Atan2(FVector::DotProduct(Acceleration, Right), 980.665));
     }
+    PitchDegrees = FMath::Clamp(PitchDegrees, -MaxTiltDegrees, MaxTiltDegrees);
+    RollDegrees = FMath::Clamp(RollDegrees, -MaxTiltDegrees, MaxTiltDegrees);
+    SetActorLocationAndRotation(State.PositionCm, FRotator(PitchDegrees, LastYawDegrees, RollDegrees));
+    PreviousVelocityCmPerSecond = State.VelocityCmPerSecond;
+    bHasPreviousState = true;
 }
 
 AIstanaSwarmManager::AIstanaSwarmManager()
@@ -336,8 +349,10 @@ void AIstanaSwarmManager::RefreshVisuals()
     TRACE_CPUPROFILER_EVENT_SCOPE(Istana_Visuals);
     CSV_SCOPED_TIMING_STAT(IstanaSwarm, Visuals);
     const TArray<FIstanaDroneState>& States = Simulation.GetStates();
+    const FIstanaSwarmSettings& ActiveSettings = Simulation.GetSettings();
     for (int32 Index = 0; Index < Visuals.Num() && Index < States.Num(); ++Index)
-        if (IsValid(Visuals[Index])) Visuals[Index]->ApplyState(States[Index]);
+        if (IsValid(Visuals[Index]))
+            Visuals[Index]->ApplyState(States[Index], Simulation.GetFixedStepSeconds(), ActiveSettings.MaxTiltDegrees);
 }
 
 void AIstanaSwarmManager::ClearVisuals()

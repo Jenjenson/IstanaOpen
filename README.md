@@ -409,15 +409,17 @@ cache; it is not a dependency for consumers of this repository.
 
 The simulation foundation is implemented as Blueprint-accessible C++ value types,
 reusable Data Assets, validation functions, and a no-op policy interface.
-A separate [synthetic swarm module](Docs/SWARM_SIMULATION.md) now implements
-seeded multi-swarm spawning, boid movement, level-collision pathfinding and shared
-objective following through `ARedTeamManager`. The red team also supports
+A separate [swarm module](Docs/SWARM_SIMULATION.md) now implements seeded
+multi-swarm spawning, a Mavic 3E-inspired constrained kinematic flight envelope,
+level-collision pathfinding and shared objective following through
+`ARedTeamManager`. The red team also supports
 [agent-controlled placement](Docs/RED_TEAM_AGENT.md), an external Python runtime bridge,
 and a bounded [initial-placement RL workflow](Docs/RED_TEAM_RL.md).
 Behavior-preserving optimizations and measured limits are described in
 [optimization results](Docs/SWARM_OPTIMIZATION_RESULTS.md). Sensors, the operator panel
-and live synthetic evaluation are integrated; real-world calibration and a learned
-flight controller remain future work. The architectural viewer still runs as before.
+and live synthetic evaluation are integrated; motor/aerodynamic simulation,
+real-world calibration and a learned flight controller remain future work. The
+architectural viewer still runs as before.
 
 Start with the **[shared contracts usage guide](Docs/SIMULATION_CONTRACTS.md)** for
 field definitions, C++ and Blueprint examples, ownership, validation, and tests.

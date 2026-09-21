@@ -2,8 +2,62 @@
 
 The project provides seeded group spawning, boid movement, 3D pathfinding against
 level collision, drone visuals and a shared objective marker. It has no artificial
-arena min/max boundary and no predefined obstacle list. The solver is kinematic;
-it does not model motors, aerodynamics, sensors, rewards or learning.
+arena min/max boundary and no predefined obstacle list. Movement uses a deterministic,
+Mavic 3 Enterprise-inspired flight envelope. It is still a constrained kinematic model:
+it does not simulate individual motors, propellers, battery discharge, aerodynamic
+downwash, turbulence, sensors, rewards or learning.
+
+## Mavic 3 Enterprise flight envelope
+
+New `FIstanaSwarmSettings` instances use the DJI Mavic 3 Enterprise normal-mode
+published limits below. Unreal uses centimetres, so the source values are converted
+from metres per second. These are limits, not a claim that every real aircraft reaches
+them in every payload, altitude, temperature or wind condition. Source: [DJI Mavic 3
+Enterprise specifications](https://enterprise.dji.com/mavic-3-enterprise/specs).
+
+| Setting | Default | Basis |
+| --- | ---: | --- |
+| Drone Radius Cm | 25 cm | Conservative spherical collision proxy for the 347.5 x 283 mm unfolded airframe |
+| Max Speed Cm Per Second | 1500 (15 m/s) | Published normal-mode horizontal speed |
+| Cruise Speed Cm Per Second | 900 (9 m/s) | Speed used by DJI for its windless endurance measurement |
+| Max Ascent / Descent Speed | 600 / 600 (6 m/s) | Published normal-mode limits |
+| Max Turn Degrees Per Second | 200 degrees/s | Published maximum angular velocity |
+| Max Tilt Degrees | 30 degrees | Published normal-mode attitude limit |
+| Max Acceleration | 566 cm/s2 | Derived as `g * tan(30 degrees)`; not a published DJI acceleration value |
+| Max Jerk | 1200 cm/s3 | Simulation controller tuning; DJI does not publish a jerk limit |
+
+The controller separates horizontal airspeed from vertical climb/descent limits.
+Horizontal acceleration is constrained by the configured tilt angle, and acceleration
+commands are jerk-limited to remove instantaneous changes. `Wind Velocity Cm Per Second`
+is a steady world-space wind vector. The controller attempts to preserve its requested
+ground track by subtracting wind before enforcing the airspeed envelope; sufficiently
+strong wind therefore causes drift. DJI publishes 12 m/s as the aircraft's maximum wind
+resistance, which is a reference operating limit rather than a hard wind clamp here.
+
+Pitch and bank shown by `AIstanaDroneVisual` are derived from the solver's horizontal
+acceleration and capped at the same tilt setting. Yaw follows horizontal travel and is
+rate-limited in the solver. Visual attitude and rotor animation do not feed back into
+movement or observations.
+
+Movement presets and settings serialized before this change can retain their old
+per-property values. Reset those fields to defaults, update the preset, or create a new
+preset to use the values above. This avoids silently rewriting existing Unreal assets.
+
+The dedicated `/Game/Simulation/Presets/DA_Mavic3E_NormalFlight` data asset is
+checked in. The repository also includes `Tools/create_mavic_swarm_preset.py` to
+recreate or refresh that asset without changing the older example preset or any
+map. Close Unreal, build the editor module, then run:
+
+```powershell
+$swarmEngineRoot = 'C:\Program Files\Epic Games\UE_5.5'
+& "$swarmEngineRoot\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" `
+  "$PWD\IstanaOpen.uproject" -run=pythonscript `
+  "-script=$PWD\Tools\create_mavic_swarm_preset.py" `
+  -unattended -nop4 -nosound -nullrhi
+```
+
+In the level, select `RedTeamManager` and set **Swarm > Setup > Movement Preset** to
+`DA_Mavic3E_NormalFlight`. A preset overrides the manager's inline movement settings.
 
 ## One manually placed swarm manager
 
@@ -110,8 +164,8 @@ Malformed commands and nonfinite coordinates remain rejected. Collision sweeps r
 active during both modes. A moving obstacle can engulf a stationary drone; there is
 no depenetration or motion prediction.
 
-Navigation uses acceleration/speed/turn limits and braking near path points. Separation
-repels neighbors, while alignment/cohesion consider group members. Drone-to-drone
+Navigation uses separate horizontal airspeed, climb/descent, acceleration, jerk, tilt
+and yaw-rate limits, plus braking near path points. Separation repels neighbors, while alignment/cohesion consider group members. Drone-to-drone
 avoidance is soft steering, not a rigid collision solver; crowding at a common objective
 can cause overlaps. Arrival requires every active member within Arrival Radius Cm of
 its own formation destination, not every drone at the exact marker or zero velocity.
@@ -152,9 +206,10 @@ Close Unreal, then build with `Tools/build.ps1 -Target All` using UE 5.5.4.
 Run the `Istana.Simulation` automation group. It covers shared contracts, spawn/reset,
 commands, steering/collision, wall detours, population, real static-mesh collision,
 unrestricted coordinates, RedTeam spawning/shared-target/cleanup behavior, and partial
-approach to floor/embedded objectives with resumption after an obstruction moves.
-The verified 12 September 2026 run passed all 13 tests; see
-[validation](VALIDATION.md#swarm-and-red-team-validation-12-september-2026).
+approach to floor/embedded objectives with resumption after an obstruction moves. The
+Mavic flight-envelope test additionally checks wind-relative horizontal speed,
+ascent/descent speed, tilt-derived acceleration and jerk constraints. Historical test
+results are recorded in [validation](VALIDATION.md).
 
 ```powershell
 # Set this to your UE 5.5 installation.

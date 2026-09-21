@@ -17,21 +17,39 @@ namespace
     bool PositiveReference(double V) { return FMath::IsFinite(V) && V > 0; }
     bool NonnegativeReference(double V) { return FMath::IsFinite(V) && V >= 0; }
 
-    FVector LimitTurnReference(const FVector& Previous, const FVector& Next, double MaxRadians)
+    FVector LimitHorizontalTurnReference(const FVector& Previous, const FVector& Next, double MaxRadians)
     {
-        if (Previous.IsNearlyZero() || Next.IsNearlyZero()) return Next;
-        const FVector From = Previous.GetSafeNormal();
-        const FVector To = Next.GetSafeNormal();
-        const double Angle = FMath::Acos(FMath::Clamp(FVector::DotProduct(From, To), -1.0, 1.0));
-        if (Angle <= MaxRadians) return Next;
-        FVector Axis = FVector::CrossProduct(From, To).GetSafeNormal();
-        if (Axis.IsNearlyZero())
-        {
-            // Deterministic axis for a 180-degree turn.
-            Axis = FVector::CrossProduct(From, FVector::UpVector).GetSafeNormal();
-            if (Axis.IsNearlyZero()) Axis = FVector::RightVector;
-        }
-        return FQuat(Axis, MaxRadians).RotateVector(From) * Next.Size();
+        const FVector2D From(Previous.X, Previous.Y);
+        const FVector2D To(Next.X, Next.Y);
+        if (From.IsNearlyZero() || To.IsNearlyZero()) return Next;
+        const double FromYaw = FMath::Atan2(From.Y, From.X);
+        const double ToYaw = FMath::Atan2(To.Y, To.X);
+        const double Delta = FMath::FindDeltaAngleRadians(FromYaw, ToYaw);
+        if (FMath::Abs(Delta) <= MaxRadians) return Next;
+        const double Yaw = FromYaw + FMath::Clamp(Delta, -MaxRadians, MaxRadians);
+        const double HorizontalSpeed = To.Size();
+        return FVector(FMath::Cos(Yaw) * HorizontalSpeed, FMath::Sin(Yaw) * HorizontalSpeed, Next.Z);
+    }
+
+    FVector ClampAirVelocityReference(const FVector& AirVelocity, const FIstanaSwarmSettings& Settings)
+    {
+        const FVector2D RawHorizontal(AirVelocity.X, AirVelocity.Y);
+        const FVector2D Horizontal = RawHorizontal.GetSafeNormal()
+            * FMath::Min(RawHorizontal.Size(), Settings.MaxSpeedCmPerSecond);
+        return FVector(Horizontal.X, Horizontal.Y,
+            FMath::Clamp(AirVelocity.Z, -Settings.MaxDescentSpeedCmPerSecond, Settings.MaxAscentSpeedCmPerSecond));
+    }
+
+    FVector ClampAccelerationReference(const FVector& Acceleration, const FIstanaSwarmSettings& Settings)
+    {
+        const double TiltLimited = 980.665 * FMath::Tan(FMath::DegreesToRadians(Settings.MaxTiltDegrees));
+        const double HorizontalLimit = FMath::Min(Settings.MaxAccelerationCmPerSecondSquared, TiltLimited);
+        const FVector2D RawHorizontal(Acceleration.X, Acceleration.Y);
+        const FVector2D Horizontal = RawHorizontal.GetSafeNormal()
+            * FMath::Min(RawHorizontal.Size(), HorizontalLimit);
+        return FVector(Horizontal.X, Horizontal.Y,
+            FMath::Clamp(Acceleration.Z, -Settings.MaxAccelerationCmPerSecondSquared, Settings.MaxAccelerationCmPerSecondSquared))
+            .GetClampedToMaxSize(Settings.MaxAccelerationCmPerSecondSquared);
     }
 }
 
@@ -191,6 +209,9 @@ bool FIstanaReferenceSwarmSimulation::Initialize(const TArray<FIstanaSwarmConfig
         || !PositiveReference(S.MaxSpeedCmPerSecond) || !PositiveReference(S.MaxAccelerationCmPerSecondSquared)
         || !PositiveReference(S.CruiseSpeedCmPerSecond) || S.CruiseSpeedCmPerSecond > S.MaxSpeedCmPerSecond
         || !PositiveReference(S.MaxTurnDegreesPerSecond) || S.MaxTurnDegreesPerSecond > 360
+        || !PositiveReference(S.MaxAscentSpeedCmPerSecond) || !PositiveReference(S.MaxDescentSpeedCmPerSecond)
+        || !PositiveReference(S.MaxTiltDegrees) || S.MaxTiltDegrees >= 89 || !PositiveReference(S.MaxJerkCmPerSecondCubed)
+        || !FiniteReference(S.WindVelocityCmPerSecond)
         || !PositiveReference(S.ResponseSeconds) || !PositiveReference(S.ArrivalRadiusCm)
         || !PositiveReference(S.NeighborRadiusCm) || !PositiveReference(S.SpacingCm)
         || S.SpacingCm < 2 * S.DroneRadiusCm || S.SpacingCm > S.NeighborRadiusCm
@@ -253,6 +274,8 @@ bool FIstanaReferenceSwarmSimulation::Initialize(const TArray<FIstanaSwarmConfig
     }
     Candidate.bInitialized = true;
     Candidate.NavigationRoutes.SetNum(Candidate.States.Num());
+    Candidate.Accelerations.SetNumZeroed(Candidate.States.Num());
+    Candidate.NextAccelerations.SetNumZeroed(Candidate.States.Num());
     *this = MoveTemp(Candidate);
     return true;
 }
@@ -386,6 +409,7 @@ void FIstanaReferenceSwarmSimulation::Step()
         }
     }
     TArray<FIstanaDroneState> Next = States;
+    NextAccelerations = Accelerations;
     for (int32 Index = 0; Index < States.Num(); ++Index)
     {
         const FIstanaDroneState& State = States[Index];
@@ -453,30 +477,47 @@ void FIstanaReferenceSwarmSimulation::Step()
         // the final swept check guards against steering outside the planned corridor.
         if (Group.Mode == EIstanaSwarmCommandType::Stop || Navigation.bBlocked) Desired = FVector::ZeroVector;
         Desired = Desired.GetClampedToMaxSize(Group.CruiseSpeed);
-        const FVector Acceleration = ((Desired - State.VelocityCmPerSecond) / Settings.ResponseSeconds)
-            .GetClampedToMaxSize(Settings.MaxAccelerationCmPerSecondSquared);
-        FVector Velocity = (State.VelocityCmPerSecond + Acceleration * Dt).GetClampedToMaxSize(Settings.MaxSpeedCmPerSecond);
-        Velocity = LimitTurnReference(State.VelocityCmPerSecond, Velocity, FMath::DegreesToRadians(Settings.MaxTurnDegreesPerSecond) * Dt);
+        const FVector DesiredAirVelocity = ClampAirVelocityReference(Desired - Settings.WindVelocityCmPerSecond, Settings);
+        const FVector DesiredGroundVelocity = DesiredAirVelocity + Settings.WindVelocityCmPerSecond;
+        const FVector RequestedAcceleration = ClampAccelerationReference(
+            (DesiredGroundVelocity - State.VelocityCmPerSecond) / Settings.ResponseSeconds, Settings);
+        const FVector AccelerationDelta = (RequestedAcceleration - Accelerations[Index])
+            .GetClampedToMaxSize(Settings.MaxJerkCmPerSecondCubed * Dt);
+        const FVector Acceleration = ClampAccelerationReference(Accelerations[Index] + AccelerationDelta, Settings);
+        FVector Velocity = State.VelocityCmPerSecond + Acceleration * Dt;
+        FVector AirVelocity = ClampAirVelocityReference(Velocity - Settings.WindVelocityCmPerSecond, Settings);
+        Velocity = AirVelocity + Settings.WindVelocityCmPerSecond;
+        Velocity = LimitHorizontalTurnReference(State.VelocityCmPerSecond, Velocity,
+            FMath::DegreesToRadians(Settings.MaxTurnDegreesPerSecond) * Dt);
+        NextAccelerations[Index] = Acceleration;
         FVector Position = State.PositionCm + Velocity * Dt;
         if (SegmentHitsObstacle(State.PositionCm, Position))
         {
             Position = State.PositionCm;
             Velocity = FVector::ZeroVector;
+            NextAccelerations[Index] = FVector::ZeroVector;
             ++Diagnostics.ObstacleEmergencyStops;
             Navigation.Points.Reset();
             Navigation.bBlocked = true;
         }
         Next[Index].PositionCm = Position;
         Next[Index].VelocityCmPerSecond = Velocity;
+        const FVector ActualAirVelocity = Velocity - Settings.WindVelocityCmPerSecond;
         const double Speed = Velocity.Size();
         const double ActualAcceleration = (Velocity - State.VelocityCmPerSecond).Size() / Dt;
+        const double ActualJerk = (NextAccelerations[Index] - Accelerations[Index]).Size() / Dt;
         Diagnostics.PeakSpeedCmPerSecond = FMath::Max(Diagnostics.PeakSpeedCmPerSecond, Speed);
         Diagnostics.PeakAccelerationCmPerSecondSquared = FMath::Max(Diagnostics.PeakAccelerationCmPerSecondSquared, ActualAcceleration);
-        Diagnostics.SpeedViolationSteps += Speed > Settings.MaxSpeedCmPerSecond + 0.001 ? 1 : 0;
+        Diagnostics.PeakJerkCmPerSecondCubed = FMath::Max(Diagnostics.PeakJerkCmPerSecondCubed, ActualJerk);
+        Diagnostics.SpeedViolationSteps += FVector2D(ActualAirVelocity.X, ActualAirVelocity.Y).Size() > Settings.MaxSpeedCmPerSecond + 0.001
+            || ActualAirVelocity.Z > Settings.MaxAscentSpeedCmPerSecond + 0.001
+            || ActualAirVelocity.Z < -Settings.MaxDescentSpeedCmPerSecond - 0.001 ? 1 : 0;
         Diagnostics.AccelerationViolationSteps += ActualAcceleration > Settings.MaxAccelerationCmPerSecondSquared + 0.001 ? 1 : 0;
+        Diagnostics.JerkViolationSteps += ActualJerk > Settings.MaxJerkCmPerSecondCubed + 0.001 ? 1 : 0;
         Diagnostics.TotalPathLengthCm += FVector::Dist(Position, State.PositionCm);
     }
     States = MoveTemp(Next);
+    Swap(Accelerations, NextAccelerations);
     for (int32 A = 0; A < States.Num(); ++A)
     {
         if (!States[A].bActive) continue;

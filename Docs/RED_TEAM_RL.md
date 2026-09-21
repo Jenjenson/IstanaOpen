@@ -20,7 +20,7 @@ run reproducible and the comparison understandable.
 | Learned action | One of 16 legal wedge directions at the middle allowed radius |
 | Red algorithm | Masked tabular softmax, one-step REINFORCE and Adam |
 | Blue opponent | Frozen temporal public greedy by default |
-| Movement | Existing Unreal boid controller; not learned |
+| Movement | Mavic 3E-inspired constrained boid controller when the saved Mavic preset is assigned; not learned |
 | Training unit | One complete live Unreal episode per policy update |
 | Evaluation | Scripted radial, random wedge and deterministic learned Red on identical seeds |
 
@@ -88,6 +88,14 @@ powershell -ExecutionPolicy Bypass -File .\Tools\setup_blue_python.ps1
 powershell -ExecutionPolicy Bypass -File .\Tools\build.ps1 -Target Editor
 ```
 
+The checked-in live map uses
+`/Game/Simulation/Presets/DA_Mavic3E_NormalFlight` on its single
+`RedTeamManager`. If changing this assignment in Unreal, save
+`/Game/Maps/Istana` before launching the live scene. `start_blue_live.ps1`
+loads the saved map, not an unsaved editor state. The preset can be recreated
+or refreshed with `Tools/create_mavic_swarm_preset.py`; see the
+[swarm movement guide](SWARM_SIMULATION.md#mavic-3-enterprise-flight-envelope).
+
 Start the live Unreal scene before every training, evaluation or CLI demo
 session:
 
@@ -101,10 +109,16 @@ Live Unreal session before using a CLI trainer/evaluator.
 
 ## Reproduce the verified training run
 
-The reference run used 120 episodes, Unreal seeds `91000..91119`, policy seed
+The historical reference run used 120 episodes, Unreal seeds `91000..91119`, policy seed
 `7301`, frozen temporal public greedy Blue and the checked-in default optimizer
 settings. Do not add `--paced` when reproducing metrics; pacing is only for
 recording and makes the run slower.
+
+The `run-04` numbers below predate the Mavic movement preset. Changing movement
+changes trajectories and can change sensing, termination and reward. A run made
+with `DA_Mavic3E_NormalFlight` must therefore be reported as a new experiment
+and evaluated on held-out seeds; do not attach the historical `run-04` metrics
+to it without reproducing them.
 
 ```powershell
 $stamp = Get-Date -Format "yyyyMMdd-HHmmss-fff"
@@ -124,10 +138,15 @@ $trainDir = ".\Saved\RedRL\reproduction-$stamp"
   --output-dir $trainDir
 ```
 
-On the development machine this took roughly 10–15 minutes; runtime depends on
+On the development machine the historical run took roughly 10–15 minutes;
+runtime depends on
 hardware and Unreal frame rate. The output directory must not already exist.
 The command prints episode, reward, baseline, selected action and cumulative
 invalid-placement count while it runs.
+
+Run the timestamp and training lines as one block every time. PowerShell keeps
+the old `$trainDir` value if only the Python portion is repeated, and the trainer
+intentionally refuses to overwrite that existing evidence directory.
 
 ### Training output
 
@@ -162,7 +181,7 @@ target, not the number of additional episodes.
 Example for a run interrupted after episode 40:
 
 ```powershell
-$stamp = Get-Date -Format "yyyyMMdd-HHmmss-fff"
+$trainDir = ".\Saved\RedRL\mavic-training-recording-$(Get-Date -Format 'yyyyMMdd-HHmmss-fff')"
 
 .\RL\BlueTeam\.venv\Scripts\python.exe `
   .\RL\BlueTeam\Python\train_red_placement.py `
@@ -256,9 +275,10 @@ $stamp = Get-Date -Format "yyyyMMdd-HHmmss-fff"
   --temporal-public-control `
   --episodes 5 `
   --seed 92000 `
+  --policy-seed 7301 `
   --paced `
   --checkpoint-every 1 `
-  --output-dir ".\Saved\RedRL\training-recording-$stamp"
+  --output-dir $trainDir
 ```
 
 This is real training from a fresh policy, but five episodes are not enough to
@@ -295,8 +315,9 @@ From `RL/BlueTeam/Python`:
   .\tests\test_istana_live.py
 ```
 
-The current focused result is `42 passed`. The Unreal Editor Development build
-also completed successfully:
+The focused Red/live Python tests passed on 21 September 2026: `42 passed in
+6.06s`. The Unreal Editor Development module was rebuilt successfully after the
+flight-model change, and a subsequent build reported `Target is up to date`:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\Tools\build.ps1 -Target Editor
@@ -312,7 +333,8 @@ long-running unrelated integration tests; it is not reported as passing.
 - **Port 8765 already in use:** reuse the existing live scene or close it before
   launching another. Only one bridge client should be active.
 - **Output directory already exists:** choose a new timestamp. Output creation
-  is intentionally exclusive to prevent overwriting evidence.
+  is intentionally exclusive to prevent overwriting evidence. Rerun the entire
+  PowerShell block so `$trainDir` receives a new value.
 - **Unreal closed during training:** restart it and resume from the newest
   `interrupted-*` or periodic `checkpoint-*` directory.
 - **Rejected placement:** retain the logged row and error. Unreal is
@@ -323,6 +345,7 @@ long-running unrelated integration tests; it is not reported as passing.
 ## Known limitations and next step
 
 - Red learns initial placement only, not flight control.
+- The Mavic model is a spec-constrained kinematic envelope, not motor or aerodynamic simulation.
 - The learned catalogue contains wedge directions only.
 - Public exposure is a synthetic shaping proxy, not calibrated sensing risk.
 - The evaluation does not establish real-world performance.
