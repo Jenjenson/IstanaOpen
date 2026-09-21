@@ -1,6 +1,7 @@
 """Paired fairness, public-input boundaries and archived evidence preservation."""
 from copy import deepcopy
 import json
+import math
 
 import pytest
 
@@ -21,6 +22,40 @@ def paired(replays):
     return results
 
 
+def assert_archived_result_matches(actual, archived):
+    """Only continuous arithmetic may round differently on ARM versus x86.
+
+    Use the published-result audit's 1e-9 relative/absolute tolerance for
+    coordinates, travel duration and continuous scores. Sample times, sensor
+    attribution, detection/confirmation ticks, status flags and outcome fractions
+    remain exact; the tolerance must not turn a changed outcome into a match.
+    """
+    assert len(actual["frames"]) == len(archived["frames"])
+    for left, right in zip(actual["frames"], archived["frames"]):
+        assert {key: value for key, value in left.items() if key != "threats"} == {
+            key: value for key, value in right.items() if key != "threats"}
+        assert len(left["threats"]) == len(right["threats"])
+        for target, expected in zip(left["threats"], right["threats"]):
+            assert {key: value for key, value in target.items() if key != "position"} == {
+                key: value for key, value in expected.items() if key != "position"}
+            assert target["position"] == pytest.approx(expected["position"], rel=1e-9, abs=1e-9)
+    metrics, expected = actual["metrics"], archived["metrics"]
+    assert metrics.keys() == expected.keys()
+    continuous = {"coverage", "sector_coverage", "early_detection", "cost", "total_cost",
+                  "reward", "return", "reward_components"}
+    for key, value in metrics.items():
+        if key in continuous:
+            assert value == pytest.approx(expected[key], rel=1e-9, abs=1e-9)
+        elif key == "target_results":
+            assert len(value) == len(expected[key])
+            for target, stored in zip(value, expected[key]):
+                assert {k: v for k, v in target.items() if k != "time_to_zone"} == {
+                    k: v for k, v in stored.items() if k != "time_to_zone"}
+                assert target["time_to_zone"] == pytest.approx(stored["time_to_zone"], rel=1e-9, abs=1e-9)
+        else:
+            assert value == expected[key]
+
+
 def test_every_published_case_is_rescored_without_altering_the_archive(replays, paired):
     assert len(paired) == len(replays) == 18
     for replay, result in zip(replays, paired):
@@ -28,10 +63,51 @@ def test_every_published_case_is_rescored_without_altering_the_archive(replays, 
         assert result["audit"]["published_evidence_modified"] is False
         assert result["audit"]["scenario_sha256"] == comparison._hash(replay["scenario"])
         assert result["rl"]["placements"] == replay["placements"]
-        assert result["rl"]["frames"] == replay["frames"]
+        assert_archived_result_matches(result["rl"], replay)
         assert result["rl"]["mode"] == result["baseline"]["mode"] == "comparison"
         assert result["rl"]["audit"]["recorded"] is False
         json.dumps(result, allow_nan=False)
+
+
+def test_archived_comparison_allows_only_continuous_roundoff(replays):
+    archived = replays[0]
+    rounded = deepcopy(archived)
+    target = rounded["frames"][0]["threats"][0]
+    target["position"][0] = math.nextafter(target["position"][0], math.inf)
+    metrics = rounded["metrics"]
+    metrics["coverage"] = math.nextafter(metrics["coverage"], math.inf)
+    metrics["target_results"][0]["time_to_zone"] = math.nextafter(
+        metrics["target_results"][0]["time_to_zone"], math.inf)
+    metrics["reward_components"]["coverage"] = math.nextafter(
+        metrics["reward_components"]["coverage"], math.inf)
+    assert rounded != archived
+    assert_archived_result_matches(rounded, archived)
+
+
+@pytest.mark.parametrize("change", ["frame_time", "detection", "status", "detection_tick",
+    "confirmation_tick", "outcome", "detection_fraction", "position", "coverage"])
+def test_archived_comparison_rejects_changed_outcomes_or_excessive_roundoff(replays, change):
+    archived, changed = replays[0], deepcopy(replays[0])
+    frame, metrics = changed["frames"][0], changed["metrics"]
+    if change == "frame_time":
+        frame["time"] += 1e-12  # Even sub-tolerance differences in sample times must fail.
+    elif change == "detection":
+        frame["detections"].append({"sensor_index": 0, "target_id": "drone-1", "modalities": ["rf"]})
+    elif change == "status":
+        frame["threats"][0]["detected"] = not frame["threats"][0]["detected"]
+    elif change in ("detection_tick", "confirmation_tick"):
+        key = "first_detection" if change == "detection_tick" else "first_confirmation"
+        metrics["target_results"][0][key] += 1e-12
+    elif change == "outcome":
+        metrics["outcome"] = "breached"
+    elif change == "detection_fraction":
+        metrics["detected_fraction"] -= 1e-12
+    elif change == "position":
+        frame["threats"][0]["position"][0] += 1e-5
+    elif change == "coverage":
+        metrics["coverage"] += 1e-7
+    with pytest.raises(AssertionError):
+        assert_archived_result_matches(changed, archived)
 
 
 def test_both_layouts_receive_identical_paths_catalogue_and_resources(paired):
