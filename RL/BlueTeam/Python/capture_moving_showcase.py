@@ -18,7 +18,7 @@ def main():
         client.reset(4900200)
         context = client.get_blue_context()
         site = next(i for i in (8,0,16,24,2) if i not in context["publicSnapshot"]["blocked_sites"])
-        client.deploy([{"profileId":"eo", "siteId":site}])
+        client.deploy([{"profileId":"eo", "siteId":site, "yawDeg":0., "pitchDeg":0.}])
         for angle in ("wide", "overhead", "tracking", "sensor", "together"):
             chapters.append({"label":angle.title(), "seconds":len(frames)/fps})
             capture(client, saved, "showcase", presentation_seconds=len(frames)/fps, showcase_angle=angle)

@@ -1,8 +1,8 @@
 """Map-specific, masked REINFORCE sensor-layout policy for native warning reward.
 
 Separate from frozen temporal experiments. No private Red input: the actor sees
-only the validated public layout and legal action mask. Type preferences are
-shared across sites; site preferences are learned per type. STOP is learnable.
+only the validated public layout and legal action mask. Each logit represents a
+profile/site/yaw/pitch choice; STOP is separately learnable.
 """
 from copy import deepcopy
 import hashlib
@@ -11,29 +11,37 @@ from pathlib import Path
 
 import numpy as np
 
-from .adaptive_inputs import build_observation, apply_placement
+from .directional_inputs import build_observation, apply_placement
 from .istana_live import public_planning_inputs
 
 
 class WarningPolicy:
     def __init__(self, context, seed=917):
         state, catalogue, _ = public_planning_inputs(context)
-        self.contract = {"sites": state["sites"], "catalogue": catalogue}
+        observation = build_observation(state, catalogue)
+        option_contract = [{"sensor_id": row["sensor_id"], "site_index": row["site_index"],
+                            "yaw_deg": row.get("yaw_deg", 0.), "pitch_deg": row.get("pitch_deg", 0.)}
+                           for row in observation["options"][:-1]]
+        self.contract = {"sites": state["sites"], "catalogue": catalogue, "options": option_contract}
         self.n_sites, self.n_types = len(state["sites"]), len(catalogue)
-        self.types = np.zeros(self.n_types + 1)
-        self.sites = np.zeros((self.n_types, self.n_sites))
+        self.option_logits = np.zeros(len(option_contract) + 1)
         self.rng = np.random.default_rng(seed)
         self.updates = 0
         self.baseline = None
-        self.m = np.zeros(self.n_types + 1 + self.n_types * self.n_sites)
+        self.m = np.zeros_like(self.option_logits)
         self.v = self.m.copy()
 
     def logits(self):
-        return np.r_[(self.types[:-1, None] + self.sites).ravel(), self.types[-1]]
+        return self.option_logits.copy()
 
     def plan(self, context, *, rng=None, deterministic=False):
         state, catalogue, _ = public_planning_inputs(context)
-        if {"sites": state["sites"], "catalogue": catalogue} != self.contract:
+        initial = build_observation(state, catalogue)
+        current_contract = {"sites": state["sites"], "catalogue": catalogue,
+                            "options": [{"sensor_id": row["sensor_id"], "site_index": row["site_index"],
+                                         "yaw_deg": row.get("yaw_deg", 0.), "pitch_deg": row.get("pitch_deg", 0.)}
+                                        for row in initial["options"][:-1]]}
+        if current_contract != self.contract:
             raise ValueError("Map-specific warning policy requires its original sites and catalogue")
         records, placements = [], []
         generator = self.rng if rng is None else rng
@@ -50,7 +58,8 @@ class WarningPolicy:
             state = apply_placement(state, action, catalogue)
             if row["stop"]:
                 return placements, records
-            placements.append({"profileId": row["sensor_id"], "siteId": row["site_index"]})
+            placements.append({"profileId": row["sensor_id"], "siteId": row["site_index"],
+                               "yawDeg": row.get("yaw_deg", 0.), "pitchDeg": row.get("pitch_deg", 0.)})
         raise RuntimeError("Policy failed to STOP within the layout limit")
 
     def update(self, episodes, learning_rate=.12):
@@ -60,28 +69,25 @@ class WarningPolicy:
         # Leave-one-out batch baseline is independent of each episode's action.
         # Scale is fixed in seconds (no seed-dependent reward normalization).
         advantages = (rewards - (rewards.sum() - rewards) / (len(rewards) - 1)) if len(rewards) > 1 else rewards - (self.baseline or 0.)
-        gt, gs = np.zeros_like(self.types), np.zeros_like(self.sites)
+        gradient = np.zeros_like(self.option_logits)
         for (records, _), advantage in zip(episodes, advantages):
             for action, p in records:
                 score = -p.copy(); score[action] += 1
-                gs += advantage * score[:-1].reshape(self.sites.shape)
-                gt[:-1] += advantage * score[:-1].reshape(self.sites.shape).sum(axis=1)
-                gt[-1] += advantage * score[-1]
-        gradient = np.r_[gt, gs.ravel()] / len(episodes)
+                gradient += advantage * score
+        gradient /= len(episodes)
         gradient /= max(1., float(np.linalg.norm(gradient)))
         self.updates += 1
         self.m = .9 * self.m + .1 * gradient
         self.v = .999 * self.v + .001 * gradient ** 2
         delta = learning_rate * (self.m / (1 - .9 ** self.updates)) / (np.sqrt(self.v / (1 - .999 ** self.updates)) + 1e-8)
-        self.types += delta[:len(self.types)]
-        self.sites += delta[len(self.types):].reshape(self.sites.shape)
+        self.option_logits += delta
         self.baseline = float(rewards.mean())
         return {"update": self.updates, "mean_training_warning_s": self.baseline,
                 "gradient_norm": float(np.linalg.norm(gradient))}
 
     def save(self, path):
-        data = {"schema": "istana.warning_reinforce.v1", "contract": self.contract,
-                "types": self.types.tolist(), "sites": self.sites.tolist(), "updates": self.updates,
+        data = {"schema": "istana.warning_directional_reinforce.v2", "contract": self.contract,
+                "option_logits": self.option_logits.tolist(), "updates": self.updates,
                 "baseline": self.baseline, "adam_m": self.m.tolist(), "adam_v": self.v.tolist(),
                 "rng_state": deepcopy(self.rng.bit_generator.state)}
         with Path(path).open("x", encoding="utf-8") as stream:
@@ -92,9 +98,9 @@ class WarningPolicy:
     def load(cls, path, context):
         data = json.loads(Path(path).read_text(encoding="utf-8"))
         policy = cls(context)
-        if data.get("schema") != "istana.warning_reinforce.v1" or data["contract"] != policy.contract:
+        if data.get("schema") != "istana.warning_directional_reinforce.v2" or data["contract"] != policy.contract:
             raise ValueError("Wrong warning policy contract")
-        for name in ("types", "sites", "m", "v"):
+        for name in ("option_logits", "m", "v"):
             value = np.asarray(data[{"m": "adam_m", "v": "adam_v"}.get(name, name)], dtype=float)
             if value.shape != getattr(policy, name).shape or not np.isfinite(value).all():
                 raise ValueError("Invalid policy arrays")

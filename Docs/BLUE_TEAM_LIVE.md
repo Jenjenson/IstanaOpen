@@ -62,10 +62,12 @@ The map must contain exactly one Red Team Manager with a valid ObjectiveTarget.
 `-IstanaBlueLive` creates/wires the optional Blue coordinator and loopback bridge
 without editing the saved map; normal viewer/Red behavior remains opt-in unchanged.
 The optional delayed-detection demo changes only this live run's permitted Red
-spawn annulus from the map's 30–100 m to 190–210 m. With the map's 10 m swarm
-spread, 45 m outer sensor sites and 130 m maximum sensor range, every initial
-drone is outside every possible sensor range; the scripted radial control starts
-at 200 m and becomes detectable as it moves inward. The frozen temporal public
+spawn annulus from the map's 30–100 m to 560–580 m. With the map's 10 m swarm
+spread, 45 m outer sensor sites and the Boson profile's 500 m simulation
+evaluation boundary, every initial drone has at least 5 m conservative clearance;
+the scripted radial control starts at 570 m and becomes observable as it moves
+inward. The 500 m boundary is a documented simulation assumption, not a rated
+camera detection range. The frozen temporal public
 prior and 406/407/408 checkpoints are intentionally unchanged. Omit the switch
 for live training/evaluation against the original map scenario; the standalone
 viewer and `-IstanaWarningApproachV2` benchmark are also unaffected.
@@ -109,9 +111,12 @@ The output directory must not already exist. Use `--checkpoint` instead of
   observer screen may separately display Red truth for debugging.
 - Blue XY coordinates are objective-relative metres, Z is up. Native Red states
   are absolute Unreal centimetres; conversion uses the advertised objective.
-- Synthetic sensing uses range falloff, weather, repeated confirmation looks and
-  a deadline before objective-zone entry. No physical sensor control, weapons,
-  interception or terrain occlusion is implemented.
+- Directional thermal sensing uses a 3D yaw/pitch frustum, dynamic
+  pixels-on-target, smooth distance/weather/angle degradation and Unreal
+  world-static LOS traces. Its 500 m boundary and probability parameters are
+  simulator assumptions. Legacy RF/radar/EO/fused profiles remain radial.
+  Repeated confirmation and the objective-zone deadline are unchanged. No
+  physical sensor control, weapons or interception is implemented.
 - Live sensor mounts now rest on traced static collision surfaces. A downward
   complex trace samples the centre and four rim points of each 80 cm mount.
   Missing collision, steep surfaces (normal Z below .985), edges and height
@@ -124,7 +129,10 @@ The output directory must not already exist. Use `--checkpoint` instead of
   means unsupported. Sensing and run-report positions use surface + mast height.
 - The frozen offline planner/checkpoints still use their original 2D site and
   nominal-height forecasting model; surface feasibility is masked, but the
-  forecast is not a terrain-aware performance estimate. Offline replays and
+  forecast is not a terrain-aware performance estimate. When used with the new
+  catalogue, a labelled public-prior adapter supplies orientation because those
+  checkpoints never learned yaw/pitch. New native warning policies use the
+  versioned joint profile/site/yaw/pitch action space. Offline replays and
   trained artifacts remain unchanged.
 - Native measured metrics/rewards are separate from archived offline metrics;
   no real-world calibration or transfer-performance claim follows from a run.

@@ -81,7 +81,22 @@ def replay_frame(native,record,summary,stage,final=False):
     label(d,(1470,408),f"{e['team_warning_s']:.3f} s",55,AMBER)
     label(d,(1470,482),f"{e['team_warning_s']-initial['team_warning_s']:+.3f} s gained vs start",26,AMBER)
     label(d,(1470,527),"First Red detection → first arrival",20,MUTED)
-    label(d,(1470,600),"WARNING THROUGH TRAINING (s)",19,MUTED)
+    evidence=record.get("warning_evidence",[])
+    detected=[row for row in evidence if row.get("firstDetectionSeconds") is not None]
+    detected.sort(key=lambda row:row["firstDetectionSeconds"])
+    first_row=detected[0] if detected else None
+    confirmations=[row["firstConfirmationSeconds"] for row in evidence if row.get("firstConfirmationSeconds") is not None]
+    confirmation=min(confirmations) if confirmations else None
+    orientation=" · ".join(f"S{row['siteId']} {row['yawDeg']:.0f}°/{row['pitchDeg']:.0f}°"
+                            for row in record["placements"][:3]) or "STOP / no sensors"
+    label(d,(1470,562),f"Orientation: {orientation}",18,BLUE)
+    if first_row:
+        label(d,(1470,588),f"Confirm {confirmation:.1f}s" if confirmation is not None else "Confirm none",18,MUTED)
+        label(d,(1470,612),f"At detect: {first_row['pixelsOnTargetAtFirstDetection']:.2f}px · P={first_row['probabilityAtFirstDetection']:.3f}",18,MUTED)
+        label(d,(1470,636),"Detection LOS: clear",18,GREEN)
+    else:
+        label(d,(1470,588),"No successful detection / confirmation",18,RED)
+    label(d,(1470,674),"WARNING THROUGH TRAINING (s)",19,MUTED)
     def chart(i,v):return 1510+i*88,840-v*9
     for value in (0,5,10,15,20):
         x,y=chart(0,value);d.line((x,y,1862,y),fill="#25384d")
@@ -102,7 +117,7 @@ def replay_frame(native,record,summary,stage,final=False):
     d.line((bx(t),978,bx(t),1004),fill=INK,width=3)
     first_text=f"{first:.1f}s" if first is not None else "none"
     label(d,(left,947),f"Shown case: detection {first_text} → arrival {arrival:.1f}s",21,AMBER)
-    label(d,(35,1044),"Endpoint: 20 m target-zone entry, NOT impact. Scripted Red; synthetic sensing; no occlusion model.",18,MUTED)
+    label(d,(35,1044),"Endpoint: 20 m target-zone entry, NOT impact. Scripted Red; synthetic probabilities; thermal LOS uses Unreal geometry.",18,MUTED)
     label(d,(1260,1044),"Map data © OpenStreetMap contributors / ODbL",18,MUTED)
     if final:
         d.rounded_rectangle((140,275,1310,720),radius=24,fill="#101e30",outline="#4b637b",width=2)
@@ -152,7 +167,7 @@ def main():
 <div><button data-time="0">Sensor model close-ups</button>{buttons}</div>
 <script>document.querySelectorAll('button[data-time]').forEach(b=>b.onclick=()=>{{const v=document.getElementById('film');v.currentTime=Number(b.dataset.time);v.play();}});</script>
 <div class="panel"><strong>{headline}</strong><p>{description} {team_text} This recording does not claim that cosmetic improvements improved learning.</p>
-<p>As requested, the endpoint remains entry into the 20 m target zone, <strong>not physical impact</strong>. Red is scripted, not a learned opponent. Sensing is synthetic and does not include occlusion.</p></div>
+<p>As requested, the endpoint remains entry into the 20 m target zone, <strong>not physical impact</strong>. Red is scripted, not a learned opponent. Probabilities are simulation assumptions; directional thermal line of sight is traced against Unreal world-static geometry.</p></div>
 <h2>What changed</h2><p>Five distinct equipment assemblies replace the plain cylinders: EO camera, thermal head, flat-panel radar, passive RF array and combined radar/thermal. Each has a surface-mounted base, telescoping mast, braces, fasteners, weatherproof electronics and existing authored PBR materials. The video begins with native model close-ups.</p>
 <p>The overhead sequences are rendered by Unreal from the same saved checkpoints and held-out scenario as the earlier pilot. Every replay's full per-drone detection and arrival evidence was checked against the original. The small colored markers are observer overlays on native drone/sensor positions; they are not policy inputs. The map displays one preselected case while the performance cards average all eight held-out scenarios.</p>
 <p><a href="warning-3d-timelapse.mp4" download>Download the 3D MP4</a> · <a href="sensor-model-preview.jpg">Sensor close-up</a> · <a href="training-summary.json">Measured training results</a> · <a href="capture-manifest.json">Native capture evidence</a></p>

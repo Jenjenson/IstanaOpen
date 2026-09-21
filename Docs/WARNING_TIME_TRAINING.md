@@ -1,5 +1,43 @@
 # Native Blue warning-time training and timelapse
 
+## Directional thermal training (current code)
+
+The current live catalogue replaces the old 115 m omnidirectional thermal row
+with the documented Boson+ directional profile. New
+`istana.warning_directional_reinforce.v2` checkpoints learn profile, approved
+site, yaw and pitch jointly; historical warning runs remain archival evidence
+for their earlier radial contract and must not be relabelled as directional.
+See [the sensor model](DIRECTIONAL_SENSORS.md) for the manufacturer/assumption
+split and probability formula.
+
+For a fresh long-approach directional run, start the scenario outside the 500 m
+simulation boundary and train on its native terminal warning reward:
+
+```powershell
+# Repository root
+powershell -ExecutionPolicy Bypass -File .\Tools\build.ps1 -Target Editor
+powershell -ExecutionPolicy Bypass -File .\Tools\start_blue_live.ps1 -Port 8766 -DelayedDetectionDemo
+cd RL\BlueTeam\Python
+..\.venv\Scripts\python.exe train_warning_live.py --port 8766 --episodes 128 --batch-size 8 --eval-cases 8 --output ..\..\..\Saved\WarningTraining\my-directional-run
+```
+
+For native early-to-trained footage, close the training scene, start the capture
+scene with the identical flag, and replay the fixed checkpoints:
+
+```powershell
+# Repository root
+powershell -ExecutionPolicy Bypass -File .\Tools\start_blue_capture.ps1 -Port 8766 -DelayedDetectionDemo
+cd RL\BlueTeam\Python
+..\.venv\Scripts\python.exe capture_warning_3d.py ..\..\..\Saved\WarningTraining\my-directional-run --output ..\..\..\Saved\WarningTraining\my-directional-capture --port 8766
+..\.venv\Scripts\python.exe render_warning_3d.py ..\..\..\Saved\WarningTraining\my-directional-capture
+```
+
+The native footage shows the physical sensor orientation and frustum. The film
+records first detection, confirmation, target-zone arrival, warning time,
+pixels-on-target and probability from terminal evidence. Checkpoint comparisons
+reuse the same held-out Red seeds; measured regressions or ties are retained.
+Do not claim improvement unless the generated paired summary actually shows it.
+
 ## Video provenance and result clarification
 
 The presentation-only `native-20260918-quadcopter` video replays the **original
@@ -219,7 +257,9 @@ The current scene is easy to detect: a team-level hit can occur on the first
 one-second sensing look even before learning. That puts team warning at its
 first-look ceiling. Average individual warning may improve while the initial
 team alert does not. Do not call those different outcomes the same gain.
-Sensor probabilities are synthetic and omit sensing occlusion. Nothing here
+The historical pilot described in this section used synthetic radial sensing.
+Current directional thermal sensing adds Unreal world-static LOS, but its
+probability curve remains a documented simulation assumption. Nothing here
 establishes real-world warning time, interception success or crash behavior.
 
 ## Capture the actual 3D scene with detailed sensor models

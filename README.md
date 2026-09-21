@@ -289,8 +289,11 @@ synthetic benchmark scripts; no retraining is necessary for the interface demo.
   to identify owners; do not indiscriminately stop all Python/Unreal processes.
 
 The live Red controller is scripted, not learned. Sensor capabilities/rewards
-are synthetic, and sensing does not model terrain occlusion. See the
-[live integration guide](Docs/BLUE_TEAM_LIVE.md) for validation and limitations.
+remain synthetic. The Boson+ thermal profile now uses a directional 3D frustum,
+pixels-on-target probability and Unreal world-static line-of-sight traces;
+legacy RF/radar/EO/fused profiles retain their earlier radial model. See the
+[directional sensor model](Docs/DIRECTIONAL_SENSORS.md) and
+[live integration guide](Docs/BLUE_TEAM_LIVE.md) for assumptions and limits.
 
 ### Train Blue for warning time and watch the timelapse
 

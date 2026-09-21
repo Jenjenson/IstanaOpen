@@ -21,7 +21,7 @@ def main():
         # loaded, placement search, opponent commands, step call or evaluation.
         blocked = context["publicSnapshot"]["blocked_sites"]
         site = next(i for i in (8,0,16,24,2) if i not in blocked)
-        client.deploy([{"profileId": "eo", "siteId": site}])
+        client.deploy([{"profileId": "eo", "siteId": site, "yawDeg": 0., "pitchDeg": 0.}])
         for view in ("overview", "sensor", "drone_model"):
             site_id = site if view == "sensor" else None
             capture(client, saved, view, site_id, -12)

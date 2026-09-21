@@ -72,7 +72,10 @@ def main():
             context = client.get_blue_context()
             blocked = context["publicSnapshot"]["blocked_sites"]
             site = next(i for i in (8,0,16,24,2) if i not in blocked)
-            client.deploy([{"profileId": profile, "siteId": site}])
+            sensor = next(row for row in context["catalogue"] if row["id"] == profile)
+            yaw = sensor.get("yaw_bins_deg", [0.])[0]
+            pitch = sensor.get("pitch_bins_deg", [0.])[0]
+            client.deploy([{"profileId": profile, "siteId": site, "yawDeg": yaw, "pitchDeg": pitch}])
             # Warm the renderer at the new camera; first frame is retained but
             # not used for the hero image (temporal exposure/AA convergence).
             capture(client, saved, "sensor", site)
@@ -123,7 +126,9 @@ def main():
             if blue["warningEvidenceForEvaluationOnly"] != expected["warning_evidence"]:
                 raise ValueError("Presentation change altered native detection/arrival evidence")
             record = {"checkpoint": number, "seed": expected["seed"], "placements": placements,
-                      "frames": frames, "metrics": metrics, "matched_original_evidence": True}
+                      "frames": frames, "metrics": metrics,
+                      "warning_evidence": blue["warningEvidenceForEvaluationOnly"],
+                      "matched_original_evidence": True}
             recordings.append(record)
             write_json(args.output / f"capture-{number:04d}.json", record)
             print(json.dumps({"checkpoint": number, "frames": len(frames), "metrics": metrics}), flush=True)
