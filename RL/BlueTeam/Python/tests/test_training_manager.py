@@ -8,6 +8,7 @@ import pytest
 
 from triad_rl.directional_inputs import BOSON_PLUS_640_18MM
 from triad_rl.training_algorithms import load_algorithm
+from triad_rl.training_environment import NATIVE_STEP_BATCH
 from triad_rl.training_manager import TrainingManager
 
 
@@ -28,6 +29,7 @@ class ProtocolFixture:
     def __init__(self, *, block_after=None, fail_after=None):
         self.context = native_context()
         self.resets, self.layouts, self.seeds = [], [], []
+        self.timeouts, self.step_batches = [], []
         self.completed = 0
         self.cancelled = False
         self.block_after, self.fail_after = block_after, fail_after
@@ -35,6 +37,7 @@ class ProtocolFixture:
 
     def __call__(self, port, timeout):
         assert port == 8765 and timeout > 0
+        self.timeouts.append(timeout)
         return self
 
     def __enter__(self): return self
@@ -61,7 +64,8 @@ class ProtocolFixture:
         assert len(centers) == 2
 
     def step(self, count):
-        assert count == 100
+        assert count == NATIVE_STEP_BATCH
+        self.step_batches.append(count)
         if self.fail_after is not None and self.completed >= self.fail_after:
             raise OSError("Native bridge disconnected during episode")
         if self.block_after is not None and self.completed >= self.block_after:
@@ -105,6 +109,9 @@ def test_full_worker_native_forwarding_metrics_artifacts_reload_and_history(tmp_
     manager.start(configuration(algorithm=algorithm))
     run = finish(manager)
     assert run["status"] == "completed", run.get("error")
+    assert bridge.timeouts == [3., 120.]  # read-only probe is short; native physics may take longer
+    assert NATIVE_STEP_BATCH == 20
+    assert bridge.step_batches == [20] * 12
     assert run["episode"] == 3
     assert run["summary"]["averageWarningTime"] == 9.
     assert run["summary"]["successRate"] == .5
@@ -167,6 +174,8 @@ def test_stop_discards_unfinished_episode_and_saves_completed_partial_learning(t
     assert run["status"] == "stopped"
     assert run["episode"] == 2
     assert bridge.cancelled
+    assert bridge.timeouts == [120.]
+    assert bridge.step_batches == [20] * 6  # no further request after the in-flight call returns
     assert (tmp_path / "trial" / "final_partial_update.json").is_file()
     policy = load_algorithm(manager.model_spec("trial", "final")["path"], bridge.context)
     assert policy.generation == 1

@@ -296,7 +296,9 @@ class TrainingManager:
                 writer = csv.DictWriter(stream, fieldnames=CSV_FIELDS, extrasaction="ignore")
                 if stream.tell() == 0:
                     writer.writeheader()
-                writer.writerow(row)
+                csv_row = dict(row)
+                csv_row["optimizerUpdate"] = json.dumps(row["optimizerUpdate"], allow_nan=False) if row.get("optimizerUpdate") else ""
+                writer.writerow(csv_row)
             with (directory / "evidence.jsonl").open("a", encoding="utf-8") as stream:
                 stream.write(json.dumps({"episode": row["episode"], "nativeRunId": row["nativeRunId"],
                                          "warningEvidenceForEvaluationOnly": evidence}, allow_nan=False) + "\n")
@@ -356,7 +358,10 @@ class TrainingManager:
         policy, batch = None, []
         directory = self.root / run["id"]
         try:
-            with self.client_factory(self.bridge_port, timeout=10.) as client:
+            # Use the existing native trainer's transport timeout. Dense collision
+            # batches can exceed the short interactive console timeout; do not
+            # retry a timed-out mutation, which may already have advanced physics.
+            with self.client_factory(self.bridge_port, timeout=120.) as client:
                 # Check capability before any reset, so an outdated runtime fails explicitly.
                 require_training_runtime(client.request("blue_context")["context"])
                 red_context = client.reset(run["config"]["seed"], blue_configuration=blue_configuration(run["config"]))

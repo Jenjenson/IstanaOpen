@@ -45,7 +45,7 @@ Budget is passed into the native coordinator on every reset. It does not change
 other scene constraints: the current scene permits at most three sensors, so a
 budget of 10 with only a cost-1 thermal profile can still spend at most 3.
 The actual threat count comes from the launched scene; the existing long-approach
-scene uses three groups of twenty threats (60), and no display-only drone limit
+scene uses five groups of twelve threats (60), and no display-only drone limit
 is used for training.
 
 ## Algorithms and objectives

@@ -7,6 +7,7 @@ from .warning_policy import warning_metrics
 
 WARNING_DEFINITION = "Mean per-threat max(0, zone entry time − first detection time), in seconds; missed threats count as zero."
 SUCCESS_DEFINITION = "Fraction of threats confirmed at least the configured defence lead time before zone entry (native timely_fraction)."
+NATIVE_STEP_BATCH = 20
 
 
 class TrainingStopped(Exception):
@@ -43,7 +44,7 @@ def run_episode(client, policy, config, seed, stop, *, deterministic=False):
             client.cancel()
             raise TrainingStopped()
         # Small native batches bound stop latency while preserving fixed-step physics.
-        response = client.step(100)
+        response = client.step(NATIVE_STEP_BATCH)
         blue = response["blueObservation"]
         if blue["terminated"] or blue["truncated"]:
             break

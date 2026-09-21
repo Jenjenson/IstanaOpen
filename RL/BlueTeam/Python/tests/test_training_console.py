@@ -7,6 +7,7 @@ import threading
 import pytest
 
 from simulation_console import ConsoleState, make_server
+from triad_rl.training_environment import NATIVE_STEP_BATCH
 from test_training_manager import ProtocolFixture, configuration, finish
 
 
@@ -45,7 +46,8 @@ class ConsoleProtocolFixture(ProtocolFixture):
         return {"elapsedSeconds": 0., "publicSnapshot": state, "completedSteps": self.completed_steps}
 
     def step(self, count):
-        result = super().step(100)
+        assert count in (10, NATIVE_STEP_BATCH)  # Live and Training use their respective bounded batches.
+        result = super().step(NATIVE_STEP_BATCH)
         blue = result["blueObservation"]
         if blue["terminated"]:
             self.completed_steps += count

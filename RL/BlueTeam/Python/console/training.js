@@ -6,7 +6,7 @@ window.TrainingWorkbench = (() => {
  const byId = id => document.getElementById(id);
  const colors = ['#6ce8c8', '#70b7ff', '#f4cf78', '#e8a5eb'];
  const activeStates = new Set(['starting', 'running', 'evaluating', 'stopping']);
- const state = {api:null,onLoadModel:null,visible:false,options:null,runs:[],selected:null,overlays:new Map(),activeId:null,busy:false,timer:null,polling:false,selectionSequence:0,lastHistory:0,receivedAt:0,chartFrame:null};
+ const state = {api:null,onLoadModel:null,visible:false,options:null,runs:[],selected:null,overlays:new Map(),overlayRequests:new Map(),activeId:null,busy:false,timer:null,polling:false,pollError:null,selectionSequence:0,lastHistory:0,receivedAt:0,chartFrame:null};
  const finite = value => typeof value === 'number' && Number.isFinite(value);
  const number = (value, precision=2) => finite(value) ? value.toLocaleString(undefined, {maximumFractionDigits:precision}) : '—';
  const seconds = value => finite(value) ? `${number(value)} s` : 'Unavailable';
@@ -26,6 +26,14 @@ window.TrainingWorkbench = (() => {
   const source=run?.checkpoints;
   if(Array.isArray(source))return source.map(row=>typeof row==='string'?{id:row,label:row}:{...row,id:row.id||row.name||row.kind}).filter(row=>['best','latest','final'].includes(row.id));
   return Object.entries(source||{}).filter(([id,value])=>['best','latest','final'].includes(id)&&Boolean(value)).map(([id,value])=>({id,label:id,...(typeof value==='object'?value:{})}));
+ }
+ function renderCheckpointNote(){
+  const checkpoint=checkpointChoices(state.selected).find(row=>row.id===byId('training-checkpoint').value);
+  if(!checkpoint){text('training-model-status','A model becomes available once a checkpoint has been saved.');return;}
+  const details=[`${checkpoint.label||checkpoint.id} checkpoint`];
+  if(finite(checkpoint.episode))details.push(`episode ${checkpoint.episode}`);
+  if(finite(checkpoint.score))details.push(`fixed-panel mean warning ${seconds(checkpoint.score)}`);
+  text('training-model-status',`${details.join(' · ')}.${checkpoint.episode===0?' Episode 0 is the untrained policy.':''} Checkpoint selection uses the fixed evaluation panel, separately from the best training episode shown above. Loading checks map, sensor and model compatibility.`);
  }
  function hasActiveRun(){return Boolean(state.activeId);}
  function updateControls(){
@@ -50,6 +58,7 @@ window.TrainingWorkbench = (() => {
   text('training-warning-definition',environment.warningDefinition || 'Warning-time definition is supplied by the native environment.');
   text('training-success-definition',environment.successDefinition || 'Success rate is the fraction of threats confirmed with at least the native defence lead time remaining before protected-zone entry.');
   text('training-checkpoint-criterion',options.checkpointCriterion || 'Checkpoint selection criterion is supplied by the Training Manager.');
+  text('training-unavailable-algorithms',typeof options.unavailableAlgorithms==='string'?options.unavailableAlgorithms:'');
   text('training-warning-note',`${environment.warningDefinition || 'Warning time follows the existing native definition.'} The agent optimizes mean per-drone warning. Native episode reward is a separate diagnostic score.`);
   const oldChoices=new Map([...byId('training-catalogue').querySelectorAll('input')].map(input=>[input.value,input.checked]));
   byId('training-catalogue').replaceChildren();
@@ -87,11 +96,11 @@ window.TrainingWorkbench = (() => {
   renderHistory();updateControls();
  }
  async function selectRun(id){
-  const sequence=++state.selectionSequence;
+  const sequence=++state.selectionSequence;error('');
   try{
    const run=unwrap(await state.api(`/api/training/run/${encodeURIComponent(id)}`));
    if(sequence!==state.selectionSequence)return;
-   state.selected=run;state.receivedAt=Date.now();state.overlays.delete(run.id);
+   state.selected=run;state.receivedAt=Date.now();state.overlays.delete(run.id);state.overlayRequests.delete(run.id);
    if(activeStates.has(run.status))state.activeId=run.id;
    else if(state.activeId===run.id)state.activeId=null;
    renderRun();renderHistory();
@@ -134,7 +143,7 @@ window.TrainingWorkbench = (() => {
   byId('training-moving-window').replaceChildren(new Option(`${windowSize} episodes`,String(windowSize)));byId('training-moving-window').disabled=true;
   text('training-summary-scope',episode?`${episode.toLocaleString()} completed episodes${run?.status==='completed'?' · final':' · recorded so far'}`:'No recorded episodes');
   const target=byId('training-summary');target.replaceChildren();
-  const stats=[['Average reward',summary.averageReward,number],['Best reward',summary.bestReward,number],['Average warning',summary.averageWarningTime,seconds],['Best warning',summary.bestWarningTime,seconds],['Timely success rate',summary.successRate,percent],['Average sensors used',summary.averageSensorsUsed,number],['Average budget used',summary.averageBudgetUsed,number],['Training duration',run?.elapsedSeconds,duration]];
+  const stats=[['Average reward',summary.averageReward,number],['Best episode reward',summary.bestReward,number],['Average warning',summary.averageWarningTime,seconds],['Best episode warning',summary.bestWarningTime,seconds],['Timely success rate',summary.successRate,percent],['Average sensors used',summary.averageSensorsUsed,number],['Average budget used',summary.averageBudgetUsed,number],['Training duration',run?.elapsedSeconds,duration]];
   for(const [label,value,format] of stats)if(finite(value))addStatistic(target,label,format(value));
   if(!target.children.length)addStatistic(target,'Recorded results','Available after the first completed episode',true);
   const metrics=byId('training-latest-metrics');metrics.replaceChildren();
@@ -151,10 +160,10 @@ window.TrainingWorkbench = (() => {
   if(choices.some(row=>row.id===oldCheckpoint))byId('training-checkpoint').value=oldCheckpoint;
   else if(choices.some(row=>row.id==='best'))byId('training-checkpoint').value='best';
   if(!choices.length)byId('training-checkpoint').append(new Option('No saved checkpoint',''));
-  text('training-model-status',choices.length?'Load a saved policy for inference in Live Unreal. Its map, sensor and model contracts are checked before use.':'A model becomes available once a checkpoint has been saved.');
+  renderCheckpointNote();
   const storage=run?.artifactDirectory||run?.directory||run?.outputDirectory||run?.storagePath;
   text('training-storage',storage?`Saved in ${storage}`:run?`Saved in training_runs/${run.id}/`:'');
-  const active=state.runs.find(row=>row.id===state.activeId)||((run?.id===state.activeId)?run:null);
+  const active=(run?.id===state.activeId?run:null)||state.runs.find(row=>row.id===state.activeId);
   text('training-action-status',active?`${runName(active)} · ${active.status}. Completed episodes and checkpoints are saved as training progresses.`:run?.status==='failed'?`Run failed: ${run.error||'See the recorded run error.'}`:run?.status==='stopped'?'Stopped cleanly. Recorded results and saved checkpoints remain available.':run?.status==='completed'?'Training complete. Open a checkpoint in Live Unreal to evaluate it.':'No active run.');
   if(run?.error)error(run.error);
   renderCharts();updateControls();
@@ -171,18 +180,27 @@ window.TrainingWorkbench = (() => {
    const nameCell=node('td'),open=node('button',runName(run));open.type='button';open.title=runName(run);open.onclick=()=>selectRun(run.id);nameCell.append(open,node('small',(run.status||'saved').replaceAll('_',' ')));row.append(nameCell);
    const date=new Date(run.startedAt||run.createdAt||'');
    for(const value of [algorithmLabel(run.algorithm||config.algorithm),`${run.episode??run.episodes??0} / ${run.totalEpisodes??config.episodes??'—'}`,number(run.budget??config.budget),Number.isNaN(date.getTime())?'—':date.toLocaleString(undefined,{dateStyle:'short',timeStyle:'short'}),number(summary.averageReward??run.averageReward),seconds(summary.averageWarningTime??run.averageWarningTime),percent(summary.successRate??run.successRate)])row.append(node('td',value));
-   const overlayCell=node('td'),label=node('label',undefined,'check'),input=document.createElement('input');input.type='checkbox';input.checked=state.overlays.has(run.id);input.disabled=run.id===state.selected?.id||(!input.checked&&state.overlays.size>=3);input.setAttribute('aria-label',`Overlay ${runName(run)}`);input.onchange=()=>toggleOverlay(run.id,input.checked);label.append(input,node('span',run.id===state.selected?.id?'Selected':'Compare'));overlayCell.append(label);row.append(overlayCell);body.append(row);
+   const overlayCell=node('td'),label=node('label',undefined,'check'),input=document.createElement('input');input.type='checkbox';input.checked=state.overlays.has(run.id)||state.overlayRequests.has(run.id);input.disabled=run.id===state.selected?.id||(!input.checked&&state.overlays.size+state.overlayRequests.size>=3);input.setAttribute('aria-label',`Overlay ${runName(run)}`);input.onchange=()=>toggleOverlay(run.id,input.checked);label.append(input,node('span',run.id===state.selected?.id?'Selected':'Compare'));overlayCell.append(label);row.append(overlayCell);body.append(row);
   }
   if(!state.runs.length){const row=node('tr'),cell=node('td','No saved experiments yet. Your first run will appear here.','training-empty');cell.colSpan=9;row.append(cell);body.append(row);}
  }
  async function toggleOverlay(id,enabled){
-  if(!enabled){state.overlays.delete(id);renderHistory();renderCharts();return;}
+  if(!enabled){state.overlayRequests.delete(id);state.overlays.delete(id);renderHistory();renderCharts();return;}
+  const request={};
   try{
-   if(state.overlays.size>=3)throw new Error('Choose up to three overlay runs.');
+   if(state.overlays.size+state.overlayRequests.size>=3)throw new Error('Choose up to three overlay runs.');
+   state.overlayRequests.set(id,request);renderHistory();
    const run=unwrap(await state.api(`/api/training/run/${encodeURIComponent(id)}`));
+   if(state.overlayRequests.get(id)!==request)return;
+   state.overlayRequests.delete(id);
    if(state.selected?.id!==id&&state.overlays.size<3)state.overlays.set(id,run);
    renderHistory();renderCharts();
-  }catch(e){error(e.message);renderHistory();}
+  }catch(e){if(state.overlayRequests.get(id)===request)state.overlayRequests.delete(id);error(e.message);renderHistory();}
+ }
+ async function refreshOverlays(){
+  const active=[...state.overlays.entries()].filter(([,run])=>activeStates.has(run.status));
+  await Promise.all(active.map(async([id,previous])=>{const run=unwrap(await state.api(`/api/training/run/${encodeURIComponent(id)}`));if(state.overlays.get(id)===previous)state.overlays.set(id,run);}));
+  if(active.length)renderCharts();
  }
  function renderCharts(){
   if(state.chartFrame)cancelAnimationFrame(state.chartFrame);
@@ -208,7 +226,7 @@ window.TrainingWorkbench = (() => {
   const tickStep=(high-low)/4,tickPrecision=tickStep<1?Math.min(4,Math.ceil(-Math.log10(tickStep))+1):tickStep<10?1:0;
   for(let tick=0;tick<=4;tick++){const value=low+(high-low)*tick/4,py=y(value);ctx.strokeStyle='#263547';ctx.beginPath();ctx.moveTo(margin.left,py);ctx.lineTo(width-margin.right,py);ctx.stroke();ctx.fillStyle='#8298af';ctx.fillText(isPercent?`${Math.round(value*100)}%`:number(value,tickPrecision),margin.left-9,py);}
   ctx.textBaseline='top';ctx.textAlign='center';ctx.fillStyle='#8298af';
-  const ticks=width<400?3:5;for(let tick=0;tick<ticks;tick++){const episode=Math.round(1+(maxEpisode-1)*tick/(ticks-1));ctx.fillText(String(episode),margin.left+plotW*tick/(ticks-1),height-margin.bottom+8);}
+  const ticks=Math.min(maxEpisode,width<400?3:5);for(let tick=0;tick<ticks;tick++){const fraction=tick/Math.max(1,ticks-1),episode=Math.round(1+(maxEpisode-1)*fraction);ctx.fillText(String(episode),margin.left+plotW*fraction,height-margin.bottom+8);}
   ctx.fillText('Episode',margin.left+plotW/2,height-11);
   if(!values.length){ctx.fillStyle='#99adc1';ctx.textBaseline='middle';ctx.fillText('Waiting for recorded episode measurements',margin.left+plotW/2,margin.top+plotH/2);canvas.setAttribute('aria-label',`${canvas.parentElement.querySelector('figcaption span').textContent}. No recorded values yet.`);return;}
   ctx.save();ctx.beginPath();ctx.rect(margin.left-2,margin.top-2,plotW+4,plotH+4);ctx.clip();
@@ -229,7 +247,7 @@ window.TrainingWorkbench = (() => {
   const config={runName:byId('training-name').value.trim(),algorithm:byId('training-algorithm').value,episodes:Number(byId('training-episodes').value),budget:Number(byId('training-budget').value),seed:rawSeed===''?null:Number(rawSeed),enabledSensorIds,checkpointFrequency:Number(byId('training-checkpoint-frequency').value)};
   state.busy=true;error('');text('training-action-status','Starting native training and checking the environment…');updateControls();
   try{
-   const run=unwrap(await state.api('/api/training/start',config));++state.selectionSequence;state.selected=run;state.receivedAt=Date.now();state.activeId=activeStates.has(run.status)?run.id:null;state.overlays.clear();
+   const run=unwrap(await state.api('/api/training/start',config));++state.selectionSequence;state.selected=run;state.receivedAt=Date.now();state.activeId=activeStates.has(run.status)?run.id:null;state.overlays.clear();state.overlayRequests.clear();
    byId('training-name').value=runName(run);renderRun();
    try{await refreshHistory();}catch(e){error(`Training started, but the run list could not be refreshed: ${e.message}`);}
   }catch(e){error(e.message);text('training-action-status','Training did not start. Resolve the reported issue and try again.');}
@@ -251,9 +269,10 @@ window.TrainingWorkbench = (() => {
  async function poll(){
   if(state.polling||!state.visible||!state.api)return;state.polling=true;
   try{
-   if(!state.busy){if(Date.now()-state.lastHistory>5000)await refreshHistory();if(state.selected&&activeStates.has(state.selected.status))await refreshSelected();else if(!state.selected&&state.activeId)await selectRun(state.activeId);}
+   if(!state.busy){if(Date.now()-state.lastHistory>5000){await refreshHistory();await refreshOverlays();}if(state.selected&&activeStates.has(state.selected.status))await refreshSelected();else if(!state.selected&&state.activeId)await selectRun(state.activeId);}
+   if(state.pollError&&byId('training-error').textContent===state.pollError&&!state.selected?.error)error('');state.pollError=null;
    renderElapsed();
-  }catch(e){error(`Training status could not be refreshed: ${e.message}. The server may still be running the experiment.`);}
+  }catch(e){state.pollError=`Training status could not be refreshed: ${e.message}. The server may still be running the experiment.`;error(state.pollError);}
   finally{state.polling=false;schedulePoll();}
  }
  async function show(){
@@ -266,6 +285,7 @@ window.TrainingWorkbench = (() => {
   state.api=api;state.onLoadModel=onLoadModel;
   byId('training-form').addEventListener('submit',start);byId('training-stop').onclick=stop;byId('training-load-model').onclick=loadModel;
   byId('training-algorithm').onchange=renderAlgorithmNote;
+  byId('training-checkpoint').onchange=renderCheckpointNote;
   for(const button of document.querySelectorAll('[data-episodes]'))button.onclick=()=>{byId('training-episodes').value=button.dataset.episodes;};
   byId('training-refresh').onclick=async()=>{error('');await refreshOptions();};
   byId('training-history-refresh').onclick=async()=>{try{await refreshHistory();if(state.selected)await selectRun(state.selected.id);}catch(e){error(e.message);}};

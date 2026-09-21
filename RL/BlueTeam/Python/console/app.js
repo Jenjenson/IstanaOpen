@@ -2,6 +2,7 @@
 const $ = id => document.getElementById(id);
 let token='', catalog=[], view=null, frameIndex=0, mode='recorded', playing=false, busy=false, busyOperation='', connected=false;
 let elapsed=0, lastWall=0, liveWall=0, loadSequence=0;
+let liveTrainingOwner=null,liveStatusPending=false,liveStatusTimer=null;
 let nativeImage=null, eventSignature='';
 const comparison={scenario:null,result:null,placements:[],method:'baseline',loading:false,replayId:null,mapTransform:null,sequence:0,revealed:false};
 const fmt=(v,n=1)=>Number.isFinite(v)?v.toFixed(n):'—';
@@ -18,10 +19,10 @@ async function api(path,body){
  if(!response.ok)throw new Error(data.error||'Request failed');return data;
 }
 function connectionStatus(){
- const label=mode==='training'?'Blue Team · training':mode==='comparison'?'Comparison · local simulation':mode==='recorded'?'Replay ready':connected?'Unreal connected':'Unreal disconnected';
+ const label=mode==='training'?'Blue Team · training':mode==='comparison'?'Comparison · local simulation':mode==='recorded'?'Replay ready':liveTrainingOwner?'Unreal reserved · training':connected?'Unreal connected':'Unreal disconnected';
  $('connection-label').textContent=label;
  $('connection').firstChild.style.background=mode==='live'&&!connected?'#ffb18a':'#6ce8c8';
- $('connect').textContent=connected?'Disconnect':'Connect to Unreal';
+ $('connect').textContent=liveTrainingOwner?'Training active':connected?'Disconnect':'Connect to Unreal';
 }
 function controls(){
  const blocking=(busy&&busyOperation!=='step')||comparison.loading, liveEnded=Boolean(mode==='live'&&view?.ended), draft=mode==='comparison'&&!comparison.result;
@@ -30,7 +31,7 @@ function controls(){
  $('step').disabled=!view||playing||busy||blocking||liveEnded||draft;
  $('restart').disabled=!view||mode==='live'||blocking||draft;
  $('timeline').disabled=!view||blocking||draft;$('speed').disabled=!view||draft;
- $('connect').disabled=busy||playing;$('plan').disabled=!connected||busy||playing;
+ $('connect').disabled=busy||playing||liveStatusPending||Boolean(liveTrainingOwner);$('plan').disabled=!connected||busy||playing||liveStatusPending||Boolean(liveTrainingOwner);
  for(const id of ['recorded-mode','live-mode','comparison-mode','training-mode'])$(id).disabled=busy||playing||comparison.loading;
  comparisonControls();
 }
@@ -80,7 +81,7 @@ async function loadReplay(){
  try{const data=await api(`/api/replay/${row.id}`);if(seq!==loadSequence||mode!=='recorded')return;setView(data);showError('');}catch(e){showError(e.message);}
 }
 async function switchMode(next){
- pause();mode=next;++loadSequence;showError('');
+ pause();mode=next;const sequence=++loadSequence;clearTimeout(liveStatusTimer);liveStatusPending=mode==='live';showError('');
  for(const id of ['recorded','live','comparison','training'])$(id+'-mode').setAttribute('aria-pressed',String(mode===id));
  document.body.classList.toggle('comparison-mode',mode==='comparison');
  document.body.classList.toggle('training-mode',mode==='training');$('training-workbench').hidden=mode!=='training';
@@ -89,8 +90,16 @@ async function switchMode(next){
  $('recorded-controls').hidden=mode==='live';$('live-controls').hidden=mode!=='live';$('comparison-controls').hidden=mode!=='comparison';$('comparison-panel').hidden=mode!=='comparison';
  $('source-badge').textContent=mode==='recorded'?'RECORDED · SYNTHETIC':mode==='comparison'?'COMPARISON · SYNTHETIC':'LIVE UNREAL · SYNTHETIC';
  $('provenance').textContent=mode==='recorded'?'Published temporal-v6 evidence · 18 recorded cases':mode==='comparison'?'Matched synthetic evaluation · archived scenarios and RL layouts':'Local Unreal bridge · scripted Red · experimental Blue';
- if(mode==='recorded')await loadReplay();else if(mode==='comparison')await loadComparisonScenario();else{view=null;$('empty').hidden=false;$('episode-title').textContent='Awaiting live episode';$('clock').textContent='00:00.0';$('progress').textContent='Fixed-step simulation';sensorDetails();results();render();controls();}
+ if(mode==='recorded')await loadReplay();else if(mode==='comparison')await loadComparisonScenario();else{view=null;$('empty').hidden=false;$('episode-title').textContent='Awaiting live episode';$('clock').textContent='00:00.0';$('progress').textContent='Fixed-step simulation';sensorDetails();results();render();controls();await refreshLiveStatus(sequence);}
  connectionStatus();
+}
+async function refreshLiveStatus(sequence){
+ try{
+  const status=await api('/api/status');if(mode!=='live'||sequence!==loadSequence)return;
+  connected=Boolean(status.connected);liveTrainingOwner=status.trainingRun||null;
+  $('active-policy').textContent=liveTrainingOwner?`Native simulator reserved for training: ${liveTrainingOwner}. Return to Training to watch or stop the run.`:view?`Active: ${view.policy}`:'Select a planner and connect to evaluate an episode.';
+ }catch(e){if(mode==='live'&&sequence===loadSequence){connected=false;showError(`Cannot refresh native connection status: ${e.message}`);}}
+ finally{if(mode==='live'&&sequence===loadSequence){liveStatusPending=false;connectionStatus();controls();if(liveTrainingOwner)liveStatusTimer=setTimeout(()=>refreshLiveStatus(sequence),2000);}}
 }
 function render(){
  const frame=view?.frames[frameIndex];syncTimeline();
