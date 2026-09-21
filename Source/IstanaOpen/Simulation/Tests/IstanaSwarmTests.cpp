@@ -171,6 +171,49 @@ bool FIstanaSwarmSteeringTest::RunTest(const FString& Parameters)
     return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FIstanaSwarmFlightEnvelopeTest, "Istana.Simulation.Swarm.MavicFlightEnvelope",
+    EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+bool FIstanaSwarmFlightEnvelopeTest::RunTest(const FString& Parameters)
+{
+    FIstanaSwarmSettings Settings;
+    Settings.WindVelocityCmPerSecond = FVector(300, -150, 0);
+    FIstanaSwarmSimulation Sim;
+    FString Error;
+    TestTrue(TEXT("Flight-envelope simulation initialized"),
+        Sim.Initialize({MakeGroup()}, Settings, 22, 0.05, FGuid::NewGuid(), Error));
+    TestTrue(TEXT("Three-axis route accepted"),
+        Sim.SubmitCommand(Route(Sim, FVector(10000, 5000, 8000)), Error));
+
+    FVector PreviousVelocity = Sim.GetStates()[0].VelocityCmPerSecond;
+    FVector PreviousAcceleration = FVector::ZeroVector;
+    bool bVelocityBounded = true;
+    bool bAccelerationBounded = true;
+    bool bJerkBounded = true;
+    for (int32 Step = 0; Step < 300; ++Step)
+    {
+        Sim.Step();
+        const FVector Velocity = Sim.GetStates()[0].VelocityCmPerSecond;
+        const FVector AirVelocity = Velocity - Settings.WindVelocityCmPerSecond;
+        const FVector Acceleration = (Velocity - PreviousVelocity) / 0.05;
+        const FVector Jerk = (Acceleration - PreviousAcceleration) / 0.05;
+        bVelocityBounded &= FVector2D(AirVelocity.X, AirVelocity.Y).Size() <= Settings.MaxSpeedCmPerSecond + 0.001;
+        bVelocityBounded &= AirVelocity.Z <= Settings.MaxAscentSpeedCmPerSecond + 0.001;
+        bVelocityBounded &= AirVelocity.Z >= -Settings.MaxDescentSpeedCmPerSecond - 0.001;
+        bAccelerationBounded &= Acceleration.Size() <= Settings.MaxAccelerationCmPerSecondSquared + 0.01;
+        // The first sample includes the initialized wind-relative state; subsequent samples test the controller.
+        if (Step > 0) bJerkBounded &= Jerk.Size() <= Settings.MaxJerkCmPerSecondCubed + 0.1;
+        PreviousVelocity = Velocity;
+        PreviousAcceleration = Acceleration;
+    }
+    TestTrue(TEXT("Air-relative horizontal and vertical speeds bounded"), bVelocityBounded);
+    TestTrue(TEXT("Tilt-derived acceleration bounded"), bAccelerationBounded);
+    TestTrue(TEXT("Commanded motion is jerk bounded"), bJerkBounded);
+    TestEqual(TEXT("No internal speed-envelope violations"), Sim.GetDiagnostics().SpeedViolationSteps, int64(0));
+    TestEqual(TEXT("No internal acceleration-envelope violations"), Sim.GetDiagnostics().AccelerationViolationSteps, int64(0));
+    TestEqual(TEXT("No internal jerk-envelope violations"), Sim.GetDiagnostics().JerkViolationSteps, int64(0));
+    return true;
+}
+
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(FIstanaSwarmNavigationTest, "Istana.Simulation.Swarm.Navigation",
     EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
 bool FIstanaSwarmNavigationTest::RunTest(const FString& Parameters)
@@ -449,4 +492,3 @@ bool FIstanaSwarmGroundObjectiveTest::RunTest(const FString& Parameters)
     return true;
 }
 #endif
-

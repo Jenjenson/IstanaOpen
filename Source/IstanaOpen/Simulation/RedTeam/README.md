@@ -11,7 +11,9 @@ shared movement solver to navigate through level geometry.
 3. Place a **Target Point** or `BP_SwarmObjective` and assign it to **Objective Target**.
 4. Configure **Red Team > Spawning** using the settings below. Leave **Auto Initialize**,
    **Auto Advance**, **Follow Objective**, and **Spawn Visuals** enabled for normal Play.
-5. Optionally assign a movement preset. It overrides the inherited inline **Settings**.
+5. Assign `DA_Mavic3E_NormalFlight` to **Movement Preset** for the spec-constrained
+   Mavic defaults. Create it with `Tools/create_mavic_swarm_preset.py` if it is not yet
+   present. A movement preset overrides the inherited inline **Settings**.
 6. Press Play. Read **Spawn Status**, **Objective Status**, and **Get Group Statuses**
    when diagnosing a swarm that cannot spawn or reach the exact objective.
 
@@ -110,17 +112,20 @@ opts into the approach behavior used automatically by objective following.
 
 ## Validation and scope
 
-The verified 12 September 2026 run passed all **13 `Istana.Simulation` tests**, including
+The historical 12 September 2026 run passed all **13 `Istana.Simulation` tests**, including
 red-team placement, visible population, deterministic reset, shared-target arrival,
 retargeting without respawn, invalid-setup preservation, target removal and cleanup.
 Related tests cover floor/embedded objectives, partial approach with collision retained,
 resuming after an obstruction moves, and movement beyond the old arena bounds.
-Editor and game Development builds passed. See [validation](../../../../Docs/VALIDATION.md#swarm-and-red-team-validation-12-september-2026)
+Editor and game Development builds passed. The Mavic flight-envelope change adds a
+new native regression test; rerun the current suite before claiming a post-change
+native test count. See [validation](../../../../Docs/VALIDATION.md#swarm-and-red-team-validation-12-september-2026)
 and the [test source](../Tests/IstanaSwarmTests.cpp) for scope and reproduction.
 
-This is a kinematic scene spawner and scripted objective follower. It does not implement
-motor dynamics, sensors, a learned policy or a training algorithm. Agent mode provides
-an episode clock and optional evaluator hook, without defining task rewards.
+This class is a constrained kinematic scene spawner and scripted objective follower. It
+does not implement motor dynamics, sensors or an internal learned policy. The separate
+Python Red workflow supplies the bounded placement trainer; flight control remains
+non-learned. Agent mode provides an episode clock and optional evaluator hook.
 The shared `IIstanaPolicyInterface` and schema-1 no-op action payload are unchanged.
 
 ## Agent placement and optimization

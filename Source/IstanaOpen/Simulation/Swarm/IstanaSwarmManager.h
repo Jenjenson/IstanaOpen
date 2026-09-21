@@ -16,11 +16,14 @@ class ISTANAOPEN_API AIstanaDroneVisual : public AActor
     GENERATED_BODY()
 public:
     AIstanaDroneVisual();
-    void ApplyState(const FIstanaDroneState& State);
+    void ApplyState(const FIstanaDroneState& State, double FixedStepSeconds, double MaxTiltDegrees);
     void AnimateDisplayRotors(double PresentationSeconds);
 private:
     UPROPERTY() TObjectPtr<UStaticMeshComponent> Body;
     UPROPERTY() TArray<TObjectPtr<UStaticMeshComponent>> DisplayRotors;
+    FVector PreviousVelocityCmPerSecond = FVector::ZeroVector;
+    double LastYawDegrees = 0.0;
+    bool bHasPreviousState = false;
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FIstanaSwarmStepped, int64, CompletedSteps);
@@ -103,7 +106,7 @@ private:
     bool bHasObjectiveAttempt = false;
 };
 
-/** Free-flight camera for the separate synthetic demo; not used by the original map. */
+/** Free-flight camera for the separate swarm demo; not used by the original map. */
 UCLASS()
 class ISTANAOPEN_API AIstanaSwarmDemoGameMode : public AGameModeBase
 {

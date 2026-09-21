@@ -66,6 +66,8 @@ private:
     FGuid RunId;
     bool bInitialized = false;
     TArray<FIstanaDroneState> States;
+    TArray<FVector> Accelerations;
+    TArray<FVector> NextAccelerations;
     TArray<FVector> FormationOffsets;
     TArray<FGroup> Groups;
     FIstanaSwarmDiagnostics Diagnostics;
