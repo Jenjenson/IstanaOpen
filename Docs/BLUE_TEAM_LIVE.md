@@ -41,6 +41,11 @@ approved sites, sensor costs, an event log and explicitly labelled final metrics
 All cases, including failures, remain selectable. No retraining or selection of
 a purported best checkpoint occurs.
 
+**Compare placements** adds a paired offline evaluation of each archived RL
+layout against a common-sense heuristic or a manually edited layout. It uses
+the same scenarios, catalogue, budget and sensing draws for both methods;
+Unreal is not required. See the [comparison guide](SENSOR_PLACEMENT_COMPARISON.md).
+
 ## Live mode
 
 Use UE **5.5.4**, the installed version associated with this project. Install the
@@ -67,12 +72,16 @@ viewer and `-IstanaWarningApproachV2` benchmark are also unaffected.
 
 In the console choose **Live Unreal → Connect to Unreal → Plan new episode**,
 then **Run episode** or **Step**. Select an experimental checkpoint (406/407/408)
-or **Greedy · non-RL**. Changing the selector applies on **Plan new episode**;
+or **Greedy · non-RL**, or **Common sense · non-RL**. Changing the selector applies on **Plan new episode**;
 the active planner is shown separately. Greedy uses `TemporalPublicGreedy`,
 repeatedly choosing the legal option with the greatest predicted marginal
 return and stopping when no positive gain remains. It respects budget, site
 count, separation and the native unsupported-site mask. `control` remains a
 backward-compatible API alias; the CLI also accepts `--greedy`.
+Common sense uses a simpler public ingress-coverage rule with weather, cost and
+overlap adjustments; it is an explainable heuristic, not a measured human
+participant or a trained policy. The CLI accepts `--common-sense` as an alternative
+to `--checkpoint` or `--greedy`.
 Red placement defaults to the scripted radial control, while the CLI may
 explicitly select a learned, random wedge or dispersed demo policy. See
 [Red initial-placement RL](RED_TEAM_RL.md). This remains separate Red training

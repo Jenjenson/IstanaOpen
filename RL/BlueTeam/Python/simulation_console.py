@@ -139,14 +139,16 @@ class ConsoleState:
                     if type(seed) is not int or not -(2**31) <= seed < 2**31:
                         raise ValueError("Episode seed must be a signed 32-bit integer")
                     policy = payload.get("policy", "406")
-                    if policy not in ("406", "407", "408", "greedy", "control"):
-                        raise ValueError("Select checkpoint 406, 407, 408, or greedy placement")
+                    if policy not in ("406", "407", "408", "greedy", "control", "common_sense"):
+                        raise ValueError("Select checkpoint 406, 407, 408, greedy, or common-sense placement")
                     greedy = policy in ("greedy", "control")  # retain the old API alias
+                    common_sense = policy == "common_sense"
                     self.view = self.context = None
                     red_context = self.client.reset(seed)
                     self.context = self.client.get_blue_context()
-                    checkpoint = None if greedy else BLUE_ROOT / f"Results/temporal-v6-pilot/training/seed-{policy}/last"
-                    plan = self.planner(self.context, checkpoint=checkpoint, temporal_public_control=greedy)
+                    checkpoint = None if greedy or common_sense else BLUE_ROOT / f"Results/temporal-v6-pilot/training/seed-{policy}/last"
+                    plan = self.planner(self.context, checkpoint=checkpoint, temporal_public_control=greedy,
+                                        **({"common_sense": True} if common_sense else {}))
                     self.client.deploy(plan["placements"])
                     placed = self.client.place_red(scripted_red_centers(red_context))
                     blue = self.client.observe_blue()
@@ -163,7 +165,8 @@ class ConsoleState:
                         "timeLimitSeconds": self.context.get("timeLimitSeconds", 96.),
                         "stepDurationSeconds": 10 * self.context.get("fixedStepSeconds", .05),
                         "weather": self.context["publicSnapshot"]["weather"],
-                        "policy": "Greedy placement (non-RL)" if greedy else f"Experimental temporal checkpoint {policy}",
+                        "policy": ("Common-sense placement (non-RL heuristic)" if common_sense else
+                                   "Greedy placement (non-RL)" if greedy else f"Experimental temporal checkpoint {policy}"),
                         "decisions": plan["recommendation"]["decisions"],
                         "frames": [self.frame({"drones": placed["initialStates"]}, blue)],
                         "metrics": None, "outcome": "running", "ended": False,
@@ -199,6 +202,8 @@ def make_server(port=9048, bridge_port=8765, *, state=None, replays=None):
     state = state or ConsoleState(bridge_port)
     replays = replays if replays is not None else load_replays()
     token = secrets.token_urlsafe(32)
+    # Serialise offline scoring independently of the native bridge session.
+    comparison_lock = threading.Lock()
 
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *_):
@@ -251,7 +256,8 @@ def make_server(port=9048, bridge_port=8765, *, state=None, replays=None):
                     or self.headers.get("X-Console-Token") != token):
                 return self.reply({"error": "Local session required"}, 403)
             match = re.fullmatch(r"/api/action/(connect|disconnect|reset|step|preview)", self.path)
-            if not match:
+            comparison = re.fullmatch(r"/api/comparison/(scenario|run)", self.path)
+            if not match and not comparison:
                 return self.reply({"error": "Unknown action"}, 404)
             try:
                 size = int(self.headers.get("Content-Length", "0"))
@@ -260,7 +266,24 @@ def make_server(port=9048, bridge_port=8765, *, state=None, replays=None):
                 payload = json.loads(self.rfile.read(size))
                 if not isinstance(payload, dict):
                     raise ValueError("Expected a JSON object")
-                result = state.action(match[1], payload)
+                if comparison:
+                    from placement_comparison import comparison_scenario, compare_placements
+                    replay_id = payload.get("replayId")
+                    if type(replay_id) is not int or not 0 <= replay_id < len(replays):
+                        raise ValueError("Choose an available recorded case for comparison")
+                    allowed = {"replayId"} if comparison[1] == "scenario" else {"replayId", "baseline", "placements"}
+                    if set(payload) - allowed:
+                        raise ValueError("Unexpected comparison input")
+                    with comparison_lock:
+                        if comparison[1] == "scenario":
+                            result = comparison_scenario(replays[replay_id])
+                        else:
+                            result = compare_placements(replays[replay_id],
+                                baseline=payload.get("baseline", "common_sense"),
+                                placements=payload.get("placements"))
+                    result["replayId"] = replay_id
+                else:
+                    result = state.action(match[1], payload)
                 self.reply(result)
             except (ValueError, KeyError, RuntimeError, OSError) as error:
                 self.reply({"error": str(error)}, 400)
