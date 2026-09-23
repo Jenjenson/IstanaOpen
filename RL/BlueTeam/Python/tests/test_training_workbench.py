@@ -203,9 +203,9 @@ def test_background_manager_retains_progress_checkpoints_and_summary(tmp_path):
                     "sector_centers_degrees": [0., 45., 90., 180., 270.]},
                 "elapsed_seconds": 50.,
                 "warning_evidence": evidence, "target_results": targets,
-                "frames": ([{"time": 0., "completedSteps": 0, "threats": [],
-                              "detections": [], "tracks": []}] if kwargs.get("capture_frames") else []),
-                "trajectory_sha256": "matched" if kwargs.get("capture_frames") else None,
+                "frames": [{"time": 0., "completedSteps": 0, "threats": [],
+                            "detections": [], "tracks": []}],
+                "trajectory_sha256": "matched",
                 "run_id": f"run-{number}", "steps": 1000, "seed": seed,
                 "sensor_count": getattr(policy, "sensor_count", 1)}, []
 
@@ -235,12 +235,20 @@ def test_background_manager_retains_progress_checkpoints_and_summary(tmp_path):
     logged = [json.loads(line) for line in
               (output / "training.jsonl").read_text(encoding="utf-8").splitlines()]
     assert len(logged) == 4 and logged[-1]["validationChanges"]
-    assert len(calls) == 8 and all(call[1]["deterministic"] for call in (calls[2], calls[5], calls[6], calls[7]))
+    assert len(calls) == 9
+    assert all(call[1]["deterministic"] for call in
+               (calls[2], calls[5], calls[6], calls[7], calls[8]))
     assert manager.registry.list()[0]["name"] == "Perimeter watcher"
+    assert status["registeredModel"]["bestObservedEpisode"] == 4
+    assert status["registeredModel"]["bestObservedWarningSeconds"] == pytest.approx(5.)
+    assert (output / "best-observed-episode.json").exists()
     comparison = manager.registry.comparison(status["registeredModel"]["id"])
     assert comparison["rl"]["maxSensors"] == comparison["baseline"]["maxSensors"] == 3
     assert comparison["rl"]["metrics"]["target_results"]
     assert comparison["audit"]["sameTrajectories"]
+    observed = manager.registry.observed_comparison(status["registeredModel"]["id"])
+    assert observed["audit"]["exactTrainingEpisode"] == 4
+    assert observed["audit"]["generalPolicyClaim"] is False
     json.loads((output / "summary.json").read_text(encoding="utf-8"))
     assert manager.registry.list()[0]["sensorCount"] == 3
 

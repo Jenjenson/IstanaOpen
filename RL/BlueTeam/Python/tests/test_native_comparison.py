@@ -107,10 +107,19 @@ def test_completed_named_model_is_discovered_and_served_in_comparison(tmp_path):
     source.update(schema=COMPARISON_SCHEMA, id=identifier, policy=identifier,
                   policyLabel="Night Watch", case=1,
                   label="Night Watch · held-out native episode")
+    observed = deepcopy(source)
+    observed.update(id=f"observed-{identifier}", policy=f"observed-{identifier}",
+                    policyLabel="Night Watch · best observed episode 7",
+                    label="Night Watch · exact training episode 7")
+    observed["audit"].update(exactTrainingEpisode=7, exactTrainingReplay=True,
+                             generalPolicyClaim=False)
     policy = tmp_path / "best.json"
     policy.write_text("{}", encoding="utf-8")
     registry.register(name="Night Watch", policy_path=policy, comparison_episode=source,
+        observed_episode=observed,
         metadata={"bestEpisode": 12, "bestWarningSeconds": 31.5,
+                  "bestObservedEpisode": 7, "bestObservedWarningSeconds": 44.25,
+                  "bestObservedReplayExact": True,
                   "evaluationSeed": 2700000, "deploymentPlacements": []})
     store = NativeComparisons(registry=registry)
     row = next(row for row in store.list() if row["id"] == identifier)
@@ -119,5 +128,12 @@ def test_completed_named_model_is_discovered_and_served_in_comparison(tmp_path):
     result = store.get(identifier, layout_id="directional_balanced_8")
     assert result["trainedModel"] and result["policyLabel"] == "Night Watch"
     assert result["metrics"]["rl"]["target_count"] == 5
+    observed_id = f"observed-{identifier}"
+    observed_row = next(row for row in store.list() if row["id"] == observed_id)
+    assert observed_row["bestObservedEpisode"] and "exact training episode 7" in observed_row["label"]
+    retained = store.get(observed_id, layout_id="directional_balanced_8")
+    assert retained["bestObservedEpisode"] and retained["observedReplayExact"]
+    assert retained["loggedObservedWarningSeconds"] == 44.25
+    assert retained["audit"]["generalPolicyClaim"] is False
     with pytest.raises(ValueError, match="matched selected-count"):
         store.get(identifier, layout_id="matched_common_sense")

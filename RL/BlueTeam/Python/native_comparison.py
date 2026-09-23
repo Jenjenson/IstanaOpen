@@ -249,6 +249,14 @@ class NativeComparisons:
             "label": f"{model['name']} · held-out episode",
             "defaultLayout": "directional_balanced_8", "trainedModel": True}
             for model in self.registry.list())
+        rows.extend({"id": f"observed-{model['id']}", "policy": f"observed-{model['id']}",
+            "policyLabel": f"{model['name']} · best observed episode {model['bestObservedEpisode']}",
+            "case": 1, "label": (f"{model['name']} · "
+                f"{'exact training episode' if model.get('bestObservedReplayExact') else 'retained episode layout'} "
+                f"{model['bestObservedEpisode']}"),
+            "defaultLayout": "directional_balanced_8", "trainedModel": True,
+            "bestObservedEpisode": True}
+            for model in self.registry.list() if model.get("observedComparisonFile"))
         return rows
 
     def layouts(self):
@@ -259,6 +267,42 @@ class NativeComparisons:
             raise ValueError("Choose an available native comparison episode")
         if layout_id not in {row["id"] for row in COMPARISON_LAYOUTS}:
             raise ValueError("Choose an available fixed comparison placement")
+        if identifier.startswith("observed-trained-"):
+            if layout_id != "directional_balanced_8":
+                raise ValueError("Retained training episodes use their matched selected-count evaluation")
+            model_id = identifier.removeprefix("observed-")
+            model = self.registry.get(model_id)
+            episode = self.registry.observed_comparison(model_id)
+            result = comparison_result(episode)
+            exact_replay = bool(episode.get("audit", {}).get("exactTrainingReplay"))
+            sensor_count = result["baseline"].get(
+                "maxSensors", len(result["baseline"].get("placements", [])))
+            result.update({"method": "retained_training_episode", "trainedModel": True,
+                "bestObservedEpisode": True, "observedReplayExact": exact_replay,
+                "loggedObservedWarningSeconds": model.get("bestObservedWarningSeconds"),
+                "label": episode["label"],
+                "selection": deepcopy(episode["rl"].get("selection", {})),
+                "fairness": {"matched": True, "description": (
+                    f"The exact observed placement and fixed {sensor_count}-directional-sensor baseline "
+                    "face the same native training episode, paths, speeds, sensing draws and limits.")},
+                "description": ((
+                    "Exact retained layout and captured replay from the highest-warning sampled training "
+                    "episode. This illustrates an observed outcome and is not a held-out or generalization claim.")
+                    if exact_replay else (
+                    "Retained highest-warning training layout replayed from its original seed. The exact logged "
+                    "score is preserved separately; this legacy replay was reconstructed and is not a held-out "
+                    "or generalization claim."))})
+            result["audit"].update({
+                "red_policy": "Five seeded approaches selected from eight synthetic sectors",
+                "blue_policy": "Exact fixed placement from the highest-warning completed training episode",
+                "exact_sensor_count": sensor_count, "general_policy_claim": False})
+            if scenario:
+                return {"episodeId": identifier, "label": result["label"],
+                        "selection": result["selection"], "layoutId": layout_id,
+                        "layoutOnly": False,
+                        **{key: deepcopy(result["baseline"][key])
+                           for key in ("catalogue", "sites", "budget", "objectiveRadius")}}
+            return result
         if identifier.startswith("trained-"):
             if layout_id != "directional_balanced_8":
                 raise ValueError("Named warning models use their matched selected-count evaluation")

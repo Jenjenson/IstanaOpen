@@ -38,7 +38,7 @@
    <div id="training-controls" hidden>
      <p class="helper live-note">Train the directional warning-time policy against an inference-only Red scenario generator—not a pretrained Red model. Every episode samples five distinct, reproducible approach sectors from an eight-sector benchmark at the same fixed spawn radius, then Unreal flies the drones toward the target. This tab temporarily owns the Unreal bridge.</p>
     <label for="training-name">Model name</label><input id="training-name" type="text" maxlength="64" value="My warning model" autocomplete="off" spellcheck="false">
-    <p class="helper">After training, the best held-out checkpoint is saved under this name and added to Compare placements automatically.</p>
+    <p class="helper">After training, the held-out-selected policy and the exact highest-warning completed episode are retained separately and added to Compare placements automatically.</p>
     <label for="training-algorithm">Training algorithm</label><select id="training-algorithm"></select>
     <p id="training-algorithm-help" class="helper">Choose how complete native episode returns update the masked placement policy.</p>
     <label for="training-initialization">Starting placement</label><select id="training-initialization"></select>
@@ -54,7 +54,7 @@
     <p class="training-chart-label">Native rewards · Blue (gold) and Red (coral), logged separately</p><canvas id="training-reward-chart" class="training-chart reward-chart" role="img" aria-label="Separate Blue and Red native rewards by episode"></canvas>
     <div class="training-reward-heading"><span>Reward log</span><small>Blue components + separate Red return</small></div><div id="training-reward-log" class="training-reward-log" role="log" aria-live="polite"><p class="helper">Reward details appear after episode 1.</p></div>
     <p class="helper">The map retains each episode's Red trajectory. Use <strong>Play replay</strong> to see the drones move from their randomized fixed-radius spawns toward the target while training continues.</p>
-    <p class="helper">Every completed episode is appended to <code>training.jsonl</code>. Policy snapshots are saved at episode 0 and batch-aligned 25/50/75/100% milestones; every new held-out best also gets its own checkpoint. Only the final selected best is published to Compare and Live.</p>
+    <p class="helper">Every completed episode is appended to <code>training.jsonl</code>. Policy snapshots are saved at episode 0 and batch-aligned 25/50/75/100% milestones; every new held-out best also gets its own checkpoint. Compare and Live retain both the held-out-selected policy and the exact highest-warning sampled episode, clearly labelled for their different purposes.</p>
     <p id="training-output" class="helper"></p>
    </div>
    <div id="deployment-controls">
