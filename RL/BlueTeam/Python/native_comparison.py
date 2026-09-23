@@ -23,7 +23,7 @@ POLICY_LABELS = {"406": "Temporal RL · policy A", "407": "Temporal RL · policy
 COMPARISON_LAYOUTS = (
     {"id": "matched_common_sense", "label": "Matched common sense · 3 sensors",
      "kind": "native_results"},
-    {"id": "directional_balanced_5", "label": "Five directional sensors · measured workbench",
+    {"id": "directional_balanced_8", "label": "Eight directional sensors · measured workbench",
      "kind": "native_results"},
 )
 
@@ -131,7 +131,7 @@ def _balanced_directional_placements(view):
             candidates.append(((-_angle_distance(bearing, desired_yaw), math.hypot(x, y),
                                 -site_index), site_index, position))
         if not candidates:
-            raise ValueError("The comparison site grid cannot support five directional sensors")
+            raise ValueError("The comparison site grid cannot support eight directional sensors")
         _, site_index, position = max(candidates)
         used.add(site_index)
         rows.append({"sensor_id": sensor["id"], "sensor_index": sensor_index,
@@ -144,27 +144,27 @@ def layout_preview_result(episode, protocol=None):
     """Show the new workbench preset without inventing cross-contract metrics."""
     rl = _empty_layout_view(episode["rl"])
     baseline = _empty_layout_view(episode["rl"])
-    baseline.update({"label": "Five directional sensors · balanced approaches",
+    baseline.update({"label": "Eight directional sensors · balanced sectors",
                      "policy": "Fixed public-only workbench starting placement",
                      "placements": _balanced_directional_placements(baseline),
-                     "budget": 5, "maxSensors": 5,
+                     "budget": 8, "maxSensors": 8,
                      "selection": {"kind": "fixed_directional_workbench_start",
                          "rule": "outward perimeter cameras spread across representative coverage bearings"}})
     return {"schema": "istana.placement_layout_preview.v1", "episodeId": episode["id"],
             "label": f"{episode['label']} · placement preview",
             "policyLabel": policy_label(episode["policy"]),
-            "method": "directional_balanced_5", "layoutOnly": True,
+            "method": "directional_balanced_8", "layoutOnly": True,
             "rl": rl, "baseline": baseline, "metrics": None, "timing": None, "deltas": None,
-            "selection": {"label": "Five directional sensors · workbench start",
+            "selection": {"label": "Eight directional sensors · workbench start",
                 "kind": "fixed_directional_workbench_start",
                 "explanation": (
-                    "Place five limited-FOV thermal cameras on supported perimeter sites, "
-                    "spread across representative coverage bearings. This preview shows "
+                    "Place eight limited-FOV thermal cameras on supported perimeter sites, "
+                    "centered on the benchmark sectors. This preview shows "
                     "placement geometry only; it does not reuse the archived sensing metrics.")},
             "fairness": {"matched": False,
                 "description": (
                     "Layout preview only. The archived RL layout uses its original three-sensor "
-                    "contract; the workbench start uses five sensors. No performance comparison is made.")},
+                    "contract; the workbench start uses eight sensors. No performance comparison is made.")},
             "audit": {"recorded": True, "native_unreal_capture": False,
                 "layout_preview_only": True, "policy_truth_access": False,
                 "protocol": deepcopy(protocol or {})}}
@@ -235,7 +235,7 @@ class NativeComparisons:
         manifest = self.workbench_root / "manifest.json"
         if not manifest.exists():
             raise ValueError(
-                "Measured five-sensor comparisons are unavailable. Generate them with "
+                "Measured eight-sensor comparisons are unavailable. Generate them with "
                 "build_workbench_comparison.py.")
         return _read_bundle(str(self.workbench_root.resolve()), manifest.stat().st_mtime_ns)
 
@@ -247,8 +247,16 @@ class NativeComparisons:
         rows.extend({"id": model["id"], "policy": model["id"],
             "policyLabel": f"{model['name']} · {model.get('algorithmLabel', 'REINFORCE')}", "case": 1,
             "label": f"{model['name']} · held-out episode",
-            "defaultLayout": "directional_balanced_5", "trainedModel": True}
+            "defaultLayout": "directional_balanced_8", "trainedModel": True}
             for model in self.registry.list())
+        rows.extend({"id": f"observed-{model['id']}", "policy": f"observed-{model['id']}",
+            "policyLabel": f"{model['name']} · best observed episode {model['bestObservedEpisode']}",
+            "case": 1, "label": (f"{model['name']} · "
+                f"{'exact training episode' if model.get('bestObservedReplayExact') else 'retained episode layout'} "
+                f"{model['bestObservedEpisode']}"),
+            "defaultLayout": "directional_balanced_8", "trainedModel": True,
+            "bestObservedEpisode": True}
+            for model in self.registry.list() if model.get("observedComparisonFile"))
         return rows
 
     def layouts(self):
@@ -259,8 +267,44 @@ class NativeComparisons:
             raise ValueError("Choose an available native comparison episode")
         if layout_id not in {row["id"] for row in COMPARISON_LAYOUTS}:
             raise ValueError("Choose an available fixed comparison placement")
+        if identifier.startswith("observed-trained-"):
+            if layout_id != "directional_balanced_8":
+                raise ValueError("Retained training episodes use their matched selected-count evaluation")
+            model_id = identifier.removeprefix("observed-")
+            model = self.registry.get(model_id)
+            episode = self.registry.observed_comparison(model_id)
+            result = comparison_result(episode)
+            exact_replay = bool(episode.get("audit", {}).get("exactTrainingReplay"))
+            sensor_count = result["baseline"].get(
+                "maxSensors", len(result["baseline"].get("placements", [])))
+            result.update({"method": "retained_training_episode", "trainedModel": True,
+                "bestObservedEpisode": True, "observedReplayExact": exact_replay,
+                "loggedObservedWarningSeconds": model.get("bestObservedWarningSeconds"),
+                "label": episode["label"],
+                "selection": deepcopy(episode["rl"].get("selection", {})),
+                "fairness": {"matched": True, "description": (
+                    f"The exact observed placement and fixed {sensor_count}-directional-sensor baseline "
+                    "face the same native training episode, paths, speeds, sensing draws and limits.")},
+                "description": ((
+                    "Exact retained layout and captured replay from the highest-warning sampled training "
+                    "episode. This illustrates an observed outcome and is not a held-out or generalization claim.")
+                    if exact_replay else (
+                    "Retained highest-warning training layout replayed from its original seed. The exact logged "
+                    "score is preserved separately; this legacy replay was reconstructed and is not a held-out "
+                    "or generalization claim."))})
+            result["audit"].update({
+                "red_policy": "Five seeded approaches selected from eight synthetic sectors",
+                "blue_policy": "Exact fixed placement from the highest-warning completed training episode",
+                "exact_sensor_count": sensor_count, "general_policy_claim": False})
+            if scenario:
+                return {"episodeId": identifier, "label": result["label"],
+                        "selection": result["selection"], "layoutId": layout_id,
+                        "layoutOnly": False,
+                        **{key: deepcopy(result["baseline"][key])
+                           for key in ("catalogue", "sites", "budget", "objectiveRadius")}}
+            return result
         if identifier.startswith("trained-"):
-            if layout_id != "directional_balanced_5":
+            if layout_id != "directional_balanced_8":
                 raise ValueError("Named warning models use their matched selected-count evaluation")
             episode = self.registry.comparison(identifier)
             result = comparison_result(episode)
@@ -275,10 +319,10 @@ class NativeComparisons:
                 "description": (
                     "Automatically registered held-out evaluation for this completed named "
                     "training run. This is one matched episode, not an aggregate claim.")})
-            result["audit"].update({"red_policy": "Five fixed seeded synthetic approach lanes",
+            result["audit"].update({"red_policy": "Five seeded approaches selected from eight synthetic sectors",
                 "blue_policy": "Named best warning-time checkpoint selected during training",
                 "exact_sensor_count": sensor_count,
-                "five_sensor_rl_trained": sensor_count == 5})
+                "exact_count_rl_trained": True})
             if scenario:
                 return {"episodeId": identifier, "label": result["label"],
                         "selection": result["selection"], "layoutId": layout_id,
@@ -298,24 +342,24 @@ class NativeComparisons:
                              if row["policy"] == episode["policy"]
                              and row["case"] == episode["case"]), None)
             if measured is None:
-                raise ValueError("Choose an available measured five-sensor comparison")
+                raise ValueError("Choose an available measured eight-sensor comparison")
             result = comparison_result(measured, workbench.get("protocol"))
-            result.update({"method": "directional_balanced_5", "layoutOnly": False,
+            result.update({"method": "directional_balanced_8", "layoutOnly": False,
                 "label": measured["label"],
                 "selection": deepcopy(measured["baseline"].get("selection", {})),
                 "fairness": {"matched": True,
                     "description": (
                         "Both layouts face the same five native drones, paths, speeds, sensor "
                         "capabilities, sites and episode seed. The archived RL layout was trained "
-                        "for the earlier three-sensor contract and was not retrained for five sensors.")},
+                        "for the earlier three-sensor contract and was not retrained for eight sensors.")},
                 "description": (
-                    "Matched native random-bearing workbench replay. Warning values come from the "
+                    "Matched native eight-sector workbench replay. Warning values come from the "
                     "captured episode; the result is not a like-for-like trained-policy comparison.")})
-            result["audit"].update({"red_policy": "Five fixed seeded synthetic approach lanes",
+            result["audit"].update({"red_policy": "Five seeded approaches selected from eight synthetic sectors",
                 "blue_policy": (
                     "Archived temporal RL placement replayed unchanged versus the fixed "
-                    "five-camera balanced workbench start"),
-                "five_sensor_rl_trained": False})
+                    "eight-camera balanced workbench start"),
+                "eight_sensor_rl_trained": False})
         if scenario:
             return {"episodeId": identifier, "label": result["label"], "selection": result["selection"],
                     "layoutId": layout_id, "layoutOnly": result.get("layoutOnly", False),

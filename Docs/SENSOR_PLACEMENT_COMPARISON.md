@@ -8,24 +8,24 @@ flight on both maps. There are no manual placement or sensor configuration contr
 Use **Fixed placement** to select either:
 
 - **Matched common sense · 3 sensors**: the original 60-drone paired evaluation.
-- **Five directional sensors · measured workbench**: five surface-mounted,
-  limited-FOV thermal cameras spread across representative coverage bearings.
+- **Eight directional sensors · measured workbench**: eight surface-mounted,
+  limited-FOV thermal cameras centered on the synthetic benchmark sectors.
 
-The five-sensor choice is also measured native evidence, not a layout-only
+The eight-sensor choice is also measured native evidence, not a layout-only
 mock-up. It replays each archived RL placement unchanged in the same seeded
-random-bearing episode as the fixed placement. Both sides share the five drones, trajectories,
+sector-randomized episode as the fixed placement. Both sides share the five drones, trajectories,
 speeds, sensor capabilities, sites, budget and seed. The archived RL checkpoint
 was trained under the older three-sensor contract and has **not** been retrained
-as a five-sensor policy, so use this view to inspect the placement and warning
-times rather than to claim a fair five-sensor RL benchmark.
+as an eight-sensor policy, so use this view to inspect the placement and warning
+times rather than to claim a fair eight-sensor RL benchmark.
 
 The recorded mean warning times are:
 
-| Episode | Archived policy A | Archived policy B | Archived policy C | Five sensors |
+| Episode | Archived policy A | Archived policy B | Archived policy C | Eight sensors |
 | --- | ---: | ---: | ---: | ---: |
-| 1 | 3.53 s | 0.00 s | 0.00 s | 9.29 s |
-| 2 | 1.50 s | 0.00 s | 0.84 s | 21.28 s |
-| 3 | 0.00 s | 0.00 s | 0.00 s | 10.28 s |
+| 1 | 2.20 s | 0.00 s | 0.26 s | 48.14 s |
+| 2 | 7.66 s | 0.00 s | 0.00 s | 47.20 s |
+| 3 | 0.00 s | 0.00 s | 1.76 s | 48.91 s |
 
 Missed drones contribute zero warning, as in the rest of the project.
 
@@ -139,7 +139,7 @@ illustrative scenarios do not establish general performance.
   native module hash, launch configuration and evaluation limitations.
 
 `RL/BlueTeam/Results/workbench-placement-comparison/` contains the corresponding
-bundle, manifest and protocol for the measured five-directional-sensor option.
+bundle, manifest and protocol for the measured eight-directional-sensor option.
 Its protocol records that the archived layouts were replayed without retraining.
 
 The three episode seeds were selected before outcomes were known. All three
@@ -171,7 +171,7 @@ Only after exact pairing checks pass does it write the portable bundle. No new
 policy is trained or selected by this command. Serve a replacement bundle only
 after reviewing the results and updating its manifest together.
 
-To regenerate the five-sensor workbench evidence, launch the explicit workbench
+To regenerate the eight-sensor workbench evidence, launch the explicit workbench
 contract and write to new output directories for review:
 
 ```powershell

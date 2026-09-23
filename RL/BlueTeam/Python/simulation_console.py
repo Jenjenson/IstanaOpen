@@ -116,16 +116,25 @@ class ConsoleState:
                     from model_switch_demo import load_layouts, LAYOUT_SOURCE, ROOT as PROJECT_ROOT
                     from capture_warning_3d import capture
                     selection = payload.get("policy", "")
-                    if not isinstance(selection, str) or not selection.startswith(("saved-", "trained-")):
+                    if (not isinstance(selection, str)
+                            or not selection.startswith(("saved-", "trained-", "observed-trained-"))):
                         raise ValueError("Select an available saved layout")
-                    if selection.startswith("trained-"):
+                    if selection.startswith(("trained-", "observed-trained-")):
                         if self.trained_models is None:
                             raise ValueError("Named trained models are unavailable")
-                        model = self.trained_models.get(selection)
+                        observed = selection.startswith("observed-trained-")
+                        model_id = selection.removeprefix("observed-") if observed else selection
+                        model = self.trained_models.get(model_id)
                         key = selection
-                        row = {"label": f"{model['name']} · {model.get('algorithmLabel', 'REINFORCE')}",
-                               "seed": model["evaluationSeed"],
-                               "placements": model["deploymentPlacements"]}
+                        row = ({"label": (
+                                    f"{model['name']} · best observed episode "
+                                    f"{model['bestObservedEpisode']} · fixed replay"),
+                                "seed": model["bestObservedSeed"],
+                                "placements": model["bestObservedPlacements"]}
+                               if observed else
+                               {"label": f"{model['name']} · {model.get('algorithmLabel', 'REINFORCE')}",
+                                "seed": model["evaluationSeed"],
+                                "placements": model["deploymentPlacements"]})
                     else:
                         layouts = load_layouts(LAYOUT_SOURCE)
                         key = selection.removeprefix("saved-")
@@ -287,19 +296,35 @@ def make_server(port=9048, bridge_port=8765, *, state=None, replays=None, compar
                     "trainingAlgorithms": [{"id": key, "label": row["label"],
                                              "description": row["description"]}
                                             for key, row in TRAINING_ALGORITHMS.items()],
-                    "trainedModels": [{"id": row["id"],
+                    "trainedModels": ([{"id": row["id"],
                                        "label": (f"{row['name']} · {row.get('algorithmLabel', 'REINFORCE')} · "
                                                  f"{row.get('sensorCount', len(row.get('deploymentPlacements', [])) or 5)} sensors"),
                                        "sensorCount": row.get(
                                            "sensorCount", len(row.get("deploymentPlacements", [])) or 5),
                                        "bestEpisode": row["bestEpisode"],
-                                       "bestWarningSeconds": row["bestWarningSeconds"]}
-                                      for row in named_models],
+                                       "bestWarningSeconds": row["bestWarningSeconds"],
+                                       "kind": "validatedPolicy"}
+                                      for row in named_models] +
+                                      [{"id": f"observed-{row['id']}",
+                                        "label": (f"{row['name']} · "
+                                                  f"{'exact best observed episode' if row.get('bestObservedReplayExact') else 'best observed episode layout'} · "
+                                                  f"{row.get('sensorCount', len(row.get('deploymentPlacements', [])) or 5)} sensors"),
+                                        "sensorCount": row.get(
+                                            "sensorCount", len(row.get("deploymentPlacements", [])) or 5),
+                                        "bestEpisode": row["bestObservedEpisode"],
+                                        "bestWarningSeconds": row["bestObservedWarningSeconds"],
+                                        "kind": "observedEpisode"}
+                                       for row in named_models if row.get("observedComparisonFile")]),
                     "savedModels": archived_models + [
                         {"id": row["id"],
                          "label": (f"{row['name']} · {row.get('algorithmLabel', 'REINFORCE')} · "
                                    f"{row.get('sensorCount', len(row.get('deploymentPlacements', [])) or 5)} sensors · best"),
-                         "kind": "trained"} for row in named_models]})
+                         "kind": "trained"} for row in named_models] + [
+                        {"id": f"observed-{row['id']}",
+                         "label": (f"{row['name']} · best observed episode {row['bestObservedEpisode']} · "
+                                   f"{'exact replay' if row.get('bestObservedReplayExact') else 'reconstructed replay'}"),
+                         "kind": "observedEpisode"}
+                        for row in named_models if row.get("observedComparisonFile")]})
             if self.path == "/api/status":
                 return self.reply(state.status())
             if self.path == "/api/training/status":

@@ -4,8 +4,8 @@ import numpy as np
 import pytest
 
 from triad_rl.red_policy import (DispersedRandomRedPolicy, FixedRadiusRandomBearingRedPolicy,
-    LearnedRedPlacementPolicy, RandomLegalRedPolicy, RedLayoutSpec, ScriptedRadialRedPolicy,
-    layout_catalogue, public_approach_exposure)
+    FixedRadiusSectorRedPolicy, LearnedRedPlacementPolicy, RandomLegalRedPolicy, RedLayoutSpec,
+    ScriptedRadialRedPolicy, layout_catalogue, public_approach_exposure)
 
 
 @pytest.fixture
@@ -73,6 +73,32 @@ def test_fixed_radius_random_bearings_are_seeded_full_circle_and_separated(conte
         for other in first["centers"][:index]:
             assert np.linalg.norm(np.asarray(center[:2]) - other[:2]) >= required
     assert all(0 <= angle < 360 for angle in first["angles_degrees"])
+
+
+def test_fixed_radius_sectors_are_seeded_distinct_jittered_and_separated(context):
+    context["groupCount"] = 5
+    first = FixedRadiusSectorRedPolicy(31).select(context)
+    second = FixedRadiusSectorRedPolicy(31).select(context)
+    different = FixedRadiusSectorRedPolicy(32).select(context)
+    assert first == second and first != different
+    assert first["formation"] == "randomized_eight_sector_fixed_radius"
+    assert len(first["sector_indices"]) == len(set(first["sector_indices"])) == 5
+    assert all(0 <= sector < 8 for sector in first["sector_indices"])
+    assert all(abs(jitter) <= 4 for jitter in first["jitter_degrees"])
+    midpoint = (context["minRadiusCm"] + context["maxRadiusCm"]) / 2
+    required = 2 * context["spreadRadiusCm"] + context["movement"]["spacingCm"]
+    for index, (center, angle, sector_center) in enumerate(zip(
+            first["centers"], first["angles_degrees"], first["sector_centers_degrees"])):
+        assert np.linalg.norm(np.asarray(center[:2]) - [100., -200.]) == pytest.approx(midpoint)
+        assert abs((angle - sector_center + 180) % 360 - 180) <= 4
+        for other in first["centers"][:index]:
+            assert np.linalg.norm(np.asarray(center[:2]) - other[:2]) >= required
+
+
+def test_fixed_radius_sector_policy_rejects_more_than_eight_groups(context):
+    context["groupCount"] = 9
+    with pytest.raises(ValueError, match="at most eight"):
+        FixedRadiusSectorRedPolicy(1).select(context)
 
 
 def test_positive_reward_increases_selected_action_probability(context):

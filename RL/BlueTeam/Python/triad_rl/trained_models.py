@@ -1,8 +1,9 @@
 """Persistent local catalogue of named warning-time policies.
 
-The catalogue contains only completed training runs.  A model is published
-atomically after its best held-out checkpoint and matched native comparison
-have both been written, so the console never advertises half-built entries.
+The catalogue contains completed runs and explicitly stopped runs that already
+have a valid held-out checkpoint.  A model is published atomically after its
+held-out checkpoint and all advertised native comparisons have been written,
+so the console never exposes half-built entries.
 """
 from __future__ import annotations
 
@@ -53,7 +54,8 @@ class TrainedModelRegistry:
                 f'A trained model named "{name}" already exists. Choose a different name.')
         return name, identifier
 
-    def register(self, *, name, policy_path, comparison_episode, metadata):
+    def register(self, *, name, policy_path, comparison_episode, metadata,
+                 observed_episode=None):
         name, identifier = self.ensure_available(name)
         if comparison_episode.get("schema") != COMPARISON_SCHEMA:
             raise ValueError("Named model comparison evidence has the wrong schema")
@@ -74,6 +76,14 @@ class TrainedModelRegistry:
             model = {"schema": MODEL_SCHEMA, "id": identifier, "name": name,
                      "policyFile": "best-policy.json", "comparisonFile": "comparison.json",
                      **deepcopy(metadata)}
+            if observed_episode is not None:
+                if (observed_episode.get("schema") != COMPARISON_SCHEMA
+                        or observed_episode.get("id") != f"observed-{identifier}"):
+                    raise ValueError("Best-observed episode evidence has the wrong schema")
+                (staging / "best-observed-comparison.json").write_text(
+                    json.dumps(observed_episode, indent=2, allow_nan=False) + "\n",
+                    encoding="utf-8", newline="\n")
+                model["observedComparisonFile"] = "best-observed-comparison.json"
             (staging / "model.json").write_text(
                 json.dumps(model, indent=2, allow_nan=False) + "\n",
                 encoding="utf-8", newline="\n")
@@ -96,6 +106,11 @@ class TrainedModelRegistry:
                 raise ValueError(f"Invalid named model artifact path: {directory.name}")
             if not (directory / filename).is_file():
                 raise ValueError(f"Named model artifact is missing: {directory.name}")
+        if "observedComparisonFile" in model:
+            filename = model["observedComparisonFile"]
+            if (not isinstance(filename, str) or Path(filename).name != filename
+                    or not (directory / filename).is_file()):
+                raise ValueError(f"Best-observed model artifact is missing: {directory.name}")
         return model
 
     def list(self):
@@ -123,4 +138,15 @@ class TrainedModelRegistry:
             encoding="utf-8"))
         if row.get("schema") != COMPARISON_SCHEMA or row.get("id") != identifier:
             raise ValueError("Named model comparison evidence is invalid")
+        return row
+
+    def observed_comparison(self, identifier):
+        model = self.get(identifier)
+        filename = model.get("observedComparisonFile")
+        if not filename:
+            raise ValueError("This trained model has no retained best-observed episode")
+        row = json.loads((self.root / identifier / filename).read_text(encoding="utf-8"))
+        if (row.get("schema") != COMPARISON_SCHEMA
+                or row.get("id") != f"observed-{identifier}"):
+            raise ValueError("Best-observed episode evidence is invalid")
         return row

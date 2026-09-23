@@ -1,4 +1,4 @@
-"""Validate the portable five-sensor workbench comparison evidence."""
+"""Validate the portable eight-sensor workbench comparison evidence."""
 from copy import deepcopy
 import gzip
 import hashlib
@@ -50,18 +50,18 @@ def test_workbench_pairs_have_identical_truth_and_real_warning_evidence(bundle):
         expected = episode["audit"]["trajectorySha256"]
         assert trajectory_digest(truth_frames(rl)) == expected
         assert trajectory_digest(truth_frames(baseline)) == expected
-        assert episode["audit"]["fiveSensorRlTrained"] is False
+        assert episode["audit"]["eightSensorRlTrained"] is False
         for view in (rl, baseline):
-            assert view["budget"] == view["maxSensors"] == 5
+            assert view["budget"] == view["maxSensors"] == 8
             assert len(view["metrics"]["target_results"]) == 5
             assert len(view["warningEvidence"]) == 5
             assert len(view["frames"][0]["threats"]) == 5
-        assert len(baseline["placements"]) == 5
+        assert len(baseline["placements"]) == 8
         assert baseline["metrics"]["mean_drone_warning_seconds_lower_bound"] > 0
 
 
-def test_five_sensor_layout_is_fixed_and_directional(bundle):
+def test_eight_sensor_layout_is_fixed_and_directional(bundle):
     expected = bundle["episodes"][0]["baseline"]["placements"]
     assert all(row["baseline"]["placements"] == expected for row in bundle["episodes"])
-    assert [row["yaw_deg"] for row in expected] == [0, 180, 90, 270, 45]
+    assert [row["yaw_deg"] for row in expected] == [0, 180, 90, 270, 45, 225, 135, 315]
     assert all(row["sensor_id"] == "thermal" and row["pitch_deg"] == 20 for row in expected)

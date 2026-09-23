@@ -43,9 +43,9 @@ a purported best checkpoint occurs.
 
 **Compare placements** adds paired offline native evaluations of each archived
 RL layout. Select either the original matched three-sensor common-sense layout
-or the measured five-directional-sensor workbench start. Each pair uses matched
+or the measured eight-directional-sensor workbench start. Each pair uses matched
 Red paths and seeds; the interface explicitly notes that the archived RL layouts
-have not yet been retrained for the five-sensor contract. Unreal is not required
+have not yet been retrained for the eight-sensor contract. Unreal is not required
 for playback. See the [comparison guide](SENSOR_PLACEMENT_COMPARISON.md).
 
 **Training** runs the current native directional warning-time learner through
@@ -56,7 +56,7 @@ The user supplies a unique model name before starting. After each policy update,
 the console scores that checkpoint on the same fixed held-out native episode;
 on successful completion it publishes the best checkpoint and its matched
 selected-count directional-sensor comparison. The Training tab accepts an exact
-count of one to five sensors and 4–10,000 episodes; all placements retain the
+count of one to eight sensors and 4–10,000 episodes; all placements retain the
 native budget, site, separation, surface and FOV rules. The named model then appears immediately in
 **Compare placements** and as a saved-layout choice in **Live Unreal**.
 The algorithm selector offers REINFORCE, Masked PPO and Masked A2C. They share
@@ -93,10 +93,12 @@ for live training/evaluation against the original map scenario; the standalone
 viewer and `-IstanaWarningApproachV2` benchmark are also unaffected.
 
 `-TrainingWorkbench` changes the opt-in live run's Blue allowance from three to
-five sites/cost units. It leaves the catalogue, approved sites, surface
-validation, Red speed/motion model and sensing model unchanged. It uses one
-drone in each of five seeded full-circle random-bearing groups at the same 570 m
-spawn radius so native training episodes vary without large-swarm congestion.
+eight sites/cost units. It leaves the catalogue, approved sites, surface
+validation, Red speed/motion model and sensing model unchanged. Each episode
+samples five distinct approaches from eight synthetic 45° sectors at the same
+570 m spawn radius, with up to ±4° seeded bearing jitter, so native training
+episodes vary without placing drones between all of the fixed cameras' fields
+of view. One drone is used per selected sector to avoid large-swarm congestion.
 The radial approaches use the existing synthetic 120 m benchmark altitude, keeping
 the exercise above local obstacle-avoidance geometry rather than tailoring
 routes to the visual backdrop.
@@ -105,16 +107,17 @@ a 100 s episode, within the native 512-look validation bound.
 In the browser choose **Training**, then select one of:
 
 - **Untrained random policy** — zero initial actor logits.
-- **Five directional sensors · balanced approaches** — the fixed public-only
-  common-sense rule spread across representative full-circle coverage bearings.
-- **Five directional sensors · public-prior weighted** — the same fixed rule
+- **Directional sensors · balanced sectors** — the fixed public-only
+  common-sense rule spread across the eight synthetic coverage sectors.
+- **Directional sensors · public-prior weighted** — the same fixed rule
   using the scene's published approach weights.
 
 Both common-sense choices use only the limited-FOV directional profile and
-initialize the trainable policy logits. They do not lock the five placements.
-Five static 24° fields of view cannot cover every direction continuously, so
-the layout is described as sensible sector coverage—not a universal detection
-guarantee—and the actual detected fraction is recorded per native episode.
+initialize the trainable policy logits. They do not lock the placements.
+Eight static 24° fields of view still cannot cover every bearing continuously;
+the benchmark is deliberately sector-aligned and remains a simulation rather
+than a universal detection guarantee. The actual detected fraction is recorded
+per native episode.
 Only one owner may use a bridge: while Training is active, Live Unreal controls
 are disabled. Safe stop takes effect after the current native action. Artifacts
 are written to `Saved/WarningTraining/console-*`; completed named models are

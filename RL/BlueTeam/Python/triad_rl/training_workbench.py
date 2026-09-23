@@ -22,7 +22,7 @@ import numpy as np
 from .common_sense import plan_common_sense
 from .directional_inputs import apply_placement, build_observation
 from .istana_live import IstanaLiveClient, public_planning_inputs
-from .red_policy import FixedRadiusRandomBearingRedPolicy
+from .red_policy import FixedRadiusSectorRedPolicy
 from .trained_models import COMPARISON_SCHEMA, TrainedModelRegistry, validate_model_name
 from .warning_algorithms import TRAINING_ALGORITHMS
 from .warning_policy import WarningPolicy, warning_metrics
@@ -30,10 +30,10 @@ from .warning_policy import WarningPolicy, warning_metrics
 
 INITIALIZATIONS = {
     "untrained": "Untrained random policy",
-    "directional_balanced_5": "Directional sensors · balanced approaches",
-    "directional_public_5": "Directional sensors · public-prior weighted",
+    "directional_balanced_8": "Directional sensors · balanced sectors",
+    "directional_public_8": "Directional sensors · public-prior weighted",
 }
-BALANCED_LANE_YAWS = (0., 180., 90., 270., 45.)
+BALANCED_LANE_YAWS = (0., 180., 90., 270., 45., 225., 135., 315.)
 MIN_TRAINING_EPISODES = 4
 MAX_TRAINING_EPISODES = 10_000
 MIN_TRAINING_SENSORS = 1
@@ -76,9 +76,9 @@ def _balanced_lane_plan(state, catalogue, directional_ids, count):
     return rows
 
 
-def common_sense_start(context, preset: str, *, count: int = 5) -> dict:
+def common_sense_start(context, preset: str, *, count: int = 8) -> dict:
     """Build a selected-count public-only start under the native legal contract."""
-    if preset not in ("directional_balanced_5", "directional_public_5"):
+    if preset not in ("directional_balanced_8", "directional_public_8"):
         raise ValueError("Select an available common-sense starting placement")
     if type(count) is not int or not MIN_TRAINING_SENSORS <= count <= MAX_TRAINING_SENSORS:
         raise ValueError(
@@ -96,14 +96,14 @@ def common_sense_start(context, preset: str, *, count: int = 5) -> dict:
     planning = deepcopy(state)
     planning["max_sites"] = count
     planning["available_sensor_ids"] = directional_ids
-    if preset == "directional_balanced_5":
+    if preset == "directional_balanced_8":
         planning["forecast"]["approach_weights"] = [1 / 8] * 8
         rows = _balanced_lane_plan(planning, catalogue, directional_ids, count)
-        selection = {"kind": "common_sense", "rule": "outward perimeter cameras spread across full-circle coverage bearings",
+        selection = {"kind": "common_sense", "rule": "outward perimeter cameras centered on eight benchmark sectors",
                      "sensor_model": "directional type/site/yaw/pitch choices",
                      "explanation": (
                          f"Spread {count} limited-FOV camera{'s' if count != 1 else ''} across "
-                         "representative full-circle bearings before randomized approaches are sampled.")}
+                         "the eight benchmark sectors before randomized approaches are sampled.")}
     else:
         result = plan_common_sense(planning, catalogue)
         rows, selection = result["new_placements"], result["selection"]
@@ -120,20 +120,20 @@ def common_sense_start(context, preset: str, *, count: int = 5) -> dict:
         "sensor_count": count, "placements": placements,
         "selection": selection, "public_only": True,
         "synthetic_lane_yaws_deg": (list(BALANCED_LANE_YAWS[:count])
-                                    if preset == "directional_balanced_5" else None),
+                                    if preset == "directional_balanced_8" else None),
         "coverage_yaws_deg": (list(BALANCED_LANE_YAWS[:count])
-                              if preset == "directional_balanced_5" else None),
+                              if preset == "directional_balanced_8" else None),
         "coverage_intent": (
             f"{count} limited-FOV camera{'s' if count != 1 else ''} cover representative "
-            "bearings before full-circle randomized Red approaches are sampled. "
+            "bearings before five distinct Red approach sectors are sampled. "
             "This is a sensible benchmark start, not a guarantee of 360-degree or universal detection."
         ),
     }
 
 
 def _red_scenario(context, seed):
-    """Return one reproducible, fixed-radius, full-circle Red scenario."""
-    return FixedRadiusRandomBearingRedPolicy(seed).select(context)
+    """Return one reproducible fixed-radius scenario from distinct sectors."""
+    return FixedRadiusSectorRedPolicy(seed).select(context)
 
 
 def _red_centers(context, seed):
@@ -250,7 +250,7 @@ def run_episode(client, policy, seed, *, action_seed=None, deterministic=False,
         "metrics": metrics, "native_metrics": deepcopy(blue["metrics"]),
         "reward": blue["reward"], "elapsed_seconds": blue["elapsedSeconds"],
         "warning_evidence": evidence, "target_results": targets, "frames": frames,
-        "trajectory_sha256": _trajectory_digest(frames) if capture_frames else None,
+        "trajectory_sha256": _trajectory_digest(frames),
         "run_id": red["runId"], "steps": client.completed_steps,
         "red_policy": red_decision["policy"], "red_decision": red_decision,
         "red_native_reward": red_reward,
@@ -289,6 +289,15 @@ def _comparison_view(run, label, selection):
             "policy_truth_access": False, "training_performed": True,
             "trajectorySha256": run["trajectory_sha256"], "nativeRunId": run["run_id"],
             "completedSteps": run["steps"]}}
+
+
+def _write_json_atomic(path, value):
+    """Replace a JSON artifact only after the complete document is on disk."""
+    path = Path(path)
+    temporary = path.with_name(f".{path.name}.writing")
+    temporary.write_text(json.dumps(value, indent=2, allow_nan=False) + "\n",
+                         encoding="utf-8", newline="\n")
+    temporary.replace(path)
 
 
 def _viewer(run, episode, total):
@@ -362,6 +371,7 @@ class TrainingManager:
                 "algorithm": "reinforce", "algorithmLabel": TRAINING_ALGORITHMS["reinforce"]["label"],
                 "sensorCount": MAX_TRAINING_SENSORS,
                 "modelName": "", "bestEpisode": None, "bestWarningSeconds": None,
+                "bestObservedEpisode": None, "bestObservedWarningSeconds": None,
                 "registeredModel": None, "viewer": None, "outputDirectory": None,
                 "error": "", "stopRequested": False}
 
@@ -442,11 +452,246 @@ class TrainingManager:
     def close(self):
         self.stop_event.set()
 
+    def _publish(self, *, client, context, config, output, best_policy, best_path,
+                 best_episode, best_observed, started, stopped_early=False):
+        """Atomically publish the general policy and its best exact episode replay."""
+        if best_policy is None or best_path is None or best_episode is None:
+            raise RuntimeError("Training has no held-out checkpoint to publish")
+        if best_observed is None:
+            raise RuntimeError("Training has no completed episode to retain")
+        self._set(phase="evaluating")
+        never_stop = lambda: False
+        final, _ = self.episode_runner(
+            client, best_policy, 2700000, action_seed=3700000, deterministic=True,
+            capture_frames=True, should_stop=never_stop)
+        baseline_layout = common_sense_start(
+            context, "directional_balanced_8", count=config["sensorCount"])
+        baseline_policy = _FixedPlacementPolicy(baseline_layout["placements"])
+        baseline, _ = self.episode_runner(
+            client, baseline_policy, 2700000, action_seed=3700000,
+            deterministic=True, capture_frames=True, should_stop=never_stop)
+        if final["trajectory_sha256"] != baseline["trajectory_sha256"]:
+            raise RuntimeError("Best-model and baseline comparison trajectories differ")
+
+        observed_source = best_observed["run"]
+        observed_replay_exact = all(key in observed_source for key in (
+            "context", "native_metrics", "frames", "warning_evidence", "target_results"))
+        if observed_replay_exact:
+            observed = deepcopy(observed_source)
+            observed["trajectory_sha256"] = (
+                observed.get("trajectory_sha256") or _trajectory_digest(observed["frames"]))
+        else:
+            # Legacy stopped runs did not persist full per-episode frames. Keep
+            # their exact logged score and placement, while explicitly marking
+            # this regenerated seed/layout replay as reconstructed.
+            observed, _ = self.episode_runner(
+                client, _FixedPlacementPolicy(observed_source["placements"]),
+                observed_source["seed"], action_seed=observed_source.get("action_seed"),
+                deterministic=True, capture_frames=True, should_stop=never_stop)
+        observed_baseline, _ = self.episode_runner(
+            client, baseline_policy, observed_source["seed"],
+            action_seed=observed_source.get("action_seed"), deterministic=True,
+            capture_frames=not observed_replay_exact, should_stop=never_stop)
+        if observed["trajectory_sha256"] != observed_baseline["trajectory_sha256"]:
+            raise RuntimeError("Best-observed and baseline comparison trajectories differ")
+
+        model_id = self.registry.identifier_for(config["name"])
+        observed_id = f"observed-{model_id}"
+        algorithm_label = TRAINING_ALGORITHMS[config["algorithm"]]["label"]
+        policy_selection = {"label": f"{config['name']} · {algorithm_label}",
+            "kind": "trained_warning_policy", "algorithm": config["algorithm"],
+            "explanation": (
+                f"{algorithm_label} checkpoint selected by mean per-drone warning time on the fixed "
+                "held-out native episode after each policy update.")}
+        baseline_label = f"{config['sensorCount']} · {INITIALIZATIONS['directional_balanced_8']}"
+        baseline_selection = {"label": baseline_label,
+            "kind": "fixed_directional_workbench_start",
+            "explanation": baseline_layout["selection"]["explanation"]}
+        comparison_episode = {"schema": COMPARISON_SCHEMA, "id": model_id,
+            "policy": model_id, "policyLabel": f"{config['name']} · {algorithm_label}", "case": 1,
+            "label": f"{config['name']} · held-out native episode", "seed": 2700000,
+            "rl": _comparison_view(final, f"{config['name']} · {algorithm_label}", policy_selection),
+            "baseline": _comparison_view(baseline, baseline_label, baseline_selection),
+            "audit": {"sameTrajectories": True, "sameBudget": True,
+                "sameCatalogue": True, "sameSensingDraws": True,
+                "trajectorySha256": final["trajectory_sha256"],
+                "baselineTrajectorySha256": baseline["trajectory_sha256"]}}
+        observed_episode = best_observed["episode"]
+        # The retained value is always the value logged during training. New
+        # runs retain their captured frames; legacy runs regenerate a viewer
+        # from the same seed/layout without substituting its new replay score.
+        observed_warning = observed_source["metrics"]["mean_drone_warning_s"]
+        observed_selection = {
+            "label": f"{config['name']} · best observed episode {observed_episode}",
+            "kind": "retained_training_episode_layout", "algorithm": config["algorithm"],
+            "explanation": (
+                f"{'Exact captured replay' if observed_replay_exact else 'Reconstructed seed/layout replay'} "
+                f"from training episode {observed_episode}, retained because that single sampled "
+                "episode had the highest observed warning time. This is illustrative evidence, "
+                "not the held-out-selected deployable policy.")}
+        observed_comparison = {"schema": COMPARISON_SCHEMA, "id": observed_id,
+            "policy": observed_id,
+            "policyLabel": f"{config['name']} · best observed episode {observed_episode}", "case": 1,
+            "label": (f"{config['name']} · "
+                      f"{'exact training episode' if observed_replay_exact else 'retained episode layout'} "
+                      f"{observed_episode}"),
+            "seed": observed_source["seed"],
+            "rl": _comparison_view(observed,
+                f"{config['name']} · observed episode {observed_episode}", observed_selection),
+            "baseline": _comparison_view(
+                observed_baseline, baseline_label, baseline_selection),
+            "audit": {"sameTrajectories": True, "sameBudget": True,
+                "sameCatalogue": True, "sameSensingDraws": True,
+                "exactTrainingEpisode": observed_episode,
+                "exactTrainingReplay": observed_replay_exact,
+                "generalPolicyClaim": False,
+                "trajectorySha256": observed["trajectory_sha256"],
+                "baselineTrajectorySha256": observed_baseline["trajectory_sha256"]}}
+        _write_json_atomic(output / "best-observed-episode.json", {
+            "schema": "istana.console_best_observed_episode.v1",
+            "episode": observed_episode, "seed": observed_source["seed"],
+            "actionSeed": observed_source.get("action_seed"),
+            "warningSeconds": observed_warning,
+            "replayWarningSeconds": observed["metrics"]["mean_drone_warning_s"],
+            "exactTrainingReplay": observed_replay_exact,
+            "placements": observed["placements"],
+            "comparison": observed_comparison,
+            "selectionRule": "highest mean warning time among completed sampled training episodes",
+            "generalPolicyClaim": False})
+        registered = self.registry.register(
+            name=config["name"], policy_path=best_path,
+            comparison_episode=comparison_episode, observed_episode=observed_comparison,
+            metadata={
+                "createdUtc": datetime.now(timezone.utc).isoformat(),
+                "trainingOutput": str(output), "trainingEpisodes": config["episodes"],
+                "completedEpisodes": self.status()["episode"],
+                "stoppedEarly": stopped_early,
+                "bestEpisode": best_episode,
+                "bestWarningSeconds": final["metrics"]["mean_drone_warning_s"],
+                "bestObservedEpisode": observed_episode,
+                "bestObservedWarningSeconds": observed_warning,
+                "bestObservedSeed": observed_source["seed"],
+                "bestObservedPlacements": observed["placements"],
+                "bestObservedReplayExact": observed_replay_exact,
+                "algorithm": config["algorithm"], "algorithmLabel": algorithm_label,
+                "sensorCount": config["sensorCount"],
+                "bestNativeReward": final["reward"],
+                "bestBlueNativeReward": final["reward"],
+                "bestRedNativeReward": final["red_native_reward"],
+                "redPolicy": final["red_policy"],
+                "evaluationSeed": 2700000, "initialization": config["initialization"],
+                "deploymentPlacements": final["placements"]})
+        summary = {"schema": "istana.console_warning_training_summary.v1",
+                   "modelName": config["name"], "modelId": registered["id"],
+                   "algorithm": config["algorithm"], "algorithmLabel": algorithm_label,
+                   "episodes": config["episodes"],
+                   "requestedEpisodes": config["episodes"],
+                   "completedEpisodes": self.status()["episode"],
+                   "stoppedEarly": stopped_early, "sensorCount": config["sensorCount"],
+                   "initialization": config["initialization"],
+                   "bestEpisode": best_episode, "bestNativeReward": final["reward"],
+                   "bestBlueNativeReward": final["reward"],
+                   "bestRedNativeReward": final["red_native_reward"],
+                   "bestObservedEpisode": observed_episode,
+                   "bestObservedWarningSeconds": observed_warning,
+                   "redPolicy": final["red_policy"],
+                   "bestEvaluation": final["metrics"],
+                   "comparisonBaselineEvaluation": baseline["metrics"],
+                   "elapsedWallSeconds": time.monotonic() - started}
+        _write_json_atomic(output / "summary.json", summary)
+        self._set(running=False, phase="stopped" if stopped_early else "complete",
+            bestObservedEpisode=observed_episode,
+            bestObservedWarningSeconds=observed_warning,
+            registeredModel={
+                "id": registered["id"], "name": registered["name"],
+                "algorithm": config["algorithm"], "algorithmLabel": algorithm_label,
+                "bestEpisode": best_episode,
+                "bestNativeReward": final["reward"],
+                "bestBlueNativeReward": final["reward"],
+                "bestRedNativeReward": final["red_native_reward"],
+                "bestWarningSeconds": final["metrics"]["mean_drone_warning_s"],
+                "bestObservedEpisode": observed_episode,
+                "bestObservedWarningSeconds": observed_warning},
+            viewer=_viewer(final, best_episode, config["episodes"]))
+        return registered
+
+    def publish_saved_run(self, directory):
+        """Publish both artifacts from a valid legacy run stopped before this feature existed."""
+        output = Path(directory).resolve()
+        config_document = json.loads((output / "configuration.json").read_text(encoding="utf-8"))
+        config = self.validate({key: config_document[key] for key in
+            ("name", "algorithm", "episodes", "batchSize", "seed", "initialization",
+             "sensorCount")})
+        self.registry.ensure_available(config["name"])
+        rows = [json.loads(line) for line in
+                (output / "training.jsonl").read_text(encoding="utf-8").splitlines()
+                if line.strip()]
+        if not rows:
+            raise ValueError("Saved training log has no completed episodes")
+        checkpoints = sorted(output.glob("best-policy-*.json"))
+        if not checkpoints:
+            raise ValueError("Saved training run has no held-out best checkpoint")
+        best_path = checkpoints[-1]
+        try:
+            best_episode = int(best_path.stem.rsplit("-", 1)[1])
+        except (IndexError, ValueError) as error:
+            raise ValueError("Saved held-out checkpoint name is invalid") from error
+        validation_row = next((row for row in rows if row.get("episode") == best_episode), None)
+        if validation_row is None or "validationWarningSeconds" not in validation_row:
+            raise ValueError("Saved held-out checkpoint has no matching validation evidence")
+        observed_row = max(rows, key=lambda row: row["meanWarningSeconds"])
+        observed_run = {
+            "seed": 1700000 + observed_row["episode"] - 1,
+            "action_seed": (config["seed"] & 0xffffffff) * 100000 + observed_row["episode"],
+            "placements": observed_row["placements"],
+            "metrics": {"mean_drone_warning_s": observed_row["meanWarningSeconds"]},
+        }
+        factory = self.policy_factories.get(config["algorithm"])
+        if factory is None or not hasattr(factory, "load"):
+            raise ValueError("Saved training policy type cannot be loaded")
+        client = None
+        started = time.monotonic()
+        try:
+            client = self.client_factory(port=self.bridge_port, timeout=120.)
+            client.reset(1600000)
+            context = client.get_blue_context()
+            policy = factory.load(best_path, context)
+            self.stop_event.clear()
+            self._status = self._blank()
+            self._status.update(
+                running=True, phase="evaluating", episode=max(row["episode"] for row in rows),
+                totalEpisodes=config["episodes"], modelName=config["name"],
+                algorithm=config["algorithm"],
+                algorithmLabel=TRAINING_ALGORITHMS[config["algorithm"]]["label"],
+                sensorCount=config["sensorCount"], initialization=config["initialization"],
+                initializationLabel=(INITIALIZATIONS[config["initialization"]]
+                    if config["initialization"] == "untrained" else
+                    f"{config['sensorCount']} · {INITIALIZATIONS[config['initialization']]}"),
+                outputDirectory=str(output), bestEpisode=best_episode,
+                bestWarningSeconds=validation_row["validationWarningSeconds"],
+                bestObservedEpisode=observed_row["episode"],
+                bestObservedWarningSeconds=observed_row["meanWarningSeconds"],
+                stopRequested=True)
+            return self._publish(
+                client=client, context=context, config=config, output=output,
+                best_policy=policy, best_path=best_path, best_episode=best_episode,
+                best_observed={"episode": observed_row["episode"], "run": observed_run},
+                started=started, stopped_early=True)
+        except Exception as error:
+            self._set(running=False, phase="failed", error=str(error))
+            raise
+        finally:
+            if client is not None:
+                client.close()
+
     def _run(self, config):
         started = time.monotonic()
         stamp = datetime.now(timezone.utc).strftime("console-%Y%m%d-%H%M%S-%f")
         output = self.output_root / stamp
         client = None
+        best_run = best_policy = best_path = None
+        best_episode = None
+        best_observed = None
         try:
             client = self.client_factory(port=self.bridge_port, timeout=120.)
             client.reset(1600000)
@@ -469,9 +714,11 @@ class TrainingManager:
                 "schema": "istana.console_warning_training.v1", **config,
                 "bridgePort": self.bridge_port, "initialLayout": start_layout,
                 "redScenario": {
-                    "policy": FixedRadiusRandomBearingRedPolicy.name,
+                    "policy": FixedRadiusSectorRedPolicy.name,
                     "trained": False,
-                    "description": "Seeded full-circle random bearings at the fixed midpoint spawn radius",
+                    "description": (
+                        "Five distinct seeded sectors from an eight-sector benchmark, "
+                        "with small bearing jitter at the fixed midpoint spawn radius"),
                     "episodeSeedRule": "1700000 + episode - 1",
                     "heldOutSeed": 2700000,
                 },
@@ -482,8 +729,6 @@ class TrainingManager:
             policy.save(output / "policy-0000.json")
             self._set(checkpoints=checkpoints)
             batch = []
-            best_run = best_policy = best_path = None
-            best_episode = None
             previous_validation = None
             update_count = config["episodes"] // config["batchSize"]
             milestones = {config["batchSize"] * math.ceil(update_count * i / 4)
@@ -497,6 +742,21 @@ class TrainingManager:
                         action_seed=(config["seed"] & 0xffffffff) * 100000 + number,
                         should_stop=self.stop_event.is_set)
                     training_reward = run["metrics"]["mean_drone_warning_s"]
+                    if (best_observed is None
+                            or training_reward > best_observed["run"]["metrics"]["mean_drone_warning_s"]):
+                        best_observed = {"episode": number, "run": deepcopy(run)}
+                        _write_json_atomic(output / "best-observed-episode.json", {
+                            "schema": "istana.console_best_observed_episode.v1",
+                            "episode": number, "seed": run["seed"],
+                            "actionSeed": run.get("action_seed"),
+                            "warningSeconds": training_reward,
+                            "placements": run["placements"],
+                            "run": run,
+                            "selectionRule": (
+                                "highest mean warning time among completed sampled training episodes"),
+                            "generalPolicyClaim": False})
+                        self._set(bestObservedEpisode=number,
+                                  bestObservedWarningSeconds=training_reward)
                     native_breakdown = _reward_breakdown(run)
                     batch.append((records, training_reward))
                     entry = {"episode": number, "reward": training_reward,
@@ -509,6 +769,8 @@ class TrainingManager:
                                  "formation": run["red_decision"]["formation"],
                                  "spawnRadiusM": run["red_decision"]["radius_cm"] / 100.,
                                  "spawnBearingsDeg": run["red_decision"]["angles_degrees"],
+                                 "sectorCentersDeg": run["red_decision"].get(
+                                     "sector_centers_degrees", []),
                              },
                              "rewardBreakdown": native_breakdown,
                              "meanWarningSeconds": run["metrics"]["mean_drone_warning_s"],
@@ -564,79 +826,22 @@ class TrainingManager:
                         policy.save(output / f"policy-{number:04d}.json")
                         checkpoints = self.status()["checkpoints"] + [number]
                         self._set(checkpoints=checkpoints)
-            if best_policy is None:
-                raise RuntimeError("Training completed without a held-out best checkpoint")
-            self._set(phase="evaluating")
-            final, _ = self.episode_runner(
-                client, best_policy, 2700000, action_seed=3700000, deterministic=True,
-                capture_frames=True, should_stop=self.stop_event.is_set)
-            baseline_layout = common_sense_start(
-                context, "directional_balanced_5", count=config["sensorCount"])
-            baseline, _ = self.episode_runner(
-                client, _FixedPlacementPolicy(baseline_layout["placements"]), 2700000,
-                action_seed=3700000, deterministic=True, capture_frames=True,
-                should_stop=self.stop_event.is_set)
-            if final["trajectory_sha256"] != baseline["trajectory_sha256"]:
-                raise RuntimeError("Best-model and baseline comparison trajectories differ")
-            model_id = self.registry.identifier_for(config["name"])
-            algorithm_label = TRAINING_ALGORITHMS[config["algorithm"]]["label"]
-            policy_selection = {"label": f"{config['name']} · {algorithm_label}",
-                "kind": "trained_warning_policy", "algorithm": config["algorithm"],
-                "explanation": (
-                    f"{algorithm_label} best checkpoint selected by mean per-drone warning time on the fixed "
-                    "held-out native episode after each policy update.")}
-            baseline_label = f"{config['sensorCount']} · {INITIALIZATIONS['directional_balanced_5']}"
-            baseline_selection = {"label": baseline_label,
-                "kind": "fixed_directional_workbench_start",
-                "explanation": baseline_layout["selection"]["explanation"]}
-            comparison_episode = {"schema": COMPARISON_SCHEMA, "id": model_id,
-                "policy": model_id, "policyLabel": f"{config['name']} · {algorithm_label}", "case": 1,
-                "label": f"{config['name']} · held-out native episode", "seed": 2700000,
-                "rl": _comparison_view(final, f"{config['name']} · {algorithm_label}", policy_selection),
-                "baseline": _comparison_view(
-                    baseline, baseline_label, baseline_selection),
-                "audit": {"sameTrajectories": True, "sameBudget": True,
-                    "sameCatalogue": True, "sameSensingDraws": True,
-                    "trajectorySha256": final["trajectory_sha256"],
-                    "baselineTrajectorySha256": baseline["trajectory_sha256"]}}
-            registered = self.registry.register(name=config["name"], policy_path=best_path,
-                comparison_episode=comparison_episode, metadata={
-                    "createdUtc": datetime.now(timezone.utc).isoformat(),
-                    "trainingOutput": str(output), "trainingEpisodes": config["episodes"],
-                    "bestEpisode": best_episode, "bestWarningSeconds":
-                        final["metrics"]["mean_drone_warning_s"],
-                    "algorithm": config["algorithm"], "algorithmLabel": algorithm_label,
-                    "sensorCount": config["sensorCount"],
-                    "bestNativeReward": final["reward"],
-                    "bestBlueNativeReward": final["reward"],
-                    "bestRedNativeReward": final["red_native_reward"],
-                    "redPolicy": final["red_policy"],
-                    "evaluationSeed": 2700000, "initialization": config["initialization"],
-                    "deploymentPlacements": final["placements"]})
-            summary = {"schema": "istana.console_warning_training_summary.v1",
-                       "modelName": config["name"], "modelId": registered["id"],
-                       "algorithm": config["algorithm"], "algorithmLabel": algorithm_label,
-                       "episodes": config["episodes"], "sensorCount": config["sensorCount"],
-                       "initialization": config["initialization"],
-                       "bestEpisode": best_episode, "bestNativeReward": final["reward"],
-                       "bestBlueNativeReward": final["reward"],
-                       "bestRedNativeReward": final["red_native_reward"],
-                       "redPolicy": final["red_policy"],
-                       "bestEvaluation": final["metrics"],
-                       "comparisonBaselineEvaluation": baseline["metrics"],
-                       "elapsedWallSeconds": time.monotonic() - started}
-            (output / "summary.json").write_text(json.dumps(summary, indent=2, allow_nan=False), encoding="utf-8")
-            self._set(running=False, phase="complete", registeredModel={
-                "id": registered["id"], "name": registered["name"],
-                "algorithm": config["algorithm"], "algorithmLabel": algorithm_label,
-                "bestEpisode": best_episode,
-                "bestNativeReward": final["reward"],
-                "bestBlueNativeReward": final["reward"],
-                "bestRedNativeReward": final["red_native_reward"],
-                "bestWarningSeconds": final["metrics"]["mean_drone_warning_s"]},
-                viewer=_viewer(final, best_episode, config["episodes"]))
+            self._publish(client=client, context=context, config=config, output=output,
+                          best_policy=best_policy, best_path=best_path,
+                          best_episode=best_episode, best_observed=best_observed,
+                          started=started)
         except InterruptedError:
-            self._set(running=False, phase="stopped", stopRequested=True)
+            if (self.status().get("stopRequested") and best_policy is not None
+                    and best_observed is not None):
+                try:
+                    self._publish(client=client, context=context, config=config, output=output,
+                                  best_policy=best_policy, best_path=best_path,
+                                  best_episode=best_episode, best_observed=best_observed,
+                                  started=started, stopped_early=True)
+                except Exception as error:
+                    self._set(running=False, phase="failed", error=str(error))
+            else:
+                self._set(running=False, phase="stopped")
         except Exception as error:
             self._set(running=False, phase="failed", error=str(error))
         finally:

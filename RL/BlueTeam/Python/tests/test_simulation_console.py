@@ -62,10 +62,10 @@ def test_http_session_replay_and_security_headers(http_server):
     assert status == 200 and len(session['replays']) == 18
     assert not session['status']['connected']
     assert {row['id'] for row in session['trainingInitializations']} == {
-        'untrained', 'directional_balanced_5', 'directional_public_5'}
+        'untrained', 'directional_balanced_8', 'directional_public_8'}
     assert {row['id'] for row in session['trainingAlgorithms']} == {'reinforce', 'ppo', 'a2c'}
     assert session['trainingLimits'] == {
-        'minEpisodes': 4, 'maxEpisodes': 10000, 'minSensors': 1, 'maxSensors': 5}
+        'minEpisodes': 4, 'maxEpisodes': 10000, 'minSensors': 1, 'maxSensors': 8}
     assert session['training']['phase'] == 'idle'
     assert len(session['token']) >= 32
     assert headers['Cache-Control'] == 'no-store'
@@ -82,6 +82,7 @@ def test_training_tab_uses_native_status_and_exposes_no_fake_detection_claim():
     assert 'id="training-reward-chart"' in html and 'id="training-reward-log"' in html
     assert 'id="training-blue-reward"' in html and 'id="training-red-reward"' in html
     assert 'not a pretrained Red model' in html and 'same fixed spawn radius' in html
+    assert 'eight-sector benchmark' in html and 'max="8"' in html
     assert 'id="training-name"' in html and 'id="training-algorithm"' in html
     assert 'id="training-sensors"' in html and 'max="10000"' in html
     assert "api('/api/training/status')" in script
@@ -97,13 +98,13 @@ def test_training_tab_uses_native_status_and_exposes_no_fake_detection_claim():
     assert 'actual detected fraction' not in html.lower()  # results are populated from native status
 
 
-def test_compare_tab_offers_measured_five_sensor_results_with_contract_caveat():
+def test_compare_tab_offers_measured_eight_sensor_results_with_contract_caveat():
     html = (CONSOLE / 'index.html').read_text(encoding='utf-8')
     script = (CONSOLE / 'app.js').read_text(encoding='utf-8')
     assert 'id="comparison-layout"' in html and 'id="comparison-layout-note"' in html
     assert 'comparison.layouts=session.comparisonLayouts||[]' in script
     assert "layoutId=$('comparison-layout').value||'matched_common_sense'" in script
-    assert "fiveSensor=result.method==='directional_balanced_5'" in script
+    assert "sectorBenchmark=result.method==='directional_balanced_8'" in script
     assert 'the archived RL placement was trained for an earlier three-sensor contract' in script
     assert "'MATCHED WORKBENCH RESULTS'" in script
 
