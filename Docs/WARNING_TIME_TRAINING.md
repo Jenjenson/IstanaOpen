@@ -70,8 +70,9 @@ both rewards, warning/detection metrics, placements and the native breakdown.
 Policy files are saved at episode 0 and at batch-aligned 25%, 50%, 75% and 100%
 milestones. Each new best on the fixed held-out episode is also saved as
 `best-policy-NNNN.json`; the named model registry publishes only the selected
-best. Red drones in this browser workflow use seeded full-circle random bearings
-at the fixed midpoint spawn radius and are moved by Unreal's swarm logic. They
+best. Red drones in this browser workflow select five distinct approaches from
+eight synthetic 45° sectors, add up to ±4° seeded bearing jitter, use the fixed
+midpoint spawn radius, and are moved by Unreal's swarm logic. They
 are not a pretrained Red model and are not trained adversarially. The Training
 map retains each completed trajectory; use **Play replay** to verify movement.
 

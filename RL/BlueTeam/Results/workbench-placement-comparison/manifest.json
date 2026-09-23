@@ -1,21 +1,21 @@
 {
   "schema": "istana.workbench_layout_comparison_capture.v1",
   "bundle": "bundle.json.gz",
-  "sha256": "b5b03f5fffc73f51ee786cdd77d08a3d74494817441db0399c9fa0e444c08578",
-  "bytes": 26019,
+  "sha256": "2cc4f689aa7b5e19bd3fd831a4ef6e8d69c3df75de82409e924efea41b7adcd3",
+  "bytes": 33571,
   "episodeCount": 9,
   "pairedTrajectoriesVerified": true,
   "protocol": {
     "schema": "istana.workbench_layout_comparison_capture.v1",
-    "createdUtc": "2026-09-23T12:50:00.979373+00:00",
-    "baseCommit": "d76c726110c83f90495e2bf7237c5dbfc7c4c133",
+    "createdUtc": "2026-09-23T16:46:31.633722+00:00",
+    "baseCommit": "cfcf805913b6967f28628a6504ce30447635e0e5",
     "sourceSha256": {
-      "RL/BlueTeam/Python/build_workbench_comparison.py": "2e2f090ad8c36e232d4f785bcc431aecf6dbd180ecea1c28d5af305467302bf9",
-      "RL/BlueTeam/Python/triad_rl/red_policy.py": "5bb09e706bdd68e758045624c97b58a1fe32075af27a400441a8d0bdfb4e43ec",
-      "RL/BlueTeam/Python/triad_rl/training_workbench.py": "36dd8ef11a7704c4733655b39398052b94fb5a8be8f498754a6b06e6f2a94540",
+      "RL/BlueTeam/Python/build_workbench_comparison.py": "e57a7ae06920f0c7a8a6a4082440584405ce12dd570b03a5e30c7be40c70a2fe",
+      "RL/BlueTeam/Python/triad_rl/red_policy.py": "8621943dfab4524952738ca2dfdca8810fc9fb1cd3b1e19966df6240097705e3",
+      "RL/BlueTeam/Python/triad_rl/training_workbench.py": "5207275d9dac5139014983ffa415181c9c62cbaabe86552efb439bb152ddfa65",
       "RL/BlueTeam/Python/triad_rl/istana_live.py": "93722ec7b2722103e5a3840b7e4896afa385c030455df78fdefce79bd78c8677",
       "RL/BlueTeam/Python/triad_rl/warning_policy.py": "d5b1467bf987e7adffb25ba86c35c29cbb6f718c62c387d27e306840300cc4f2",
-      "Source/IstanaOpen/IstanaGameMode.cpp": "5fd9d3970d9c69f4d2a911c1cc8c02452ccfc17f53077a4beeda3a6912e2e222",
+      "Source/IstanaOpen/IstanaGameMode.cpp": "41d82d945982f428978e18c72b0295e682fc54a3406297f39c6d31eb5874d9d5",
       "Source/IstanaOpen/Simulation/BlueTeam/BlueTeamCoordinator.cpp": "48697c678529d14324de980861697020f24af5dcf075e158e4ed0d18556b2a2a",
       "Source/IstanaOpen/Simulation/BlueTeam/BlueWarningTime.h": "55fe61b66379623756fa471dfb8913d4382ce7535ac2b9c4dd76c5fea4c5f90b",
       "Source/IstanaOpen/Simulation/RedTeam/RedTeamManager.cpp": "8842f0d253322f376b8d9bf565750e5c1960f976bfeb82a4e31159dc37589bd5",
@@ -29,8 +29,8 @@
       1700002
     ],
     "captureStepBatch": 100,
-    "scenario": "Five seeded full-circle random bearings at one fixed spawn radius in the native Training Workbench",
-    "comparison": "Archived temporal RL placement replayed unchanged versus the fixed five-camera balanced workbench start. The archived policy was not retrained for five sensors.",
+    "scenario": "Five distinct seeded approaches selected from eight synthetic sectors, with small bearing jitter at one fixed spawn radius in the native Training Workbench",
+    "comparison": "Archived temporal RL placement replayed unchanged versus the fixed eight-camera balanced workbench start. The archived policy was not retrained for eight sensors.",
     "warningDefinition": "Per-drone max(0, 20 m zone arrival - first detection); undetected contributes zero.",
     "selection": "All three existing archived RL layouts and three predeclared seeds retained."
   }

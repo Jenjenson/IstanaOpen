@@ -68,8 +68,8 @@ bool FBlueLiveApproachModes::RunTest(const FString& Parameters)
     TestEqual(TEXT("Warning benchmark prior is unchanged"), Blue->PriorSpawnRadiusM, 280.);
     Blue->Budget = 3; Blue->MaxSites = 3; Blue->TimeLimitSeconds = 96; Manager->DronesPerSwarm = 12;
     AIstanaGameMode::ConfigureBlueLiveApproach(*Manager, *Blue, false, true, true);
-    TestEqual(TEXT("Training workbench provides five cost units"), Blue->Budget, 5.);
-    TestEqual(TEXT("Training workbench permits five placements"), Blue->MaxSites, 5);
+    TestEqual(TEXT("Training workbench provides eight cost units"), Blue->Budget, 8.);
+    TestEqual(TEXT("Training workbench permits eight placements"), Blue->MaxSites, 8);
     TestEqual(TEXT("Training workbench uses one drone in each approach group"), Manager->DronesPerSwarm, 1);
     TestEqual(TEXT("Training public prior matches the per-group count"), Blue->PriorSwarmSize, 1);
     TestEqual(TEXT("Training lanes stay above map-specific avoidance geometry"), Manager->SpawnHeightOffsetCm, 12000.);

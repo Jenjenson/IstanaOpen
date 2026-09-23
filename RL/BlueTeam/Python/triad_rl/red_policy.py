@@ -285,6 +285,54 @@ class FixedRadiusRandomBearingRedPolicy:
                 "angles_degrees": angles, "centers": centers}
 
 
+class FixedRadiusSectorRedPolicy:
+    """Seeded fixed-distance approaches sampled from distinct coverage sectors.
+
+    The benchmark has eight synthetic 45-degree sectors.  Each active Red group
+    is assigned a distinct sector and receives a small seeded bearing jitter.
+    This keeps scenarios varied without asking eight 24-degree fixed cameras to
+    cover arbitrary full-circle bearings between their fields of view.
+    """
+
+    name = "fixed_radius_random_sectors"
+    sector_centers_degrees = tuple(float(value) for value in range(0, 360, 45))
+    jitter_limit_degrees = 4.
+
+    def __init__(self, seed=0):
+        self.rng = np.random.default_rng(_integer(seed, "seed", 0, 2**63 - 1))
+
+    def select(self, context, **_):
+        values = _context(context)
+        if values["groups"] > len(self.sector_centers_degrees):
+            raise ValueError("The eight-sector benchmark supports at most eight Red groups")
+        radius = (values["minimum"] + values["maximum"]) / 2
+        required = 2 * values["spread"] + values["spacing"]
+        sectors = [int(value) for value in self.rng.choice(
+            len(self.sector_centers_degrees), size=values["groups"], replace=False)]
+        jitters = [float(value) for value in self.rng.uniform(
+            -self.jitter_limit_degrees, self.jitter_limit_degrees, size=values["groups"])]
+        centers, angles = [], []
+        for sector, jitter in zip(sectors, jitters):
+            degrees = (self.sector_centers_degrees[sector] + jitter) % 360.
+            angle = math.radians(degrees)
+            candidate = [values["origin"][0] + radius * math.cos(angle),
+                         values["origin"][1] + radius * math.sin(angle),
+                         values["origin"][2] + values["height"]]
+            if any(math.dist(candidate[:2], existing[:2]) + 1e-9 < required
+                   for existing in centers):
+                raise ValueError(
+                    "The fixed spawn radius cannot separate the selected Red sectors")
+            centers.append(candidate)
+            angles.append(degrees)
+        return {"policy": self.name, "learned": False,
+                "formation": "randomized_eight_sector_fixed_radius",
+                "radius_cm": radius, "sector_indices": sectors,
+                "sector_centers_degrees": [self.sector_centers_degrees[index]
+                                           for index in sectors],
+                "jitter_degrees": jitters, "angles_degrees": angles,
+                "centers": centers}
+
+
 class LearnedRedPlacementPolicy:
     """Masked tabular softmax trained from one terminal reward per episode."""
 

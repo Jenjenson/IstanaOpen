@@ -1,9 +1,9 @@
-"""Capture archived RL layouts versus the five-camera workbench start.
+"""Capture archived RL layouts versus the eight-camera workbench start.
 
 This is a matched native replay, not training. Both layouts face the same five
 synthetic approach lanes, paths, speeds, sensor model, site grid and episode
 seed. The archived RL layout is replayed unchanged and may use fewer than the
-five sensors allowed by the workbench; it is not described as a five-sensor RL
+eight sensors allowed by the workbench; it is not described as an eight-sensor RL
 policy.
 """
 from __future__ import annotations
@@ -80,10 +80,10 @@ def capture(client, seed, label, placements_for_context, selection, *, step_batc
     red = client.reset(seed)
     context = client.get_blue_context()
     public = context["publicSnapshot"]
-    if public["budget_total"] < 5 or public["max_sites"] < 5 or red["groupCount"] != 5:
+    if public["budget_total"] < 8 or public["max_sites"] < 8 or red["groupCount"] != 5:
         raise ValueError(
             "Restart Unreal with -IstanaTrainingWorkbench -IstanaDelayedDetectionDemo "
-            "before capturing the five-sensor comparison")
+            "before capturing the eight-sensor comparison")
     placements = placements_for_context(context)
     client.deploy(placements)
     centers = _red_centers(red, seed)
@@ -169,35 +169,37 @@ def main(argv=None):
                                                 text=True).strip(),
         "sourceSha256": {path: file_digest(ROOT / path) for path in SOURCES},
         "episodeSeeds": list(SEEDS), "captureStepBatch": 100,
-        "scenario": "Five seeded full-circle random bearings at one fixed spawn radius in the native Training Workbench",
+        "scenario": (
+            "Five distinct seeded approaches selected from eight synthetic sectors, "
+            "with small bearing jitter at one fixed spawn radius in the native Training Workbench"),
         "comparison": (
-            "Archived temporal RL placement replayed unchanged versus the fixed five-camera "
-            "balanced workbench start. The archived policy was not retrained for five sensors."),
+            "Archived temporal RL placement replayed unchanged versus the fixed eight-camera "
+            "balanced workbench start. The archived policy was not retrained for eight sensors."),
         "warningDefinition": (
             "Per-drone max(0, 20 m zone arrival - first detection); undetected contributes zero."),
         "selection": "All three existing archived RL layouts and three predeclared seeds retained."}
     write_json(args.output / "protocol.json", protocol)
     episodes = []
-    baseline_selection = {"label": "Five directional sensors · workbench start",
+    baseline_selection = {"label": "Eight directional sensors · workbench start",
         "kind": "fixed_directional_workbench_start",
         "explanation": (
-            "Spread five surface-mounted limited-FOV thermal cameras across representative "
-            "coverage bearings before the seeded randomized Red paths are realised.")}
+            "Center eight surface-mounted limited-FOV thermal cameras on the benchmark "
+            "sectors before the five seeded Red approaches are selected.")}
     with IstanaLiveClient(args.port, timeout=120.) as client:
         for case, seed in enumerate(SEEDS, 1):
-            print(json.dumps({"case": case, "layout": "directional_balanced_5",
+            print(json.dumps({"case": case, "layout": "directional_balanced_8",
                               "status": "capturing"}), flush=True)
             baseline = capture(client, seed, baseline_selection["label"],
                 lambda context: common_sense_start(
-                    context, "directional_balanced_5")["placements"], baseline_selection)
-            write_json(args.raw_output / f"capture-{case}-directional-balanced-5.json", baseline)
+                    context, "directional_balanced_8")["placements"], baseline_selection)
+            write_json(args.raw_output / f"capture-{case}-directional-balanced-8.json", baseline)
             for policy, label in POLICIES.items():
                 print(json.dumps({"case": case, "layout": policy, "status": "capturing"}),
                       flush=True)
                 selection = {"label": f"Archived {label} layout",
                     "kind": "archived_rl_layout_replay",
                     "explanation": (
-                        "Replay the existing RL checkpoint placement unchanged in the randomized-bearing "
+                        "Replay the existing RL checkpoint placement unchanged in the sector-randomized "
                         "workbench. It was trained under the earlier three-sensor contract.")}
                 rl = capture(client, seed, f"Archived {label} layout",
                     lambda context, rows=layouts[policy]: deployment_rows(rows, context), selection)
@@ -206,17 +208,17 @@ def main(argv=None):
                     raise RuntimeError(f"Matched workbench trajectories differ: case {case}, {policy}")
                 episodes.append({"id": f"workbench-{policy}-{case}", "policy": policy,
                     "policyLabel": label, "case": case,
-                    "label": f"Random-bearing workbench episode {case}", "seed": seed,
+                    "label": f"Eight-sector workbench episode {case}", "seed": seed,
                     "rl": rl["view"], "baseline": baseline["view"],
                     "audit": {"sameTrajectories": True, "sameBudget": True,
                         "sameCatalogue": True, "sameSensingDraws": True,
-                        "archivedRlContractMaxSensors": 3, "workbenchMaxSensors": 5,
-                        "fiveSensorRlTrained": False,
+                        "archivedRlContractMaxSensors": 3, "workbenchMaxSensors": 8,
+                        "eightSensorRlTrained": False,
                         "trajectorySha256": rl["trajectorySha256"],
                         "baselineTrajectorySha256": baseline["trajectorySha256"]}})
                 print(json.dumps({"case": case, "layout": policy, "status": "completed",
                     "rlMeanWarning": rl["view"]["metrics"]["mean_drone_warning_seconds_lower_bound"],
-                    "fiveSensorMeanWarning": baseline["view"]["metrics"]["mean_drone_warning_seconds_lower_bound"]}),
+                    "eightSensorMeanWarning": baseline["view"]["metrics"]["mean_drone_warning_seconds_lower_bound"]}),
                     flush=True)
     bundle = {"schema": SCHEMA, "protocol": protocol, "episodes": episodes}
     blob = gzip.compress(json.dumps(bundle, allow_nan=False,

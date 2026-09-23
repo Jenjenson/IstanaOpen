@@ -36,14 +36,14 @@
     <p id="comparison-status" class="helper" role="status" aria-live="polite">Choose an episode to begin.</p>
    </div>
    <div id="training-controls" hidden>
-    <p class="helper live-note">Train the directional warning-time policy against an inference-only Red scenario generator—not a pretrained Red model. Every episode samples reproducible full-circle approach bearings at the same fixed spawn radius, then Unreal flies the drones toward the target. This tab temporarily owns the Unreal bridge.</p>
+     <p class="helper live-note">Train the directional warning-time policy against an inference-only Red scenario generator—not a pretrained Red model. Every episode samples five distinct, reproducible approach sectors from an eight-sector benchmark at the same fixed spawn radius, then Unreal flies the drones toward the target. This tab temporarily owns the Unreal bridge.</p>
     <label for="training-name">Model name</label><input id="training-name" type="text" maxlength="64" value="My warning model" autocomplete="off" spellcheck="false">
     <p class="helper">After training, the best held-out checkpoint is saved under this name and added to Compare placements automatically.</p>
     <label for="training-algorithm">Training algorithm</label><select id="training-algorithm"></select>
     <p id="training-algorithm-help" class="helper">Choose how complete native episode returns update the masked placement policy.</p>
     <label for="training-initialization">Starting placement</label><select id="training-initialization"></select>
     <p id="training-initialization-help" class="helper">The selected common-sense layout initializes trainable logits; it is not locked during RL.</p>
-    <div class="training-grid"><label for="training-episodes">Episodes<input id="training-episodes" type="number" min="4" max="10000" step="4" value="32"></label><label for="training-batch">Batch size<input id="training-batch" type="number" min="2" max="32" step="1" value="4"></label><label for="training-sensors">Sensor count<input id="training-sensors" type="number" min="1" max="5" step="1" value="5"></label></div>
+     <div class="training-grid"><label for="training-episodes">Episodes<input id="training-episodes" type="number" min="4" max="10000" step="4" value="32"></label><label for="training-batch">Batch size<input id="training-batch" type="number" min="2" max="32" step="1" value="4"></label><label for="training-sensors">Sensor count<input id="training-sensors" type="number" min="1" max="8" step="1" value="8"></label></div>
     <p class="helper">Sensor count is exact: every training and held-out layout uses that many legal sensors. Native episodes can be slow; the 10,000-episode ceiling prevents accidental unbounded runs, and Stop safely remains available.</p>
     <label for="training-seed">Training seed</label><input id="training-seed" type="number" step="1" value="917" min="-2147483648" max="2147483647">
     <div class="training-actions"><button id="training-start" class="primary">Start training</button><button id="training-stop" class="secondary" disabled>Stop safely</button></div>

@@ -47,12 +47,12 @@ not the older landscape-only downloadable release.
 
 Choose **Compare placements** for a side-by-side replay of existing RL policies.
 The **Fixed placement** selector offers the original matched three-sensor
-common-sense evaluation and a measured five-directional-sensor workbench
+common-sense evaluation and a measured eight-directional-sensor workbench
 evaluation. Both show native detection, confirmation, warning, count and cost
-results and play without Unreal. The five-sensor option replays each archived RL
+results and play without Unreal. The eight-sensor option replays each archived RL
 layout and the new fixed placement against the same five drones, paths, speeds,
 sensor capabilities and seed. Its RL layouts were trained under the older
-three-sensor contract; they are not presented as trained five-sensor policies.
+three-sensor contract; they are not presented as trained eight-sensor policies.
 The current RL checkpoints predate the directional thermal update; the display
 identifies their public-forecast orientation adapter and retains losing cases.
 See the [sensor placement comparison guide](Docs/SENSOR_PLACEMENT_COMPARISON.md).
@@ -61,7 +61,8 @@ The common-sense planner is also selectable in Live Unreal mode.
 Choose **Training** to run the current directional warning-time policy directly
 from the browser. The tab exposes episode/batch/seed controls, live progress,
 warning-time history, retained checkpoints and the latest native layout. A run
-can start untrained or from either five-sensor common-sense initialization. The
+can start untrained or from either common-sense initialization, with an exact
+choice of one to eight sensors. The default balanced start uses eight sensors. The
 initial layout biases trainable logits; it is not frozen or replayed as RL.
 
 ### Set up the browser interface and live 3D simulation (Windows)
@@ -171,12 +172,13 @@ bridge on **127.0.0.1:8765**. Do not launch a second scene on the same port.
 `-DelayedDetectionDemo` starts Red outside the synthetic sensor ranges so the
 live 406/407/408 demonstration shows an approach before detections appear.
 Omit it when reproducing the original live training/evaluation scenario.
-`-TrainingWorkbench` raises the synthetic layout allowance to five sites and
-five catalogue cost units. It keeps sensor capabilities, approved sites,
+`-TrainingWorkbench` raises the synthetic layout allowance to eight sites and
+eight catalogue cost units. It keeps sensor capabilities, approved sites,
 terrain support checks, Red speed/motion model, sensing physics, and the
-warning-time formula unchanged. Each episode uses five seeded full-circle random
-approach bearings at the same 570 m radius (five drones total), avoiding
-large-swarm congestion while making placement matter across episodes.
+warning-time formula unchanged. Each episode chooses five distinct approaches
+from eight synthetic 45° sectors at the same 570 m radius (five drones total),
+adds up to ±4° seeded bearing jitter, and avoids large-swarm congestion while
+keeping each route within its assigned 24° camera field of view.
 The fictional radial approaches use the existing 120 m synthetic benchmark altitude
 so training does not fit routes to obstacle geometry in the visual backdrop.
 The workbench evaluates the documented 60 Hz camera model at a conservative
@@ -233,8 +235,9 @@ improvements after batch updates. Every completed episode, placement and metric
 is appended to `training.jsonl`. Policy snapshots are retained at episode 0 and
 batch-aligned 25/50/75/100% milestones, and every new held-out best is saved separately; only
 the selected final best is published to Compare and Live. Red opponents in this
-tab use seeded full-circle random bearings at one fixed radius plus Unreal swarm
-movement, not a pretrained Red policy. The Training map retains a trajectory
+tab choose five distinct seeded sectors from an eight-sector benchmark, add up
+to 4° bearing jitter, and keep one fixed spawn radius plus Unreal swarm movement.
+This is a scenario generator, not a pretrained Red policy. The Training map retains a trajectory
 replay so **Play replay** visibly shows the drones moving toward the target.
 
 In Unreal, press **1** for a closer palace view or **3** for an aerial view;

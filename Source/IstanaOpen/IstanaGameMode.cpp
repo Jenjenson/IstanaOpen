@@ -53,17 +53,18 @@ void AIstanaGameMode::ConfigureBlueLiveApproach(ARedTeamManager& Manager, ABlueT
     // validation remain identical to ordinary live mode.
     if (bTrainingWorkbench)
     {
-        Coordinator.Budget = 5;
-        Coordinator.MaxSites = 5;
+        Coordinator.Budget = 8;
+        Coordinator.MaxSites = 8;
         // One member in each of five independently placed approach groups keeps
-        // every episode terminal without large-swarm congestion. Python chooses
-        // seeded full-circle bearings; the flight model and speed remain unchanged.
+        // every episode terminal without large-swarm congestion. Python samples
+        // five distinct synthetic sectors from eight sensor-aligned choices; the
+        // flight model and speed remain unchanged.
         Manager.DronesPerSwarm = 1;
         // Keep the fictional lane benchmark above local obstacle-avoidance
         // geometry instead of fitting routes to the visual backdrop.
         Manager.SpawnHeightOffsetCm = 12000;
         Coordinator.PriorSwarmSize = 1;
-        UE_LOG(LogTemp, Display, TEXT("Blue training workbench: five sensors and five seeded high-altitude approach groups."));
+        UE_LOG(LogTemp, Display, TEXT("Blue training workbench: eight sensors and five seeded high-altitude approach groups."));
     }
     // The warning benchmark is a frozen, separate scenario and takes precedence
     // if command-line flags are combined outside the supported launchers.

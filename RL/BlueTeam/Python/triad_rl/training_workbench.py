@@ -22,7 +22,7 @@ import numpy as np
 from .common_sense import plan_common_sense
 from .directional_inputs import apply_placement, build_observation
 from .istana_live import IstanaLiveClient, public_planning_inputs
-from .red_policy import FixedRadiusRandomBearingRedPolicy
+from .red_policy import FixedRadiusSectorRedPolicy
 from .trained_models import COMPARISON_SCHEMA, TrainedModelRegistry, validate_model_name
 from .warning_algorithms import TRAINING_ALGORITHMS
 from .warning_policy import WarningPolicy, warning_metrics
@@ -30,10 +30,10 @@ from .warning_policy import WarningPolicy, warning_metrics
 
 INITIALIZATIONS = {
     "untrained": "Untrained random policy",
-    "directional_balanced_5": "Directional sensors · balanced approaches",
-    "directional_public_5": "Directional sensors · public-prior weighted",
+    "directional_balanced_8": "Directional sensors · balanced sectors",
+    "directional_public_8": "Directional sensors · public-prior weighted",
 }
-BALANCED_LANE_YAWS = (0., 180., 90., 270., 45.)
+BALANCED_LANE_YAWS = (0., 180., 90., 270., 45., 225., 135., 315.)
 MIN_TRAINING_EPISODES = 4
 MAX_TRAINING_EPISODES = 10_000
 MIN_TRAINING_SENSORS = 1
@@ -76,9 +76,9 @@ def _balanced_lane_plan(state, catalogue, directional_ids, count):
     return rows
 
 
-def common_sense_start(context, preset: str, *, count: int = 5) -> dict:
+def common_sense_start(context, preset: str, *, count: int = 8) -> dict:
     """Build a selected-count public-only start under the native legal contract."""
-    if preset not in ("directional_balanced_5", "directional_public_5"):
+    if preset not in ("directional_balanced_8", "directional_public_8"):
         raise ValueError("Select an available common-sense starting placement")
     if type(count) is not int or not MIN_TRAINING_SENSORS <= count <= MAX_TRAINING_SENSORS:
         raise ValueError(
@@ -96,14 +96,14 @@ def common_sense_start(context, preset: str, *, count: int = 5) -> dict:
     planning = deepcopy(state)
     planning["max_sites"] = count
     planning["available_sensor_ids"] = directional_ids
-    if preset == "directional_balanced_5":
+    if preset == "directional_balanced_8":
         planning["forecast"]["approach_weights"] = [1 / 8] * 8
         rows = _balanced_lane_plan(planning, catalogue, directional_ids, count)
-        selection = {"kind": "common_sense", "rule": "outward perimeter cameras spread across full-circle coverage bearings",
+        selection = {"kind": "common_sense", "rule": "outward perimeter cameras centered on eight benchmark sectors",
                      "sensor_model": "directional type/site/yaw/pitch choices",
                      "explanation": (
                          f"Spread {count} limited-FOV camera{'s' if count != 1 else ''} across "
-                         "representative full-circle bearings before randomized approaches are sampled.")}
+                         "the eight benchmark sectors before randomized approaches are sampled.")}
     else:
         result = plan_common_sense(planning, catalogue)
         rows, selection = result["new_placements"], result["selection"]
@@ -120,20 +120,20 @@ def common_sense_start(context, preset: str, *, count: int = 5) -> dict:
         "sensor_count": count, "placements": placements,
         "selection": selection, "public_only": True,
         "synthetic_lane_yaws_deg": (list(BALANCED_LANE_YAWS[:count])
-                                    if preset == "directional_balanced_5" else None),
+                                    if preset == "directional_balanced_8" else None),
         "coverage_yaws_deg": (list(BALANCED_LANE_YAWS[:count])
-                              if preset == "directional_balanced_5" else None),
+                              if preset == "directional_balanced_8" else None),
         "coverage_intent": (
             f"{count} limited-FOV camera{'s' if count != 1 else ''} cover representative "
-            "bearings before full-circle randomized Red approaches are sampled. "
+            "bearings before five distinct Red approach sectors are sampled. "
             "This is a sensible benchmark start, not a guarantee of 360-degree or universal detection."
         ),
     }
 
 
 def _red_scenario(context, seed):
-    """Return one reproducible, fixed-radius, full-circle Red scenario."""
-    return FixedRadiusRandomBearingRedPolicy(seed).select(context)
+    """Return one reproducible fixed-radius scenario from distinct sectors."""
+    return FixedRadiusSectorRedPolicy(seed).select(context)
 
 
 def _red_centers(context, seed):
@@ -469,9 +469,11 @@ class TrainingManager:
                 "schema": "istana.console_warning_training.v1", **config,
                 "bridgePort": self.bridge_port, "initialLayout": start_layout,
                 "redScenario": {
-                    "policy": FixedRadiusRandomBearingRedPolicy.name,
+                    "policy": FixedRadiusSectorRedPolicy.name,
                     "trained": False,
-                    "description": "Seeded full-circle random bearings at the fixed midpoint spawn radius",
+                    "description": (
+                        "Five distinct seeded sectors from an eight-sector benchmark, "
+                        "with small bearing jitter at the fixed midpoint spawn radius"),
                     "episodeSeedRule": "1700000 + episode - 1",
                     "heldOutSeed": 2700000,
                 },
@@ -509,6 +511,8 @@ class TrainingManager:
                                  "formation": run["red_decision"]["formation"],
                                  "spawnRadiusM": run["red_decision"]["radius_cm"] / 100.,
                                  "spawnBearingsDeg": run["red_decision"]["angles_degrees"],
+                                 "sectorCentersDeg": run["red_decision"].get(
+                                     "sector_centers_degrees", []),
                              },
                              "rewardBreakdown": native_breakdown,
                              "meanWarningSeconds": run["metrics"]["mean_drone_warning_s"],
@@ -571,7 +575,7 @@ class TrainingManager:
                 client, best_policy, 2700000, action_seed=3700000, deterministic=True,
                 capture_frames=True, should_stop=self.stop_event.is_set)
             baseline_layout = common_sense_start(
-                context, "directional_balanced_5", count=config["sensorCount"])
+                context, "directional_balanced_8", count=config["sensorCount"])
             baseline, _ = self.episode_runner(
                 client, _FixedPlacementPolicy(baseline_layout["placements"]), 2700000,
                 action_seed=3700000, deterministic=True, capture_frames=True,
@@ -585,7 +589,7 @@ class TrainingManager:
                 "explanation": (
                     f"{algorithm_label} best checkpoint selected by mean per-drone warning time on the fixed "
                     "held-out native episode after each policy update.")}
-            baseline_label = f"{config['sensorCount']} · {INITIALIZATIONS['directional_balanced_5']}"
+            baseline_label = f"{config['sensorCount']} · {INITIALIZATIONS['directional_balanced_8']}"
             baseline_selection = {"label": baseline_label,
                 "kind": "fixed_directional_workbench_start",
                 "explanation": baseline_layout["selection"]["explanation"]}
