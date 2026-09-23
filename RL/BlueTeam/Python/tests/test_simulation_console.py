@@ -64,6 +64,8 @@ def test_http_session_replay_and_security_headers(http_server):
     assert {row['id'] for row in session['trainingInitializations']} == {
         'untrained', 'directional_balanced_5', 'directional_public_5'}
     assert {row['id'] for row in session['trainingAlgorithms']} == {'reinforce', 'ppo', 'a2c'}
+    assert session['trainingLimits'] == {
+        'minEpisodes': 4, 'maxEpisodes': 10000, 'minSensors': 1, 'maxSensors': 5}
     assert session['training']['phase'] == 'idle'
     assert len(session['token']) >= 32
     assert headers['Cache-Control'] == 'no-store'
@@ -77,11 +79,20 @@ def test_training_tab_uses_native_status_and_exposes_no_fake_detection_claim():
     script = (CONSOLE / 'app.js').read_text(encoding='utf-8')
     assert 'id="training-mode"' in html and 'id="training-initialization"' in html
     assert 'id="training-chart"' in html and 'id="training-start"' in html
+    assert 'id="training-reward-chart"' in html and 'id="training-reward-log"' in html
+    assert 'id="training-blue-reward"' in html and 'id="training-red-reward"' in html
+    assert 'not a pretrained Red model' in html and 'same fixed spawn radius' in html
     assert 'id="training-name"' in html and 'id="training-algorithm"' in html
+    assert 'id="training-sensors"' in html and 'max="10000"' in html
     assert "api('/api/training/status')" in script
     assert "api(`/api/training/${action}`,payload)" in script
     assert "name:$('training-name').value" in script
     assert "algorithm:$('training-algorithm').value" in script
+    assert "sensorCount:Number($('training-sensors').value)" in script
+    assert "row.blueNativeReward??row.nativeReward" in script
+    assert "row.redNativeReward" in script
+    assert "entry.rewardBreakdown?.components" in script
+    assert "entry.redScenario.spawnBearingsDeg" in script
     assert "syncModelCatalog(session)" in script
     assert 'actual detected fraction' not in html.lower()  # results are populated from native status
 

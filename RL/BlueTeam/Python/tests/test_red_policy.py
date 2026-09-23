@@ -3,9 +3,9 @@ import json
 import numpy as np
 import pytest
 
-from triad_rl.red_policy import (DispersedRandomRedPolicy, LearnedRedPlacementPolicy,
-    RandomLegalRedPolicy, RedLayoutSpec, ScriptedRadialRedPolicy, layout_catalogue,
-    public_approach_exposure)
+from triad_rl.red_policy import (DispersedRandomRedPolicy, FixedRadiusRandomBearingRedPolicy,
+    LearnedRedPlacementPolicy, RandomLegalRedPolicy, RedLayoutSpec, ScriptedRadialRedPolicy,
+    layout_catalogue, public_approach_exposure)
 
 
 @pytest.fixture
@@ -57,6 +57,22 @@ def test_dispersed_random_is_seeded_and_legally_separated(context):
         for other in first["centers"][:index]:
             assert np.linalg.norm(np.asarray(center[:2]) - other[:2]) >= required
     assert len({round(angle, 6) for angle in first["angles_degrees"]}) == context["groupCount"]
+
+
+def test_fixed_radius_random_bearings_are_seeded_full_circle_and_separated(context):
+    first = FixedRadiusRandomBearingRedPolicy(31).select(context)
+    second = FixedRadiusRandomBearingRedPolicy(31).select(context)
+    different = FixedRadiusRandomBearingRedPolicy(32).select(context)
+    assert first == second and first != different
+    assert first["formation"] == "random_bearings_fixed_radius" and not first["learned"]
+    midpoint = (context["minRadiusCm"] + context["maxRadiusCm"]) / 2
+    required = 2 * context["spreadRadiusCm"] + context["movement"]["spacingCm"]
+    assert first["radius_cm"] == midpoint
+    for index, center in enumerate(first["centers"]):
+        assert np.linalg.norm(np.asarray(center[:2]) - [100., -200.]) == pytest.approx(midpoint)
+        for other in first["centers"][:index]:
+            assert np.linalg.norm(np.asarray(center[:2]) - other[:2]) >= required
+    assert all(0 <= angle < 360 for angle in first["angles_degrees"])
 
 
 def test_positive_reward_increases_selected_action_probability(context):

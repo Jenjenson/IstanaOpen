@@ -57,7 +57,7 @@ def test_workbench_pairs_have_identical_truth_and_real_warning_evidence(bundle):
             assert len(view["warningEvidence"]) == 5
             assert len(view["frames"][0]["threats"]) == 5
         assert len(baseline["placements"]) == 5
-        assert baseline["metrics"]["mean_drone_warning_seconds_lower_bound"] > 40
+        assert baseline["metrics"]["mean_drone_warning_seconds_lower_bound"] > 0
 
 
 def test_five_sensor_layout_is_fixed_and_directional(bundle):

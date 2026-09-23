@@ -32,6 +32,7 @@ POLICIES = {"406": "Temporal RL · policy A", "407": "Temporal RL · policy B",
 SEEDS = (1700000, 1700001, 1700002)
 SOURCES = (
     "RL/BlueTeam/Python/build_workbench_comparison.py",
+    "RL/BlueTeam/Python/triad_rl/red_policy.py",
     "RL/BlueTeam/Python/triad_rl/training_workbench.py",
     "RL/BlueTeam/Python/triad_rl/istana_live.py",
     "RL/BlueTeam/Python/triad_rl/warning_policy.py",
@@ -168,7 +169,7 @@ def main(argv=None):
                                                 text=True).strip(),
         "sourceSha256": {path: file_digest(ROOT / path) for path in SOURCES},
         "episodeSeeds": list(SEEDS), "captureStepBatch": 100,
-        "scenario": "Five fixed synthetic approach lanes in the native Training Workbench",
+        "scenario": "Five seeded full-circle random bearings at one fixed spawn radius in the native Training Workbench",
         "comparison": (
             "Archived temporal RL placement replayed unchanged versus the fixed five-camera "
             "balanced workbench start. The archived policy was not retrained for five sensors."),
@@ -180,8 +181,8 @@ def main(argv=None):
     baseline_selection = {"label": "Five directional sensors · workbench start",
         "kind": "fixed_directional_workbench_start",
         "explanation": (
-            "Place one surface-mounted limited-FOV thermal camera on each of the five declared "
-            "synthetic approach lanes before Red paths are realised.")}
+            "Spread five surface-mounted limited-FOV thermal cameras across representative "
+            "coverage bearings before the seeded randomized Red paths are realised.")}
     with IstanaLiveClient(args.port, timeout=120.) as client:
         for case, seed in enumerate(SEEDS, 1):
             print(json.dumps({"case": case, "layout": "directional_balanced_5",
@@ -196,7 +197,7 @@ def main(argv=None):
                 selection = {"label": f"Archived {label} layout",
                     "kind": "archived_rl_layout_replay",
                     "explanation": (
-                        "Replay the existing RL checkpoint placement unchanged in the five-lane "
+                        "Replay the existing RL checkpoint placement unchanged in the randomized-bearing "
                         "workbench. It was trained under the earlier three-sensor contract.")}
                 rl = capture(client, seed, f"Archived {label} layout",
                     lambda context, rows=layouts[policy]: deployment_rows(rows, context), selection)
@@ -205,7 +206,7 @@ def main(argv=None):
                     raise RuntimeError(f"Matched workbench trajectories differ: case {case}, {policy}")
                 episodes.append({"id": f"workbench-{policy}-{case}", "policy": policy,
                     "policyLabel": label, "case": case,
-                    "label": f"Five-lane workbench episode {case}", "seed": seed,
+                    "label": f"Random-bearing workbench episode {case}", "seed": seed,
                     "rl": rl["view"], "baseline": baseline["view"],
                     "audit": {"sameTrajectories": True, "sameBudget": True,
                         "sameCatalogue": True, "sameSensingDraws": True,

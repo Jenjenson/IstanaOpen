@@ -24,24 +24,17 @@ class _MaskedActorCriticPolicy(WarningPolicy):
     algorithm = None
     schema = None
 
-    def __init__(self, context, seed=917):
-        super().__init__(context, seed=seed)
+    def __init__(self, context, seed=917, *, sensor_count=None):
+        super().__init__(context, seed=seed, sensor_count=sensor_count)
         state, _, _ = public_planning_inputs(context)
+        if self.sensor_count is not None:
+            state["max_sites"] = self.sensor_count
         self.values = np.zeros(state["max_sites"] + 1, dtype=float)
         self.value_updates = np.zeros_like(self.values)
         self.optimizer_steps = 0
 
     def _check_context(self, context):
-        state, catalogue, _ = public_planning_inputs(context)
-        observation = build_observation(state, catalogue)
-        current = {"sites": state["sites"], "catalogue": catalogue,
-            "options": [{"sensor_id": row["sensor_id"], "site_index": row["site_index"],
-                         "yaw_deg": row.get("yaw_deg", 0.),
-                         "pitch_deg": row.get("pitch_deg", 0.)}
-                        for row in observation["options"][:-1]]}
-        if current != self.contract:
-            raise ValueError("Map-specific warning policy requires its original sites and catalogue")
-        return state, catalogue
+        return self._planning_inputs(context)
 
     @staticmethod
     def _probabilities(logits, mask):
@@ -59,7 +52,7 @@ class _MaskedActorCriticPolicy(WarningPolicy):
         generator = self.rng if rng is None else rng
         for step in range(state["max_sites"] + 1):
             observation = build_observation(state, catalogue)
-            mask = np.asarray(observation["action_mask"], dtype=bool)
+            mask = self._action_mask(state, catalogue, observation)
             probabilities = self._probabilities(self.logits(), mask)
             action = (int(np.argmax(np.where(mask, self.logits(), -np.inf)))
                       if deterministic else int(generator.choice(len(probabilities), p=probabilities)))
@@ -131,6 +124,7 @@ class _MaskedActorCriticPolicy(WarningPolicy):
     def save(self, path):
         data = {"schema": self.schema, "algorithm": self.algorithm,
                 "contract": self.contract, "option_logits": self.option_logits.tolist(),
+                "sensor_count": self.sensor_count,
                 "updates": self.updates, "baseline": self.baseline,
                 "adam_m": self.m.tolist(), "adam_v": self.v.tolist(),
                 "optimizer_steps": self.optimizer_steps, "values": self.values.tolist(),
@@ -143,7 +137,7 @@ class _MaskedActorCriticPolicy(WarningPolicy):
     @classmethod
     def load(cls, path, context):
         data = json.loads(Path(path).read_text(encoding="utf-8"))
-        policy = cls(context)
+        policy = cls(context, sensor_count=data.get("sensor_count"))
         if (data.get("schema") != cls.schema or data.get("algorithm") != cls.algorithm
                 or data.get("contract") != policy.contract):
             raise ValueError(f"Wrong {cls.algorithm} warning policy contract")

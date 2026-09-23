@@ -55,15 +55,15 @@ void AIstanaGameMode::ConfigureBlueLiveApproach(ARedTeamManager& Manager, ABlueT
     {
         Coordinator.Budget = 5;
         Coordinator.MaxSites = 5;
-        // One member in each of the five existing approach groups keeps every
-        // episode terminal and makes the five-camera exercise understandable;
-        // group centers, flight model and speed remain unchanged.
+        // One member in each of five independently placed approach groups keeps
+        // every episode terminal without large-swarm congestion. Python chooses
+        // seeded full-circle bearings; the flight model and speed remain unchanged.
         Manager.DronesPerSwarm = 1;
         // Keep the fictional lane benchmark above local obstacle-avoidance
         // geometry instead of fitting routes to the visual backdrop.
         Manager.SpawnHeightOffsetCm = 12000;
         Coordinator.PriorSwarmSize = 1;
-        UE_LOG(LogTemp, Display, TEXT("Blue training workbench: five sensors and five synthetic high-altitude approach lanes."));
+        UE_LOG(LogTemp, Display, TEXT("Blue training workbench: five sensors and five seeded high-altitude approach groups."));
     }
     // The warning benchmark is a frozen, separate scenario and takes precedence
     // if command-line flags are combined outside the supported launchers.
@@ -99,7 +99,7 @@ void AIstanaGameMode::ConfigureBlueLiveApproach(ARedTeamManager& Manager, ABlueT
     }
     if (bTrainingWorkbench && bDelayedDetectionDemo)
     {
-        // Five uncongested lanes resolve in under 70s. A conservative 5Hz look
+        // Five uncongested radial approaches resolve in under 70s. A conservative 5Hz look
         // cadence represents an operating 60Hz camera while staying below the
         // validated 512-look episode bound.
         Coordinator.TimeLimitSeconds = 100;

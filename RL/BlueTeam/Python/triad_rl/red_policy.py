@@ -246,6 +246,45 @@ class DispersedRandomRedPolicy:
                 "angles_degrees": angles, "radii_cm": radii, "centers": centers}
 
 
+class FixedRadiusRandomBearingRedPolicy:
+    """Seeded fixed-distance opponent with independently sampled approach bearings.
+
+    This is an inference-only scenario generator, not a trained adversary.  It
+    keeps every group at the midpoint of the advertised spawn annulus while
+    sampling full-circle bearings and enforcing the native group-separation
+    contract before Unreal performs its authoritative placement validation.
+    """
+
+    name = "fixed_radius_random_bearings"
+
+    def __init__(self, seed=0):
+        self.rng = np.random.default_rng(_integer(seed, "seed", 0, 2**63 - 1))
+
+    def select(self, context, **_):
+        values = _context(context)
+        radius = (values["minimum"] + values["maximum"]) / 2
+        required = 2 * values["spread"] + values["spacing"]
+        if values["groups"] > 1 and 2 * radius * math.sin(math.pi / values["groups"]) + 1e-9 < required:
+            raise ValueError("The fixed spawn radius cannot fit the requested separated Red groups")
+        centers, angles = [], []
+        for _group in range(values["groups"]):
+            for _attempt in range(4096):
+                angle = float(self.rng.uniform(0., 2 * math.pi))
+                candidate = [values["origin"][0] + radius * math.cos(angle),
+                             values["origin"][1] + radius * math.sin(angle),
+                             values["origin"][2] + values["height"]]
+                if all(math.dist(candidate[:2], existing[:2]) + 1e-9 >= required
+                       for existing in centers):
+                    centers.append(candidate)
+                    angles.append(math.degrees(angle) % 360.)
+                    break
+            else:
+                raise ValueError("Could not sample separated Red bearings at the fixed spawn radius")
+        return {"policy": self.name, "learned": False,
+                "formation": "random_bearings_fixed_radius", "radius_cm": radius,
+                "angles_degrees": angles, "centers": centers}
+
+
 class LearnedRedPlacementPolicy:
     """Masked tabular softmax trained from one terminal reward per episode."""
 
