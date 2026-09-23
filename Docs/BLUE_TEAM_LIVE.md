@@ -55,7 +55,9 @@ an interactive run console, not a replacement for the audited CLI protocol.
 The user supplies a unique model name before starting. After each policy update,
 the console scores that checkpoint on the same fixed held-out native episode;
 on successful completion it publishes the best checkpoint and its matched
-five-directional-sensor comparison. The named model then appears immediately in
+selected-count directional-sensor comparison. The Training tab accepts an exact
+count of one to five sensors and 4–10,000 episodes; all placements retain the
+native budget, site, separation, surface and FOV rules. The named model then appears immediately in
 **Compare placements** and as a saved-layout choice in **Live Unreal**.
 The algorithm selector offers REINFORCE, Masked PPO and Masked A2C. They share
 the exact environment, reward, warm starts, action mask and deployment contract.
@@ -93,9 +95,9 @@ viewer and `-IstanaWarningApproachV2` benchmark are also unaffected.
 `-TrainingWorkbench` changes the opt-in live run's Blue allowance from three to
 five sites/cost units. It leaves the catalogue, approved sites, surface
 validation, Red speed/motion model and sensing model unchanged. It uses one
-drone in each of five declared approach lanes so native training episodes
-resolve cleanly without large-swarm congestion.
-The workbench lanes use the existing synthetic 120 m benchmark altitude, keeping
+drone in each of five seeded full-circle random-bearing groups at the same 570 m
+spawn radius so native training episodes vary without large-swarm congestion.
+The radial approaches use the existing synthetic 120 m benchmark altitude, keeping
 the exercise above local obstacle-avoidance geometry rather than tailoring
 routes to the visual backdrop.
 It evaluates the documented 60 Hz camera model at a conservative 5 Hz and uses
@@ -104,7 +106,7 @@ In the browser choose **Training**, then select one of:
 
 - **Untrained random policy** — zero initial actor logits.
 - **Five directional sensors · balanced approaches** — the fixed public-only
-  common-sense rule with uniform advertised sectors.
+  common-sense rule spread across representative full-circle coverage bearings.
 - **Five directional sensors · public-prior weighted** — the same fixed rule
   using the scene's published approach weights.
 

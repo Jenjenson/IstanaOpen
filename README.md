@@ -174,13 +174,13 @@ Omit it when reproducing the original live training/evaluation scenario.
 `-TrainingWorkbench` raises the synthetic layout allowance to five sites and
 five catalogue cost units. It keeps sensor capabilities, approved sites,
 terrain support checks, Red speed/motion model, sensing physics, and the
-warning-time formula unchanged. The explicit workbench scenario uses one drone
-in each of five declared approach lanes (five drones total), avoiding
-large-swarm congestion.
-The five fictional lanes use the existing 120 m synthetic benchmark altitude
+warning-time formula unchanged. Each episode uses five seeded full-circle random
+approach bearings at the same 570 m radius (five drones total), avoiding
+large-swarm congestion while making placement matter across episodes.
+The fictional radial approaches use the existing 120 m synthetic benchmark altitude
 so training does not fit routes to obstacle geometry in the visual backdrop.
 The workbench evaluates the documented 60 Hz camera model at a conservative
-5 Hz and uses a 100 s episode; all five uncongested lanes reach the target zone
+5 Hz and uses a 100 s episode; all five uncongested approaches reach the target zone
 in roughly 66 s in the verified smoke case.
 
 **4. Deploy and run from the browser:**
@@ -195,7 +195,8 @@ in roughly 66 s in the verified smoke case.
    clock. Changing the planner only takes effect on **Plan new episode**.
 
 For training, choose **Training**, enter a unique model name, select a starting
-placement, training algorithm, episode count, batch size and seed, then click
+placement, training algorithm, episode count, batch size, exact sensor count
+(1–5) and seed, then click
 **Start training**. Available algorithms are **REINFORCE**, **Masked PPO**, and
 **Masked A2C**. All three use the identical categorical sensor/profile/site/yaw/
 pitch/STOP choices and native legality mask; only the optimizer changes. DDPG is
@@ -210,10 +211,31 @@ port 8765 until the run completes or is stopped; Live Unreal controls cannot run
 at the same time. Run artifacts are retained under
 `Saved\WarningTraining\console-*`; named models are under
 `Saved\WarningTraining\models\trained-*`.
-The five-camera starting layouts use the current 24° directional frustum and
-public approach priors. They are designed to spread useful views, but five
-static 24° cameras cannot guarantee full 360° or universal detection; the UI
-therefore reports each episode's actual detected fraction.
+The chosen sensor count is enforced for sampled and deterministic layouts; STOP
+is masked until that many legal placements exist, and choices that would leave
+too little budget for the remaining sensors are rejected by the same action
+mask. Common-sense warm starts and the final comparison baseline automatically
+use the selected count. The episode field accepts 4–10,000 episodes. The upper
+bound is a console guard against accidental unbounded native runs, not an RL or
+Unreal limitation; large runs can take many hours and can be stopped safely.
+Starting layouts use the current 24° directional frustum and public approach
+priors. Static 24° cameras cannot guarantee full 360° or universal detection;
+the UI therefore reports each episode's actual detected fraction.
+
+The Training tab has a warning-time graph and a native-reward graph with Blue
+and Red returns shown separately. The policy
+still optimizes mean per-drone warning time (missed drones contribute zero); the
+Blue native reward is tracked as an additional diagnostic using the Unreal formula
+`2·detected + 3·confirmed + 5·timely − 5·late/unconfirmed − cost/budget`.
+Red native reward is logged separately as the opposite terminal sensing return;
+the fixed Red scenario generator is not updated. Its per-episode log shows each signed Blue component, Red spawn radius/bearings, and matched held-out warning
+improvements after batch updates. Every completed episode, placement and metric
+is appended to `training.jsonl`. Policy snapshots are retained at episode 0 and
+batch-aligned 25/50/75/100% milestones, and every new held-out best is saved separately; only
+the selected final best is published to Compare and Live. Red opponents in this
+tab use seeded full-circle random bearings at one fixed radius plus Unreal swarm
+movement, not a pretrained Red policy. The Training map retains a trajectory
+replay so **Play replay** visibly shows the drones moving toward the target.
 
 In Unreal, press **1** for a closer palace view or **3** for an aerial view;
 use **WASD + mouse** to explore and **E/Q** to move up/down. Sensors have cyan

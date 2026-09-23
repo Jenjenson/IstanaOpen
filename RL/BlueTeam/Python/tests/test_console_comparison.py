@@ -55,8 +55,9 @@ def test_invalid_selection_does_not_touch_live_state(server, identifier):
 def test_session_offers_native_cases_separately_from_historical_replays(server):
     code, session = request(server, "/api/session")
     assert code == 200 and len(session["replays"]) == 18
-    assert len(session["comparisonEpisodes"]) == 9
-    assert {row["policyLabel"] for row in session["comparisonEpisodes"]} == {
+    archived = [row for row in session["comparisonEpisodes"] if not row.get("trainedModel")]
+    assert len(archived) == 9
+    assert {row["policyLabel"] for row in archived} == {
         "Temporal RL · policy A", "Temporal RL · policy B", "Temporal RL · policy C"}
     assert [row["id"] for row in session["comparisonLayouts"]] == [
         "matched_common_sense", "directional_balanced_5"]
@@ -80,7 +81,7 @@ def test_five_directional_placement_has_matched_native_warning_metrics(server):
     assert code == 200 and not scenario["layoutOnly"] and scenario["budget"] == 5
     code, result = request(server, "/api/comparison/run", body)
     assert code == 200 and not result["layoutOnly"]
-    assert result["metrics"]["baseline"]["mean_warning_s"] == pytest.approx(45.28544905032593)
+    assert result["metrics"]["baseline"]["mean_warning_s"] == pytest.approx(9.289867355363912)
     assert result["metrics"]["rl"]["target_count"] == 5
     assert len(result["baseline"]["placements"]) == 5
     assert result["fairness"]["matched"] is True

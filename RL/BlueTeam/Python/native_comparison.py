@@ -112,7 +112,7 @@ def _empty_layout_view(view):
 
 
 def _balanced_directional_placements(view):
-    """Recreate the public five-lane workbench preset on the saved site grid."""
+    """Recreate the public full-circle coverage preset on the saved site grid."""
     catalogue = view["catalogue"]
     sensor_index, sensor = next(
         ((index, row) for index, row in enumerate(catalogue)
@@ -149,7 +149,7 @@ def layout_preview_result(episode, protocol=None):
                      "placements": _balanced_directional_placements(baseline),
                      "budget": 5, "maxSensors": 5,
                      "selection": {"kind": "fixed_directional_workbench_start",
-                         "rule": "outward perimeter camera per declared synthetic lane"}})
+                         "rule": "outward perimeter cameras spread across representative coverage bearings"}})
     return {"schema": "istana.placement_layout_preview.v1", "episodeId": episode["id"],
             "label": f"{episode['label']} · placement preview",
             "policyLabel": policy_label(episode["policy"]),
@@ -159,7 +159,7 @@ def layout_preview_result(episode, protocol=None):
                 "kind": "fixed_directional_workbench_start",
                 "explanation": (
                     "Place five limited-FOV thermal cameras on supported perimeter sites, "
-                    "each facing one declared synthetic approach lane. This preview shows "
+                    "spread across representative coverage bearings. This preview shows "
                     "placement geometry only; it does not reuse the archived sensing metrics.")},
             "fairness": {"matched": False,
                 "description": (
@@ -261,21 +261,24 @@ class NativeComparisons:
             raise ValueError("Choose an available fixed comparison placement")
         if identifier.startswith("trained-"):
             if layout_id != "directional_balanced_5":
-                raise ValueError("Named warning models use their matched five-sensor evaluation")
+                raise ValueError("Named warning models use their matched selected-count evaluation")
             episode = self.registry.comparison(identifier)
             result = comparison_result(episode)
+            sensor_count = result["baseline"].get(
+                "maxSensors", len(result["baseline"].get("placements", [])))
             result.update({"method": "trained_directional_warning", "trainedModel": True,
                 "label": episode["label"], "selection": deepcopy(
                     episode["baseline"].get("selection", {})),
                 "fairness": {"matched": True, "description": (
-                    "The saved best checkpoint and fixed five-directional-sensor placement face "
+                    f"The saved best checkpoint and fixed {sensor_count}-directional-sensor placement face "
                     "the same held-out native episode, paths, speeds, sensing draws and limits.")},
                 "description": (
                     "Automatically registered held-out evaluation for this completed named "
                     "training run. This is one matched episode, not an aggregate claim.")})
             result["audit"].update({"red_policy": "Five fixed seeded synthetic approach lanes",
                 "blue_policy": "Named best warning-time checkpoint selected during training",
-                "five_sensor_rl_trained": True})
+                "exact_sensor_count": sensor_count,
+                "five_sensor_rl_trained": sensor_count == 5})
             if scenario:
                 return {"episodeId": identifier, "label": result["label"],
                         "selection": result["selection"], "layoutId": layout_id,
@@ -306,7 +309,7 @@ class NativeComparisons:
                         "capabilities, sites and episode seed. The archived RL layout was trained "
                         "for the earlier three-sensor contract and was not retrained for five sensors.")},
                 "description": (
-                    "Matched native five-lane workbench replay. Warning values come from the "
+                    "Matched native random-bearing workbench replay. Warning values come from the "
                     "captured episode; the result is not a like-for-like trained-policy comparison.")})
             result["audit"].update({"red_policy": "Five fixed seeded synthetic approach lanes",
                 "blue_policy": (

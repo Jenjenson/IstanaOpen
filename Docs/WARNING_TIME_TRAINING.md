@@ -24,8 +24,9 @@ cd RL\BlueTeam\Python
 The browser console also has a **Training** tab for shorter interactive runs.
 Start the scene on the console's configured bridge port with
 `-TrainingWorkbench -DelayedDetectionDemo`, open `http://127.0.0.1:9048/`, and
-select Training. Enter a unique model name, then choose an untrained start or a
-five-directional-sensor public-only common-sense warm start. Warm starting
+select Training. Enter a unique model name, choose an exact sensor count from
+one to five, then choose an untrained start or a selected-count directional,
+public-only common-sense warm start. Warm starting
 changes initial logits only; all selected and unselected actions remain
 trainable. Select REINFORCE, Masked PPO or Masked A2C. Each optimizer consumes
 the same complete native episode reward and legal categorical action records;
@@ -37,12 +38,42 @@ the same fixed held-out native episode. A successful run saves the checkpoint
 with the highest measured mean per-drone warning time under
 `Saved/WarningTraining/models/trained-*` and immediately lists it in **Compare
 placements** and the Live saved-layout selector. Its comparison replays that
-best checkpoint and the fixed five-directional start with the same Red episode,
+best checkpoint and the matching selected-count directional start with the same Red episode,
 paths, speed, seed and sensing process. Browser run artifacts remain in
 `Saved/WarningTraining/console-*`. Stopped and failed runs are not registered.
 Use the CLI above for the full fixed multi-case evaluation protocol and audit
 reports; the console's single held-out case is a selection aid, not a general
 performance claim.
+
+The browser accepts 4–10,000 episodes, and the batch size must divide the
+episode count. The original 512 ceiling was only a conservative UI guard for
+long native Unreal runs, not an optimizer limit. The higher ceiling still
+prevents an accidental unbounded request; use **Stop safely** to finish the
+current native action and retain the run artifacts. Exact-count training masks
+STOP until the requested number of sensors has been placed and preserves the
+native budget, approved-site, surface, separation and directional-FOV checks.
+
+The console tracks three distinct quantities so the graphs do not disguise the
+objective. **Warning-time objective** is the mean per-drone warning seconds used
+for Blue policy updates, with missed detections contributing zero. **Blue native reward**
+is the additional Unreal diagnostic
+`2·detected + 3·confirmed + 5·timely − 5·late/unconfirmed − cost/budget`.
+**Red native reward** is the separately logged opposite terminal sensing return;
+the Red scenario generator is never updated. The reward log lists the signed
+Blue native components, Red spawn radius/bearings for each recent episode and,
+after each batch, any warning-reward change on the same held-out episode. This
+is why a line such as `+10.00 reward; first detection was 6.00 s earlier` can be
+interpreted without comparing unmatched training seeds.
+
+Completed episode rows are flushed immediately to `training.jsonl`, including
+both rewards, warning/detection metrics, placements and the native breakdown.
+Policy files are saved at episode 0 and at batch-aligned 25%, 50%, 75% and 100%
+milestones. Each new best on the fixed held-out episode is also saved as
+`best-policy-NNNN.json`; the named model registry publishes only the selected
+best. Red drones in this browser workflow use seeded full-circle random bearings
+at the fixed midpoint spawn radius and are moved by Unreal's swarm logic. They
+are not a pretrained Red model and are not trained adversarially. The Training
+map retains each completed trajectory; use **Play replay** to verify movement.
 
 For native early-to-trained footage, close the training scene, start the capture
 scene with the identical flag, and replay the fixed checkpoints:

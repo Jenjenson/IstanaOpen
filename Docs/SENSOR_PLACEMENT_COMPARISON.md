@@ -9,11 +9,11 @@ Use **Fixed placement** to select either:
 
 - **Matched common sense · 3 sensors**: the original 60-drone paired evaluation.
 - **Five directional sensors · measured workbench**: five surface-mounted,
-  limited-FOV thermal cameras facing the five declared synthetic approach lanes.
+  limited-FOV thermal cameras spread across representative coverage bearings.
 
 The five-sensor choice is also measured native evidence, not a layout-only
-mock-up. It replays each archived RL placement unchanged in the same five-lane
-episode as the fixed placement. Both sides share the five drones, trajectories,
+mock-up. It replays each archived RL placement unchanged in the same seeded
+random-bearing episode as the fixed placement. Both sides share the five drones, trajectories,
 speeds, sensor capabilities, sites, budget and seed. The archived RL checkpoint
 was trained under the older three-sensor contract and has **not** been retrained
 as a five-sensor policy, so use this view to inspect the placement and warning
@@ -23,9 +23,9 @@ The recorded mean warning times are:
 
 | Episode | Archived policy A | Archived policy B | Archived policy C | Five sensors |
 | --- | ---: | ---: | ---: | ---: |
-| 1 | 0.56 s | 0.00 s | 0.12 s | 45.29 s |
-| 2 | 9.92 s | 0.00 s | 1.03 s | 44.78 s |
-| 3 | 9.36 s | 0.00 s | 7.30 s | 48.60 s |
+| 1 | 3.53 s | 0.00 s | 0.00 s | 9.29 s |
+| 2 | 1.50 s | 0.00 s | 0.84 s | 21.28 s |
+| 3 | 0.00 s | 0.00 s | 0.00 s | 10.28 s |
 
 Missed drones contribute zero warning, as in the rest of the project.
 

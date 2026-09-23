@@ -39,11 +39,14 @@ def test_target_mismatch_and_duplicate_ids_fail_closed():
 def test_all_current_native_results_have_consistent_counts_and_delta_direction():
     store = NativeComparisons()
     for choice in store.list():
-        result = store.get(choice["id"])
+        result = store.get(choice["id"], layout_id=choice.get("defaultLayout", "matched_common_sense"))
         for key, delta in result["deltas"].items():
             assert delta == pytest.approx(result["metrics"]["rl"][key] - result["metrics"]["baseline"][key])
         assert result["audit"]["native_unreal_capture"] and not result["audit"]["live_unreal"]
-        assert result["metrics"]["rl"]["target_count"] == 60
+        assert result["metrics"]["rl"]["target_count"] == result["metrics"]["baseline"]["target_count"]
+        assert result["metrics"]["rl"]["target_count"] > 0
+        if not choice.get("trainedModel"):
+            assert result["metrics"]["rl"]["target_count"] == 60
         json.dumps(result, allow_nan=False)
 
 
@@ -61,8 +64,8 @@ def test_five_directional_workbench_start_has_matched_native_warning_evidence():
     assert {row["sensor_id"] for row in result["baseline"]["placements"]} == {"thermal"}
     assert [row["yaw_deg"] for row in result["baseline"]["placements"]] == [0., 180., 90., 270., 45.]
     assert all(row["pitch_deg"] == 20. for row in result["baseline"]["placements"])
-    assert result["metrics"]["baseline"]["mean_warning_s"] == pytest.approx(45.28544905032593)
-    assert result["metrics"]["rl"]["mean_warning_s"] == pytest.approx(.5615509664243291)
+    assert result["metrics"]["baseline"]["mean_warning_s"] == pytest.approx(9.289867355363912)
+    assert result["metrics"]["rl"]["mean_warning_s"] == pytest.approx(3.5310663676519383)
     assert all(len(frame["threats"]) == 5 for side in ("rl", "baseline")
                for frame in result[side]["frames"])
     json.dumps(result, allow_nan=False)
@@ -116,5 +119,5 @@ def test_completed_named_model_is_discovered_and_served_in_comparison(tmp_path):
     result = store.get(identifier, layout_id="directional_balanced_5")
     assert result["trainedModel"] and result["policyLabel"] == "Night Watch"
     assert result["metrics"]["rl"]["target_count"] == 5
-    with pytest.raises(ValueError, match="matched five-sensor"):
+    with pytest.raises(ValueError, match="matched selected-count"):
         store.get(identifier, layout_id="matched_common_sense")

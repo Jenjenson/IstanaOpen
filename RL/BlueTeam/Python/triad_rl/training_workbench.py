@@ -22,6 +22,7 @@ import numpy as np
 from .common_sense import plan_common_sense
 from .directional_inputs import apply_placement, build_observation
 from .istana_live import IstanaLiveClient, public_planning_inputs
+from .red_policy import FixedRadiusRandomBearingRedPolicy
 from .trained_models import COMPARISON_SCHEMA, TrainedModelRegistry, validate_model_name
 from .warning_algorithms import TRAINING_ALGORITHMS
 from .warning_policy import WarningPolicy, warning_metrics
@@ -29,10 +30,14 @@ from .warning_policy import WarningPolicy, warning_metrics
 
 INITIALIZATIONS = {
     "untrained": "Untrained random policy",
-    "directional_balanced_5": "Five directional sensors · balanced approaches",
-    "directional_public_5": "Five directional sensors · public-prior weighted",
+    "directional_balanced_5": "Directional sensors · balanced approaches",
+    "directional_public_5": "Directional sensors · public-prior weighted",
 }
 BALANCED_LANE_YAWS = (0., 180., 90., 270., 45.)
+MIN_TRAINING_EPISODES = 4
+MAX_TRAINING_EPISODES = 10_000
+MIN_TRAINING_SENSORS = 1
+MAX_TRAINING_SENSORS = len(BALANCED_LANE_YAWS)
 
 
 def _angle_distance(left, right):
@@ -40,7 +45,7 @@ def _angle_distance(left, right):
 
 
 def _balanced_lane_plan(state, catalogue, directional_ids, count):
-    """Choose outward perimeter cameras for five declared synthetic lanes."""
+    """Choose outward perimeter cameras on representative coverage bearings."""
     current, rows = deepcopy(state), []
     sensor_ids = set(directional_ids)
     for desired_yaw in BALANCED_LANE_YAWS[:count]:
@@ -62,7 +67,7 @@ def _balanced_lane_plan(state, catalogue, directional_ids, count):
             candidates.append(((-_angle_distance(site_yaw, desired_yaw), radius,
                                 -abs(option["pitch_deg"] - desired_pitch), -index), index))
         if not candidates:
-            raise ValueError(f"No legal directional site can face synthetic lane {desired_yaw:g} degrees")
+            raise ValueError(f"No legal directional site can face coverage bearing {desired_yaw:g} degrees")
         action = max(candidates)[1]
         option = observation["options"][action]
         rows.append({"sensor_id": option["sensor_id"], "site_index": option["site_index"],
@@ -72,60 +77,68 @@ def _balanced_lane_plan(state, catalogue, directional_ids, count):
 
 
 def common_sense_start(context, preset: str, *, count: int = 5) -> dict:
-    """Build a five-camera public-only start under the native legal contract."""
+    """Build a selected-count public-only start under the native legal contract."""
     if preset not in ("directional_balanced_5", "directional_public_5"):
         raise ValueError("Select an available common-sense starting placement")
+    if type(count) is not int or not MIN_TRAINING_SENSORS <= count <= MAX_TRAINING_SENSORS:
+        raise ValueError(
+            f"Sensor count must be an integer from {MIN_TRAINING_SENSORS} "
+            f"to {MAX_TRAINING_SENSORS}")
     state, catalogue, _ = public_planning_inputs(context)
     if state["max_sites"] < count or state["budget_remaining"] < count:
         raise ValueError(
-            "This Unreal scene does not allow five sensors. Restart it with "
+            f"This Unreal scene cannot fund {count} sensors. Restart it with "
             "Tools\\start_blue_live.ps1 -TrainingWorkbench -DelayedDetectionDemo."
         )
     directional_ids = [row["id"] for row in catalogue if row.get("directional") and row["cost"] <= 1.]
     if not directional_ids:
         raise ValueError("The native catalogue has no affordable directional sensor profile")
     planning = deepcopy(state)
+    planning["max_sites"] = count
     planning["available_sensor_ids"] = directional_ids
     if preset == "directional_balanced_5":
         planning["forecast"]["approach_weights"] = [1 / 8] * 8
         rows = _balanced_lane_plan(planning, catalogue, directional_ids, count)
-        selection = {"kind": "common_sense", "rule": "outward perimeter camera per declared synthetic lane",
+        selection = {"kind": "common_sense", "rule": "outward perimeter cameras spread across full-circle coverage bearings",
                      "sensor_model": "directional type/site/yaw/pitch choices",
-                     "explanation": "Place one limited-FOV camera on each of five public synthetic approach lanes."}
+                     "explanation": (
+                         f"Spread {count} limited-FOV camera{'s' if count != 1 else ''} across "
+                         "representative full-circle bearings before randomized approaches are sampled.")}
     else:
         result = plan_common_sense(planning, catalogue)
         rows, selection = result["new_placements"], result["selection"]
     if len(rows) != count:
         raise ValueError(
             f"Only {len(rows)} legal useful directional placements were available; "
-            f"five require supported, unblocked sites with enough separation and budget."
+            f"{count} require supported, unblocked sites with enough separation and budget."
         )
     placements = [{"profileId": row["sensor_id"], "siteId": row["site_index"],
                    "yawDeg": row["yaw_deg"], "pitchDeg": row["pitch_deg"]}
                   for row in rows]
     return {
-        "preset": preset, "label": INITIALIZATIONS[preset], "placements": placements,
+        "preset": preset, "label": f"{count} · {INITIALIZATIONS[preset]}",
+        "sensor_count": count, "placements": placements,
         "selection": selection, "public_only": True,
-        "synthetic_lane_yaws_deg": list(BALANCED_LANE_YAWS) if preset == "directional_balanced_5" else None,
+        "synthetic_lane_yaws_deg": (list(BALANCED_LANE_YAWS[:count])
+                                    if preset == "directional_balanced_5" else None),
+        "coverage_yaws_deg": (list(BALANCED_LANE_YAWS[:count])
+                              if preset == "directional_balanced_5" else None),
         "coverage_intent": (
-            "Five limited-FOV cameras face five declared synthetic approach lanes. "
+            f"{count} limited-FOV camera{'s' if count != 1 else ''} cover representative "
+            "bearings before full-circle randomized Red approaches are sampled. "
             "This is a sensible benchmark start, not a guarantee of 360-degree or universal detection."
         ),
     }
 
 
+def _red_scenario(context, seed):
+    """Return one reproducible, fixed-radius, full-circle Red scenario."""
+    return FixedRadiusRandomBearingRedPolicy(seed).select(context)
+
+
 def _red_centers(context, seed):
-    rng = np.random.default_rng(seed)
-    radius = (context["minRadiusCm"] + context["maxRadiusCm"]) / 2
-    origin, count = context["objectiveWorldCm"], context["groupCount"]
-    if count == len(BALANCED_LANE_YAWS):
-        angles = [math.radians(yaw + rng.uniform(-4., 4.)) for yaw in BALANCED_LANE_YAWS]
-    else:
-        phase = rng.uniform(0, 2 * math.pi)
-        angles = [phase + 2 * math.pi * i / count for i in range(count)]
-    return [[origin["x"] + radius * math.cos(angle),
-             origin["y"] + radius * math.sin(angle),
-             origin["z"] + context["heightOffsetCm"]] for angle in angles]
+    """Compatibility helper retained for callers that only need centers."""
+    return _red_scenario(context, seed)["centers"]
 
 
 def _capture_frame(red, blue, origin):
@@ -160,6 +173,35 @@ def _target_results(evidence, lead_time):
         "unresolved": row["zoneEntrySeconds"] is None} for row in evidence]
 
 
+def _reward_breakdown(run):
+    """Explain the native terminal reward without changing the RL objective."""
+    native, metrics = run["native_metrics"], run["metrics"]
+    targets = metrics["targets"]
+    budget = run["context"]["publicSnapshot"]["budget_total"]
+    detected = native["detected_fraction"]
+    confirmed = native["confirmed_fraction"]
+    timely = native["timely_fraction"]
+    breached = native["breached_fraction"]
+    cost = native["cost"]
+    components = [
+        {"key": "detected", "value": 2 * detected,
+         "label": f"{round(detected * targets)} / {targets} drones detected"},
+        {"key": "confirmed", "value": 3 * confirmed,
+         "label": f"{round(confirmed * targets)} / {targets} tracks confirmed"},
+        {"key": "timely", "value": 5 * timely,
+         "label": f"{round(timely * targets)} / {targets} confirmations were timely"},
+        {"key": "breached", "value": -5 * breached,
+         "label": f"{round(breached * targets)} / {targets} arrivals lacked timely confirmation"},
+        {"key": "cost", "value": -cost / budget,
+         "label": f"{cost:g} / {budget:g} deployment cost"},
+    ]
+    total = sum(row["value"] for row in components)
+    if not np.isclose(total, run["reward"], atol=1e-7, rtol=0):
+        raise RuntimeError("Native reward does not match its detection/timeliness/cost breakdown")
+    return {"total": float(total), "components": components,
+            "formula": "2·detected + 3·confirmed + 5·timely − 5·late/unconfirmed − cost/budget"}
+
+
 def run_episode(client, policy, seed, *, action_seed=None, deterministic=False,
                 capture_frames=False, should_stop: Callable[[], bool] = lambda: False):
     """Run one complete native episode and return only validated evidence."""
@@ -168,10 +210,13 @@ def run_episode(client, policy, seed, *, action_seed=None, deterministic=False,
     rng = None if action_seed is None else np.random.default_rng(action_seed)
     placements, records = policy.plan(context, rng=rng, deterministic=deterministic)
     client.deploy(placements)
-    client.place_red(_red_centers(red, seed))
-    blue = client.observe_blue() if capture_frames else None
-    frames = ([_capture_frame(client.request("observe")["observation"], blue,
-                              context["worldOriginCm"])] if capture_frames else [])
+    red_decision = _red_scenario(red, seed)
+    client.place_red(red_decision["centers"])
+    blue = client.observe_blue()
+    red_observation = client.request("observe")["observation"]
+    # Retain a light 5-second-cadence replay for the Training tab.  Formal
+    # comparison capture still uses the denser one-second cadence below.
+    frames = [_capture_frame(red_observation, blue, context["worldOriginCm"])]
     step_batch = 50 if capture_frames else 250
     for _ in range(2000 if capture_frames else 400):
         if should_stop():
@@ -179,8 +224,8 @@ def run_episode(client, policy, seed, *, action_seed=None, deterministic=False,
             raise InterruptedError("Training stopped after the current native action")
         response = client.step(step_batch)
         blue = response["blueObservation"]
-        if capture_frames:
-            frames.append(_capture_frame(response["observation"], blue, context["worldOriginCm"]))
+        red_observation = response["observation"]
+        frames.append(_capture_frame(red_observation, blue, context["worldOriginCm"]))
         if blue["terminated"] or blue["truncated"]:
             break
     else:
@@ -189,15 +234,16 @@ def run_episode(client, policy, seed, *, action_seed=None, deterministic=False,
     metrics = warning_metrics(blue)
     evidence = blue["warningEvidenceForEvaluationOnly"]
     targets = _target_results(evidence, context["temporalConfig"]["lead_time_s"])
-    if capture_frames:
-        indexed = {row["id"]: row for row in targets}
-        for frame in frames:
-            for threat in frame["threats"]:
-                target = indexed[threat["id"]]
-                threat["detected"] = (target["first_detection"] is not None
-                                      and target["first_detection"] <= frame["time"] + 1e-8)
-                threat["confirmed"] = (target["first_confirmation"] is not None
-                                       and target["first_confirmation"] <= frame["time"] + 1e-8)
+    indexed = {row["id"]: row for row in targets}
+    for frame in frames:
+        for threat in frame["threats"]:
+            target = indexed[threat["id"]]
+            threat["detected"] = (target["first_detection"] is not None
+                                  and target["first_detection"] <= frame["time"] + 1e-8)
+            threat["confirmed"] = (target["first_confirmation"] is not None
+                                   and target["first_confirmation"] <= frame["time"] + 1e-8)
+    red_reward = (red_observation.get("reward") if red_observation.get("bHasReward")
+                  else -blue["reward"])
     return {
         "seed": seed, "action_seed": action_seed, "placements": placements,
         "public_placements": blue["publicSnapshot"]["placements"],
@@ -206,6 +252,9 @@ def run_episode(client, policy, seed, *, action_seed=None, deterministic=False,
         "warning_evidence": evidence, "target_results": targets, "frames": frames,
         "trajectory_sha256": _trajectory_digest(frames) if capture_frames else None,
         "run_id": red["runId"], "steps": client.completed_steps,
+        "red_policy": red_decision["policy"], "red_decision": red_decision,
+        "red_native_reward": red_reward,
+        "sensor_count": getattr(policy, "sensor_count", None) or len(placements),
         "context": context,
     }, records
 
@@ -213,6 +262,7 @@ def run_episode(client, policy, seed, *, action_seed=None, deterministic=False,
 class _FixedPlacementPolicy:
     def __init__(self, placements):
         self.placements = deepcopy(placements)
+        self.sensor_count = len(placements)
 
     def plan(self, _context, **_):
         return deepcopy(self.placements), []
@@ -229,7 +279,7 @@ def _comparison_view(run, label, selection):
         "sites": context["publicSnapshot"]["sites"],
         "blockedSites": context["publicSnapshot"].get("blocked_sites", []),
         "budget": context["publicSnapshot"]["budget_total"],
-        "maxSensors": context["publicSnapshot"]["max_sites"],
+        "maxSensors": run.get("sensor_count", context["publicSnapshot"]["max_sites"]),
         "objectiveRadius": context["temporalConfig"]["objective_radius_m"],
         "surfaceMounted": True, "frames": run["frames"], "metrics": native,
         "decisions": [], "selection": deepcopy(selection), "seed": run["seed"],
@@ -257,8 +307,9 @@ def _viewer(run, episode, total):
         "sites": context["publicSnapshot"]["sites"],
         "blockedSites": context["publicSnapshot"].get("blocked_sites", []),
         "budget": context["publicSnapshot"]["budget_total"],
+        "maxSensors": run.get("sensor_count", context["publicSnapshot"]["max_sites"]),
         "objectiveRadius": context["temporalConfig"]["objective_radius_m"],
-        "frames": [{"time": 0., "threats": [], "detections": [], "tracks": [], "completedSteps": 0}],
+        "frames": run.get("frames") or [{"time": 0., "threats": [], "detections": [], "tracks": [], "completedSteps": 0}],
         "metrics": native_metrics, "outcome": "training episode complete", "ended": True,
     }
 
@@ -309,6 +360,7 @@ class TrainingManager:
                 "history": [], "checkpoints": [], "initialization": "untrained",
                 "initializationLabel": INITIALIZATIONS["untrained"], "initialLayout": None,
                 "algorithm": "reinforce", "algorithmLabel": TRAINING_ALGORITHMS["reinforce"]["label"],
+                "sensorCount": MAX_TRAINING_SENSORS,
                 "modelName": "", "bestEpisode": None, "bestWarningSeconds": None,
                 "registeredModel": None, "viewer": None, "outputDirectory": None,
                 "error": "", "stopRequested": False}
@@ -323,16 +375,27 @@ class TrainingManager:
 
     @staticmethod
     def validate(config):
-        required = {"name", "algorithm", "episodes", "batchSize", "seed", "initialization"}
+        required = {"name", "algorithm", "episodes", "batchSize", "seed", "initialization",
+                    "sensorCount"}
         if not isinstance(config, dict) or set(config) != required:
             raise ValueError(
-                "Training requires a model name, algorithm, episodes, batchSize, seed and initialization")
+                "Training requires a model name, algorithm, episodes, batchSize, seed, "
+                "sensorCount and initialization")
         episodes, batch = config["episodes"], config["batchSize"]
         seed, initialization = config["seed"], config["initialization"]
-        if type(episodes) is not int or not 4 <= episodes <= 512:
-            raise ValueError("Episodes must be an integer from 4 to 512")
+        sensor_count = config["sensorCount"]
+        if (type(episodes) is not int
+                or not MIN_TRAINING_EPISODES <= episodes <= MAX_TRAINING_EPISODES):
+            raise ValueError(
+                f"Episodes must be an integer from {MIN_TRAINING_EPISODES} "
+                f"to {MAX_TRAINING_EPISODES}")
         if type(batch) is not int or not 2 <= batch <= 32 or episodes % batch:
             raise ValueError("Batch size must be 2..32 and divide the episode count")
+        if (type(sensor_count) is not int
+                or not MIN_TRAINING_SENSORS <= sensor_count <= MAX_TRAINING_SENSORS):
+            raise ValueError(
+                f"Sensor count must be an integer from {MIN_TRAINING_SENSORS} "
+                f"to {MAX_TRAINING_SENSORS}")
         if type(seed) is not int or not -(2**31) <= seed < 2**31:
             raise ValueError("Training seed must be a signed 32-bit integer")
         if initialization not in INITIALIZATIONS:
@@ -357,8 +420,11 @@ class TrainingManager:
                                 modelName=config["name"],
                                 algorithm=config["algorithm"],
                                 algorithmLabel=TRAINING_ALGORITHMS[config["algorithm"]]["label"],
+                                sensorCount=config["sensorCount"],
                                 initialization=config["initialization"],
-                                initializationLabel=INITIALIZATIONS[config["initialization"]])
+                                initializationLabel=(INITIALIZATIONS[config["initialization"]]
+                                    if config["initialization"] == "untrained" else
+                                    f"{config['sensorCount']} · {INITIALIZATIONS[config['initialization']]}"))
             self.thread = threading.Thread(target=self._run, args=(config,), daemon=True,
                                            name="istana-training-workbench")
             self.thread.start()
@@ -385,10 +451,16 @@ class TrainingManager:
             client = self.client_factory(port=self.bridge_port, timeout=120.)
             client.reset(1600000)
             context = client.get_blue_context()
-            policy = self.policy_factories[config["algorithm"]](context, seed=config["seed"])
+            if context["publicSnapshot"]["max_sites"] < config["sensorCount"]:
+                raise ValueError(
+                    f"The native scene allows only {context['publicSnapshot']['max_sites']} sensors; "
+                    f"choose at most that many or restart with -TrainingWorkbench")
+            policy = self.policy_factories[config["algorithm"]](
+                context, seed=config["seed"], sensor_count=config["sensorCount"])
             start_layout = None
             if config["initialization"] != "untrained":
-                start_layout = common_sense_start(context, config["initialization"])
+                start_layout = common_sense_start(
+                    context, config["initialization"], count=config["sensorCount"])
                 start_layout["warm_start"] = policy.initialize_from_placements(start_layout["placements"])
             output.mkdir(parents=True, exist_ok=False)
             self._set(phase="training", initialLayout=start_layout, outputDirectory=str(output),
@@ -396,6 +468,13 @@ class TrainingManager:
             (output / "configuration.json").write_text(json.dumps({
                 "schema": "istana.console_warning_training.v1", **config,
                 "bridgePort": self.bridge_port, "initialLayout": start_layout,
+                "redScenario": {
+                    "policy": FixedRadiusRandomBearingRedPolicy.name,
+                    "trained": False,
+                    "description": "Seeded full-circle random bearings at the fixed midpoint spawn radius",
+                    "episodeSeedRule": "1700000 + episode - 1",
+                    "heldOutSeed": 2700000,
+                },
                 "warningMetric": "mean per-drone max(0, 20m zone arrival - first detection); undetected=0",
                 "limitations": "Synthetic native simulation. Limited-FOV layouts do not guarantee universal detection."
             }, indent=2, allow_nan=False), encoding="utf-8")
@@ -405,7 +484,10 @@ class TrainingManager:
             batch = []
             best_run = best_policy = best_path = None
             best_episode = None
-            milestones = {config["episodes"] * i // 4 for i in range(1, 5)}
+            previous_validation = None
+            update_count = config["episodes"] // config["batchSize"]
+            milestones = {config["batchSize"] * math.ceil(update_count * i / 4)
+                          for i in range(1, 5)}
             with (output / "training.jsonl").open("x", encoding="utf-8") as log:
                 for number in range(1, config["episodes"] + 1):
                     if self.stop_event.is_set():
@@ -414,15 +496,26 @@ class TrainingManager:
                         client, policy, 1700000 + number - 1,
                         action_seed=(config["seed"] & 0xffffffff) * 100000 + number,
                         should_stop=self.stop_event.is_set)
-                    reward = run["metrics"]["mean_drone_warning_s"]
-                    batch.append((records, reward))
-                    entry = {"episode": number, "reward": reward,
+                    training_reward = run["metrics"]["mean_drone_warning_s"]
+                    native_breakdown = _reward_breakdown(run)
+                    batch.append((records, training_reward))
+                    entry = {"episode": number, "reward": training_reward,
+                             "trainingReward": training_reward,
+                             "blueNativeReward": native_breakdown["total"],
+                             "nativeReward": native_breakdown["total"],
+                             "redNativeReward": run["red_native_reward"],
+                             "redPolicy": run["red_policy"],
+                             "redScenario": {
+                                 "formation": run["red_decision"]["formation"],
+                                 "spawnRadiusM": run["red_decision"]["radius_cm"] / 100.,
+                                 "spawnBearingsDeg": run["red_decision"]["angles_degrees"],
+                             },
+                             "rewardBreakdown": native_breakdown,
+                             "meanWarningSeconds": run["metrics"]["mean_drone_warning_s"],
                              "teamWarningSeconds": run["metrics"]["team_warning_s"],
+                             "firstDetectionSeconds": run["metrics"]["first_detection_s"],
                              "detectedFraction": run["metrics"]["detected_fraction"],
                              "cost": run["metrics"]["cost"]}
-                    log.write(json.dumps({**entry, "runId": run["run_id"],
-                                          "placements": run["placements"]}, allow_nan=False) + "\n")
-                    log.flush()
                     if number % config["batchSize"] == 0:
                         update = policy.update(batch)
                         batch = []
@@ -432,12 +525,38 @@ class TrainingManager:
                             deterministic=True, should_stop=self.stop_event.is_set)
                         score = validation["metrics"]["mean_drone_warning_s"]
                         entry["validationWarningSeconds"] = score
+                        entry["validationReward"] = score
+                        entry["validationBlueNativeReward"] = validation["reward"]
+                        entry["validationNativeReward"] = validation["reward"]
+                        entry["validationRedNativeReward"] = validation["red_native_reward"]
+                        entry["validationFirstDetectionSeconds"] = validation["metrics"]["first_detection_s"]
+                        entry["validationChanges"] = []
+                        if previous_validation is not None:
+                            reward_change = score - previous_validation["reward"]
+                            detection = validation["metrics"]["first_detection_s"]
+                            prior_detection = previous_validation["first_detection"]
+                            detection_change = (prior_detection - detection
+                                                if detection is not None and prior_detection is not None
+                                                else None)
+                            if abs(reward_change) > 1e-9:
+                                detail = f"held-out warning reward {'improved' if reward_change > 0 else 'changed'} by {abs(reward_change):.2f} s"
+                                if detection_change is not None and detection_change > 1e-9:
+                                    detail += f"; first detection was {detection_change:.2f} s earlier"
+                                entry["validationChanges"].append({
+                                    "value": reward_change, "unit": "reward", "label": detail})
+                        previous_validation = {
+                            "reward": score,
+                            "first_detection": validation["metrics"]["first_detection_s"],
+                        }
                         if best_run is None or score > best_run["metrics"]["mean_drone_warning_s"]:
                             candidate_path = output / f"best-policy-{number:04d}.json"
                             policy.save(candidate_path)
                             best_run, best_policy, best_path, best_episode = (
                                 validation, deepcopy(policy), candidate_path, number)
                             self._set(bestEpisode=number, bestWarningSeconds=score)
+                    log.write(json.dumps({**entry, "runId": run["run_id"],
+                                          "placements": run["placements"]}, allow_nan=False) + "\n")
+                    log.flush()
                     history = self.status()["history"]
                     history.append(entry)
                     self._set(episode=number, history=history, viewer=_viewer(run, number, config["episodes"]))
@@ -451,7 +570,8 @@ class TrainingManager:
             final, _ = self.episode_runner(
                 client, best_policy, 2700000, action_seed=3700000, deterministic=True,
                 capture_frames=True, should_stop=self.stop_event.is_set)
-            baseline_layout = common_sense_start(context, "directional_balanced_5")
+            baseline_layout = common_sense_start(
+                context, "directional_balanced_5", count=config["sensorCount"])
             baseline, _ = self.episode_runner(
                 client, _FixedPlacementPolicy(baseline_layout["placements"]), 2700000,
                 action_seed=3700000, deterministic=True, capture_frames=True,
@@ -465,7 +585,8 @@ class TrainingManager:
                 "explanation": (
                     f"{algorithm_label} best checkpoint selected by mean per-drone warning time on the fixed "
                     "held-out native episode after each policy update.")}
-            baseline_selection = {"label": INITIALIZATIONS["directional_balanced_5"],
+            baseline_label = f"{config['sensorCount']} · {INITIALIZATIONS['directional_balanced_5']}"
+            baseline_selection = {"label": baseline_label,
                 "kind": "fixed_directional_workbench_start",
                 "explanation": baseline_layout["selection"]["explanation"]}
             comparison_episode = {"schema": COMPARISON_SCHEMA, "id": model_id,
@@ -473,7 +594,7 @@ class TrainingManager:
                 "label": f"{config['name']} · held-out native episode", "seed": 2700000,
                 "rl": _comparison_view(final, f"{config['name']} · {algorithm_label}", policy_selection),
                 "baseline": _comparison_view(
-                    baseline, INITIALIZATIONS["directional_balanced_5"], baseline_selection),
+                    baseline, baseline_label, baseline_selection),
                 "audit": {"sameTrajectories": True, "sameBudget": True,
                     "sameCatalogue": True, "sameSensingDraws": True,
                     "trajectorySha256": final["trajectory_sha256"],
@@ -485,13 +606,23 @@ class TrainingManager:
                     "bestEpisode": best_episode, "bestWarningSeconds":
                         final["metrics"]["mean_drone_warning_s"],
                     "algorithm": config["algorithm"], "algorithmLabel": algorithm_label,
+                    "sensorCount": config["sensorCount"],
+                    "bestNativeReward": final["reward"],
+                    "bestBlueNativeReward": final["reward"],
+                    "bestRedNativeReward": final["red_native_reward"],
+                    "redPolicy": final["red_policy"],
                     "evaluationSeed": 2700000, "initialization": config["initialization"],
                     "deploymentPlacements": final["placements"]})
             summary = {"schema": "istana.console_warning_training_summary.v1",
                        "modelName": config["name"], "modelId": registered["id"],
                        "algorithm": config["algorithm"], "algorithmLabel": algorithm_label,
-                       "episodes": config["episodes"], "initialization": config["initialization"],
-                       "bestEpisode": best_episode, "bestEvaluation": final["metrics"],
+                       "episodes": config["episodes"], "sensorCount": config["sensorCount"],
+                       "initialization": config["initialization"],
+                       "bestEpisode": best_episode, "bestNativeReward": final["reward"],
+                       "bestBlueNativeReward": final["reward"],
+                       "bestRedNativeReward": final["red_native_reward"],
+                       "redPolicy": final["red_policy"],
+                       "bestEvaluation": final["metrics"],
                        "comparisonBaselineEvaluation": baseline["metrics"],
                        "elapsedWallSeconds": time.monotonic() - started}
             (output / "summary.json").write_text(json.dumps(summary, indent=2, allow_nan=False), encoding="utf-8")
@@ -499,6 +630,9 @@ class TrainingManager:
                 "id": registered["id"], "name": registered["name"],
                 "algorithm": config["algorithm"], "algorithmLabel": algorithm_label,
                 "bestEpisode": best_episode,
+                "bestNativeReward": final["reward"],
+                "bestBlueNativeReward": final["reward"],
+                "bestRedNativeReward": final["red_native_reward"],
                 "bestWarningSeconds": final["metrics"]["mean_drone_warning_s"]},
                 viewer=_viewer(final, best_episode, config["episodes"]))
         except InterruptedError:

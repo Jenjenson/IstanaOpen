@@ -19,7 +19,9 @@ import time
 
 from triad_rl.istana_live import IstanaLiveClient, make_plan, scripted_red_centers
 from triad_rl.trained_models import TrainedModelRegistry
-from triad_rl.training_workbench import INITIALIZATIONS, TrainingManager
+from triad_rl.training_workbench import (
+    INITIALIZATIONS, MAX_TRAINING_EPISODES, MAX_TRAINING_SENSORS,
+    MIN_TRAINING_EPISODES, MIN_TRAINING_SENSORS, TrainingManager)
 from triad_rl.warning_algorithms import TRAINING_ALGORITHMS
 from native_comparison import NativeComparisons, policy_label
 
@@ -274,19 +276,29 @@ def make_server(port=9048, bridge_port=8765, *, state=None, replays=None, compar
                      "outcome": r["metrics"]["outcome"]} for i, r in enumerate(replays)],
                     "comparisonEpisodes": comparisons.list(),
                     "comparisonLayouts": comparisons.layouts(), "training": trainer.status(),
+                    "trainingLimits": {
+                        "minEpisodes": MIN_TRAINING_EPISODES,
+                        "maxEpisodes": MAX_TRAINING_EPISODES,
+                        "minSensors": MIN_TRAINING_SENSORS,
+                        "maxSensors": MAX_TRAINING_SENSORS,
+                    },
                     "trainingInitializations": [{"id": key, "label": label}
                                                 for key, label in INITIALIZATIONS.items()],
                     "trainingAlgorithms": [{"id": key, "label": row["label"],
                                              "description": row["description"]}
                                             for key, row in TRAINING_ALGORITHMS.items()],
                     "trainedModels": [{"id": row["id"],
-                                       "label": f"{row['name']} · {row.get('algorithmLabel', 'REINFORCE')}",
+                                       "label": (f"{row['name']} · {row.get('algorithmLabel', 'REINFORCE')} · "
+                                                 f"{row.get('sensorCount', len(row.get('deploymentPlacements', [])) or 5)} sensors"),
+                                       "sensorCount": row.get(
+                                           "sensorCount", len(row.get("deploymentPlacements", [])) or 5),
                                        "bestEpisode": row["bestEpisode"],
                                        "bestWarningSeconds": row["bestWarningSeconds"]}
                                       for row in named_models],
                     "savedModels": archived_models + [
                         {"id": row["id"],
-                         "label": f"{row['name']} · {row.get('algorithmLabel', 'REINFORCE')} best",
+                         "label": (f"{row['name']} · {row.get('algorithmLabel', 'REINFORCE')} · "
+                                   f"{row.get('sensorCount', len(row.get('deploymentPlacements', [])) or 5)} sensors · best"),
                          "kind": "trained"} for row in named_models]})
             if self.path == "/api/status":
                 return self.reply(state.status())

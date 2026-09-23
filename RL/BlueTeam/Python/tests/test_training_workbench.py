@@ -11,7 +11,8 @@ from triad_rl.adaptive_inputs import INPUT_SCHEMA
 from triad_rl.directional_inputs import BOSON_PLUS_640_18MM
 from triad_rl.temporal_inputs import TemporalConfig
 from triad_rl.training_workbench import (
-    BALANCED_LANE_YAWS, TrainingManager, _red_centers, _trajectory_digest, _viewer,
+    BALANCED_LANE_YAWS, TrainingManager, _red_centers, _reward_breakdown,
+    _trajectory_digest, _viewer,
     common_sense_start)
 from triad_rl.warning_algorithms import MaskedA2CPolicy, MaskedPPOPolicy, TRAINING_ALGORITHMS
 from triad_rl.warning_policy import WarningPolicy
@@ -57,15 +58,28 @@ def test_common_sense_start_is_five_legal_limited_fov_sensors(preset):
             assert row["yawDeg"] == lane and row["pitchDeg"] == 10.
 
 
-def test_seeded_red_centers_stay_inside_the_five_declared_fov_lanes():
+@pytest.mark.parametrize("preset", ["directional_balanced_5", "directional_public_5"])
+@pytest.mark.parametrize("sensor_count", [1, 3])
+def test_common_sense_start_uses_selected_sensor_count(preset, sensor_count):
+    result = common_sense_start(native_context(), preset, count=sensor_count)
+    assert len(result["placements"]) == sensor_count
+    assert result["sensor_count"] == sensor_count
+    assert result["label"].startswith(f"{sensor_count} ·")
+
+
+def test_seeded_red_centers_use_random_bearings_at_one_fixed_radius():
     red = {"minRadiusCm": 56000., "maxRadiusCm": 58000., "groupCount": 5,
+           "spreadRadiusCm": 1000., "movement": {"spacingCm": 250.},
            "objectiveWorldCm": {"x": 100., "y": -200., "z": 300.}, "heightOffsetCm": 0.}
     a, b = _red_centers(red, 19), _red_centers(red, 20)
     assert a != b and a == _red_centers(red, 19)
-    for lane, (x, y, z) in zip(BALANCED_LANE_YAWS, a):
-        angle = math.degrees(math.atan2(y + 200., x - 100.)) % 360.
-        assert abs((angle - lane + 180) % 360 - 180) <= 4.
+    for index, (x, y, z) in enumerate(a):
         assert math.isclose(math.hypot(x - 100., y + 200.), 57000.) and z == 300.
+        for other_x, other_y, _ in a[:index]:
+            assert math.hypot(x - other_x, y - other_y) >= 2250.
+    bearings = [math.degrees(math.atan2(y + 200., x - 100.)) % 360. for x, y, _ in a]
+    assert any(all(abs((angle - lane + 180) % 360 - 180) > 4. for lane in BALANCED_LANE_YAWS)
+               for angle in bearings)
 
 
 def test_trajectory_digest_excludes_blue_detection_annotations():
@@ -75,6 +89,19 @@ def test_trajectory_digest_excludes_blue_detection_annotations():
     changed = deepcopy(frame)
     changed["threats"][0].update(detected=True, confirmed=True)
     assert _trajectory_digest([frame]) == _trajectory_digest([changed])
+
+
+def test_native_reward_breakdown_matches_unreal_formula():
+    context = native_context()
+    run = {"context": context, "reward": -1.6,
+        "metrics": {"targets": 5},
+        "native_metrics": {"detected_fraction": .4, "confirmed_fraction": .4,
+            "timely_fraction": .2, "breached_fraction": .8, "cost": 3.}}
+    result = _reward_breakdown(run)
+    assert result["total"] == pytest.approx(-1.6)
+    assert [row["value"] for row in result["components"]] == pytest.approx([
+        .8, 1.2, 1., -4., -.6])
+    assert result["components"][0]["label"] == "2 / 5 drones detected"
 
 
 def test_five_sensor_start_requires_explicit_native_workbench_allowance():
@@ -108,13 +135,22 @@ def test_completed_training_view_retains_native_warning_metrics():
     context = native_context()
     placements = [{"sensor_id": "thermal", "sensor_index": 0, "position": [45., 0.],
                    "cost": 1., "yaw_deg": 0., "pitch_deg": 10.}]
+    frames = [{"time": 0., "completedSteps": 0, "threats": [{"id": "drone-1",
+        "position": [570., 0., 120.], "active": True, "observer_truth": True}],
+        "detections": [], "tracks": []},
+        {"time": 5., "completedSteps": 250, "threats": [{"id": "drone-1",
+        "position": [520., 0., 110.], "active": True, "observer_truth": True}],
+        "detections": [], "tracks": []}]
     view = _viewer({"context": context, "public_placements": placements,
         "metrics": {"detected_fraction": .8, "mean_drone_warning_s": 41.25,
-                    "team_warning_s": 48.5, "cost": 1., "targets": 5}}, 7, 32)
+                    "team_warning_s": 48.5, "cost": 1., "targets": 5},
+        "frames": frames}, 7, 32)
     assert view["label"] == "RL training · episode 7 / 32"
     assert view["placements"] == placements
     assert view["metrics"]["mean_drone_warning_seconds_lower_bound"] == 41.25
     assert view["metrics"]["team_warning_seconds_lower_bound"] == 48.5
+    assert view["frames"] == frames and view["frames"][0]["threats"][0]["position"] != \
+        view["frames"][1]["threats"][0]["position"]
 
 
 def test_background_manager_retains_progress_checkpoints_and_summary(tmp_path):
@@ -127,12 +163,14 @@ def test_background_manager_retains_progress_checkpoints_and_summary(tmp_path):
         def close(self): self.closed = True
 
     class Policy:
-        def __init__(self, *_args, **_kwargs): self.updates = 0
+        def __init__(self, *_args, sensor_count=None, **_kwargs):
+            self.updates = 0
+            self.sensor_count = sensor_count
         def save(self, path): Path(path).write_text("{}", encoding="utf-8"); return "sha"
         def update(self, _): self.updates += 1; return {"update": self.updates}
 
     calls = []
-    def episode(_client, _policy, seed, **kwargs):
+    def episode(_client, policy, seed, **kwargs):
         number = len(calls) + 1
         calls.append((seed, kwargs))
         placements = [{"sensor_id": "thermal", "sensor_index": 0, "position": [45., 0.],
@@ -148,38 +186,58 @@ def test_background_manager_retains_progress_checkpoints_and_summary(tmp_path):
                 "placements": [{"profileId": "thermal", "siteId": 16,
                                  "yawDeg": 180., "pitchDeg": 10.}],
                 "metrics": {"mean_drone_warning_s": float(number), "team_warning_s": float(number),
-                            "detected_fraction": 1., "targets": 5, "cost": 1.},
+                            "first_detection_s": 10., "detected_fraction": 1.,
+                            "targets": 5, "cost": 1.},
                 "native_metrics": {"mean_drone_warning_seconds_lower_bound": float(number),
                     "team_warning_seconds_lower_bound": float(number), "detected_fraction": 1.,
-                    "confirmed_fraction": 1., "timely_fraction": 1., "cost": 1.},
-                "reward": float(number), "elapsed_seconds": 50.,
+                    "confirmed_fraction": 1., "timely_fraction": 1.,
+                    "breached_fraction": 0., "cost": 1.},
+                "reward": 9.8, "red_native_reward": -9.8,
+                "red_policy": "fixed_radius_random_bearings",
+                "red_decision": {"formation": "random_bearings_fixed_radius",
+                    "radius_cm": 57000., "angles_degrees": [10., 80., 150., 220., 290.]},
+                "elapsed_seconds": 50.,
                 "warning_evidence": evidence, "target_results": targets,
                 "frames": ([{"time": 0., "completedSteps": 0, "threats": [],
                               "detections": [], "tracks": []}] if kwargs.get("capture_frames") else []),
                 "trajectory_sha256": "matched" if kwargs.get("capture_frames") else None,
-                "run_id": f"run-{number}", "steps": 1000, "seed": seed}, []
+                "run_id": f"run-{number}", "steps": 1000, "seed": seed,
+                "sensor_count": getattr(policy, "sensor_count", 1)}, []
 
     manager = TrainingManager(8765, tmp_path, client_factory=Client,
                               policy_factory=Policy, episode_runner=episode)
     manager.start({"name": "Perimeter watcher", "algorithm": "reinforce",
                    "episodes": 4, "batchSize": 2,
-                   "seed": 917, "initialization": "untrained"})
+                   "sensorCount": 3, "seed": 917, "initialization": "untrained"})
     manager.thread.join(timeout=5)
     status = manager.status()
     assert status["phase"] == "complete" and not status["running"]
     assert status["episode"] == 4 and len(status["history"]) == 4
+    assert all(row["trainingReward"] == row["meanWarningSeconds"] for row in status["history"])
+    assert all(row["nativeReward"] == pytest.approx(9.8) for row in status["history"])
+    assert all(row["blueNativeReward"] == pytest.approx(9.8) for row in status["history"])
+    assert all(row["redNativeReward"] == pytest.approx(-9.8) for row in status["history"])
+    assert all(row["redPolicy"] == "fixed_radius_random_bearings" for row in status["history"])
+    assert status["history"][0]["redScenario"]["spawnRadiusM"] == 570.
+    assert all(len(row["rewardBreakdown"]["components"]) == 5 for row in status["history"])
+    assert status["history"][-1]["validationChanges"][0]["value"] == pytest.approx(3.)
     assert status["registeredModel"]["name"] == "Perimeter watcher"
+    assert status["sensorCount"] == 3
     assert status["bestEpisode"] == 4
-    assert status["checkpoints"] == [0, 1, 2, 3, 4]
+    assert status["checkpoints"] == [0, 2, 4]
     output = Path(status["outputDirectory"])
     assert (output / "configuration.json").exists() and (output / "summary.json").exists()
-    assert len((output / "training.jsonl").read_text(encoding="utf-8").splitlines()) == 4
+    logged = [json.loads(line) for line in
+              (output / "training.jsonl").read_text(encoding="utf-8").splitlines()]
+    assert len(logged) == 4 and logged[-1]["validationChanges"]
     assert len(calls) == 8 and all(call[1]["deterministic"] for call in (calls[2], calls[5], calls[6], calls[7]))
     assert manager.registry.list()[0]["name"] == "Perimeter watcher"
     comparison = manager.registry.comparison(status["registeredModel"]["id"])
+    assert comparison["rl"]["maxSensors"] == comparison["baseline"]["maxSensors"] == 3
     assert comparison["rl"]["metrics"]["target_results"]
     assert comparison["audit"]["sameTrajectories"]
     json.loads((output / "summary.json").read_text(encoding="utf-8"))
+    assert manager.registry.list()[0]["sensorCount"] == 3
 
 
 @pytest.mark.parametrize("name", ["", "   ", "bad\nname", "x" * 65])
@@ -187,25 +245,55 @@ def test_training_requires_a_safe_nonempty_model_name(name):
     with pytest.raises(ValueError, match="Model name"):
         TrainingManager.validate({"name": name, "algorithm": "reinforce",
                                   "episodes": 4, "batchSize": 2,
-                                  "seed": 1, "initialization": "untrained"})
+                                  "sensorCount": 5, "seed": 1,
+                                  "initialization": "untrained"})
 
 
 def test_training_rejects_unknown_algorithm():
     with pytest.raises(ValueError, match="algorithm"):
         TrainingManager.validate({"name": "test", "algorithm": "ddpg",
                                   "episodes": 4, "batchSize": 2,
-                                  "seed": 1, "initialization": "untrained"})
+                                  "sensorCount": 5, "seed": 1,
+                                  "initialization": "untrained"})
+
+
+def test_training_episode_ceiling_is_a_console_guard_not_512():
+    config = TrainingManager.validate({"name": "long run", "algorithm": "reinforce",
+        "episodes": 1024, "batchSize": 32, "sensorCount": 3,
+        "seed": 1, "initialization": "untrained"})
+    assert config["episodes"] == 1024 and config["sensorCount"] == 3
+    with pytest.raises(ValueError, match="10000"):
+        TrainingManager.validate({**config, "episodes": 10016})
+
+
+@pytest.mark.parametrize("sensor_count", [0, 6, 2.5, True])
+def test_training_rejects_invalid_sensor_count(sensor_count):
+    with pytest.raises(ValueError, match="Sensor count"):
+        TrainingManager.validate({"name": "test", "algorithm": "reinforce",
+            "episodes": 4, "batchSize": 2, "sensorCount": sensor_count,
+            "seed": 1, "initialization": "untrained"})
+
+
+@pytest.mark.parametrize("policy_type", [WarningPolicy, MaskedPPOPolicy, MaskedA2CPolicy])
+@pytest.mark.parametrize("sensor_count", [1, 3, 5])
+def test_training_policy_enforces_selected_exact_sensor_count(policy_type, sensor_count):
+    context = native_context()
+    policy = policy_type(context, seed=31, sensor_count=sensor_count)
+    for seed in range(3):
+        placements, records = policy.plan(context, rng=np.random.default_rng(seed))
+        assert len(placements) == sensor_count
+        assert len(records) == sensor_count + 1
 
 
 @pytest.mark.parametrize("policy_type,algorithm", [
     (MaskedPPOPolicy, "ppo"), (MaskedA2CPolicy, "a2c")])
 def test_masked_actor_critic_trains_saves_and_reloads(policy_type, algorithm, tmp_path):
     context = native_context()
-    policy = policy_type(context, seed=31)
+    policy = policy_type(context, seed=31, sensor_count=3)
     episodes = []
     for seed, reward in ((4, 5.), (5, 40.), (6, 15.), (7, 32.)):
         placements, records = policy.plan(context, rng=np.random.default_rng(seed))
-        assert len(placements) <= 5 and records
+        assert len(placements) == 3 and records
         assert all(record["mask"][record["action"]] for record in records)
         episodes.append((records, reward))
     before = policy.logits()
@@ -219,6 +307,8 @@ def test_masked_actor_critic_trains_saves_and_reloads(policy_type, algorithm, tm
     np.testing.assert_allclose(restored.logits(), policy.logits())
     np.testing.assert_allclose(restored.values, policy.values)
     assert restored.updates == policy.updates and restored.optimizer_steps == policy.optimizer_steps
+    assert restored.sensor_count == 3
+    assert len(restored.plan(context, deterministic=True)[0]) == 3
 
 
 def test_training_algorithm_catalogue_has_the_three_supported_choices():

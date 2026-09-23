@@ -16,8 +16,17 @@ from .istana_live import public_planning_inputs
 
 
 class WarningPolicy:
-    def __init__(self, context, seed=917):
+    def __init__(self, context, seed=917, *, sensor_count=None):
         state, catalogue, _ = public_planning_inputs(context)
+        if sensor_count is not None:
+            if (type(sensor_count) is not int or not 1 <= sensor_count <= state["max_sites"]):
+                raise ValueError(
+                    f"Sensor count must be an integer from 1 to the native limit of {state['max_sites']}")
+            minimum_cost = min(row["cost"] for row in catalogue
+                               if row["id"] in state["available_sensor_ids"])
+            if sensor_count * minimum_cost > state["budget_remaining"] + 1e-9:
+                raise ValueError("Native budget cannot fund the requested sensor count")
+        self.sensor_count = sensor_count
         observation = build_observation(state, catalogue)
         option_contract = [{"sensor_id": row["sensor_id"], "site_index": row["site_index"],
                             "yaw_deg": row.get("yaw_deg", 0.), "pitch_deg": row.get("pitch_deg", 0.)}
@@ -30,6 +39,56 @@ class WarningPolicy:
         self.baseline = None
         self.m = np.zeros_like(self.option_logits)
         self.v = self.m.copy()
+
+    def _planning_inputs(self, context):
+        state, catalogue, _ = public_planning_inputs(context)
+        initial = build_observation(state, catalogue)
+        current_contract = {"sites": state["sites"], "catalogue": catalogue,
+                            "options": [{"sensor_id": row["sensor_id"],
+                                         "site_index": row["site_index"],
+                                         "yaw_deg": row.get("yaw_deg", 0.),
+                                         "pitch_deg": row.get("pitch_deg", 0.)}
+                                        for row in initial["options"][:-1]]}
+        if current_contract != self.contract:
+            raise ValueError("Map-specific warning policy requires its original sites and catalogue")
+        if self.sensor_count is not None:
+            if state["max_sites"] < self.sensor_count:
+                raise ValueError(
+                    f"Native scene allows only {state['max_sites']} sensors; "
+                    f"this policy requires {self.sensor_count}")
+            state["max_sites"] = self.sensor_count
+        return state, catalogue
+
+    def _action_mask(self, state, catalogue, observation):
+        """Apply the optional exact-count contract without bypassing legality.
+
+        STOP remains part of the actor contract, but an exact-count training run
+        masks it until the requested number has been placed. Costlier choices
+        that would leave too little budget for the remaining slots are masked as
+        well, so a sampled action cannot make the requested count impossible on
+        the next step.
+        """
+        mask = np.asarray(observation["action_mask"], dtype=bool).copy()
+        if self.sensor_count is None:
+            return mask
+        placed = len(state["placements"])
+        remaining = self.sensor_count - placed
+        if remaining <= 0:
+            mask[:-1] = False
+        else:
+            mask[-1] = False
+            if remaining > 1:
+                minimum_cost = min(row["cost"] for row in catalogue
+                                   if row["id"] in state["available_sensor_ids"])
+                for index, option in enumerate(observation["options"][:-1]):
+                    if mask[index]:
+                        cost = catalogue[option["sensor_index"]]["cost"]
+                        if cost + (remaining - 1) * minimum_cost > state["budget_remaining"] + 1e-9:
+                            mask[index] = False
+        if not mask.any():
+            raise RuntimeError(
+                f"No legal placement can complete the requested {self.sensor_count}-sensor layout")
+        return mask
 
     def logits(self):
         return self.option_logits.copy()
@@ -46,6 +105,9 @@ class WarningPolicy:
             raise ValueError("A placement warm start requires a fresh warning policy")
         if not isinstance(placements, list) or not placements:
             raise ValueError("Warm-start placements must be a nonempty list")
+        if self.sensor_count is not None and len(placements) != self.sensor_count:
+            raise ValueError(
+                f"Warm-start placement must contain exactly {self.sensor_count} sensors")
         if isinstance(strength, bool) or not np.isfinite(strength) or not 0 < strength <= 20:
             raise ValueError("Warm-start strength must be finite in (0, 20]")
         by_option = {
@@ -69,19 +131,12 @@ class WarningPolicy:
                 "option_indices": selected, "trainable": True}
 
     def plan(self, context, *, rng=None, deterministic=False):
-        state, catalogue, _ = public_planning_inputs(context)
-        initial = build_observation(state, catalogue)
-        current_contract = {"sites": state["sites"], "catalogue": catalogue,
-                            "options": [{"sensor_id": row["sensor_id"], "site_index": row["site_index"],
-                                         "yaw_deg": row.get("yaw_deg", 0.), "pitch_deg": row.get("pitch_deg", 0.)}
-                                        for row in initial["options"][:-1]]}
-        if current_contract != self.contract:
-            raise ValueError("Map-specific warning policy requires its original sites and catalogue")
+        state, catalogue = self._planning_inputs(context)
         records, placements = [], []
         generator = self.rng if rng is None else rng
         for _ in range(state["max_sites"] + 1):
             obs = build_observation(state, catalogue)
-            mask = obs["action_mask"]
+            mask = self._action_mask(state, catalogue, obs)
             logits = self.logits()
             p = np.zeros(len(mask))
             p[mask] = np.exp(logits[mask] - logits[mask].max())
@@ -121,6 +176,7 @@ class WarningPolicy:
 
     def save(self, path):
         data = {"schema": "istana.warning_directional_reinforce.v2", "contract": self.contract,
+                "sensor_count": self.sensor_count,
                 "option_logits": self.option_logits.tolist(), "updates": self.updates,
                 "baseline": self.baseline, "adam_m": self.m.tolist(), "adam_v": self.v.tolist(),
                 "rng_state": deepcopy(self.rng.bit_generator.state)}
@@ -131,7 +187,8 @@ class WarningPolicy:
     @classmethod
     def load(cls, path, context):
         data = json.loads(Path(path).read_text(encoding="utf-8"))
-        policy = cls(context)
+        sensor_count = data.get("sensor_count")
+        policy = cls(context, sensor_count=sensor_count)
         if data.get("schema") != "istana.warning_directional_reinforce.v2" or data["contract"] != policy.contract:
             raise ValueError("Wrong warning policy contract")
         for name in ("option_logits", "m", "v"):
