@@ -4,7 +4,7 @@ Start a rendered, offscreen Istana scene for native 3D timelapse capture.
 #>
 [CmdletBinding()]
 param([string]$EngineRoot, [ValidateRange(1024,65535)][int]$Port = 8766,
-    [switch]$WarningApproachV2, [switch]$DelayedDetectionDemo)
+    [switch]$WarningApproachV2, [switch]$DelayedDetectionDemo, [switch]$TrainingWorkbench)
 $ErrorActionPreference = 'Stop'
 if ($WarningApproachV2 -and $DelayedDetectionDemo) {
     throw '-WarningApproachV2 and -DelayedDetectionDemo select different scenarios; choose one.'
@@ -28,6 +28,7 @@ $arguments = @(('"'+$project+'"'),'/Game/Maps/Istana','-game','-IstanaBlueLive',
     '-ForceRes',('-abslog="'+$log+'"'))
 if ($WarningApproachV2) { $arguments += '-IstanaWarningApproachV2' }
 if ($DelayedDetectionDemo) { $arguments += '-IstanaDelayedDetectionDemo' }
+if ($TrainingWorkbench) { $arguments += '-IstanaTrainingWorkbench' }
 $captureProcess = Start-Process -FilePath $editor -ArgumentList $arguments -WorkingDirectory $projectRoot -WindowStyle Hidden -PassThru
 $deadline = [DateTime]::UtcNow.AddSeconds(45)
 while ([DateTime]::UtcNow -lt $deadline) {

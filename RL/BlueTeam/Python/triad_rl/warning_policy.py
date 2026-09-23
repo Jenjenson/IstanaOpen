@@ -34,6 +34,40 @@ class WarningPolicy:
     def logits(self):
         return self.option_logits.copy()
 
+    def initialize_from_placements(self, placements, *, strength=10.):
+        """Bias a fresh policy toward a validated layout without freezing it.
+
+        The warm start changes only the actor's initial logits. Every later
+        action is still sampled through the native legal mask and all logits
+        remain trainable, so this is an initialization rather than a scripted
+        policy or demonstration replay.
+        """
+        if self.updates or self.baseline is not None or np.any(self.option_logits):
+            raise ValueError("A placement warm start requires a fresh warning policy")
+        if not isinstance(placements, list) or not placements:
+            raise ValueError("Warm-start placements must be a nonempty list")
+        if isinstance(strength, bool) or not np.isfinite(strength) or not 0 < strength <= 20:
+            raise ValueError("Warm-start strength must be finite in (0, 20]")
+        by_option = {
+            (row["sensor_id"], row["site_index"], row["yaw_deg"], row["pitch_deg"]): index
+            for index, row in enumerate(self.contract["options"])
+        }
+        selected = []
+        for number, row in enumerate(placements, 1):
+            if not isinstance(row, dict):
+                raise ValueError(f"Warm-start placement {number} must be an object")
+            key = (row.get("profileId"), row.get("siteId"),
+                   float(row.get("yawDeg", 0.)), float(row.get("pitchDeg", 0.)))
+            if key not in by_option:
+                raise ValueError(f"Warm-start placement {number} is outside the policy contract")
+            index = by_option[key]
+            if index in selected:
+                raise ValueError("Warm-start placements must be unique")
+            selected.append(index)
+        self.option_logits[selected] = float(strength)
+        return {"placements": len(selected), "strength": float(strength),
+                "option_indices": selected, "trainable": True}
+
     def plan(self, context, *, rng=None, deterministic=False):
         state, catalogue, _ = public_planning_inputs(context)
         initial = build_observation(state, catalogue)

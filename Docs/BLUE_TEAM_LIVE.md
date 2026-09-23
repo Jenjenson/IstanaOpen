@@ -41,10 +41,28 @@ approved sites, sensor costs, an event log and explicitly labelled final metrics
 All cases, including failures, remain selectable. No retraining or selection of
 a purported best checkpoint occurs.
 
-**Compare placements** adds a paired offline evaluation of each archived RL
-layout against a common-sense heuristic or a manually edited layout. It uses
-the same scenarios, catalogue, budget and sensing draws for both methods;
-Unreal is not required. See the [comparison guide](SENSOR_PLACEMENT_COMPARISON.md).
+**Compare placements** adds paired offline native evaluations of each archived
+RL layout. Select either the original matched three-sensor common-sense layout
+or the measured five-directional-sensor workbench start. Each pair uses matched
+Red paths and seeds; the interface explicitly notes that the archived RL layouts
+have not yet been retrained for the five-sensor contract. Unreal is not required
+for playback. See the [comparison guide](SENSOR_PLACEMENT_COMPARISON.md).
+
+**Training** runs the current native directional warning-time learner through
+the same bridge. It shows episode progress, warning history, actual detection
+fraction, the latest placement and retained checkpoint/output location. It is
+an interactive run console, not a replacement for the audited CLI protocol.
+The user supplies a unique model name before starting. After each policy update,
+the console scores that checkpoint on the same fixed held-out native episode;
+on successful completion it publishes the best checkpoint and its matched
+five-directional-sensor comparison. The named model then appears immediately in
+**Compare placements** and as a saved-layout choice in **Live Unreal**.
+The algorithm selector offers REINFORCE, Masked PPO and Masked A2C. They share
+the exact environment, reward, warm starts, action mask and deployment contract.
+PPO uses clipped categorical actor updates with a placement-step critic; A2C
+uses synchronous advantage actor-critic updates. DDPG is intentionally omitted
+because this console selects discrete approved mount/type/orientation actions,
+not unconstrained continuous positions.
 
 ## Live mode
 
@@ -54,7 +72,7 @@ compatible Visual Studio 2022 C++ build tools (MSVC v143 14.38, Windows SDK
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\Tools\build.ps1 -Target Editor
-powershell -ExecutionPolicy Bypass -File .\Tools\start_blue_live.ps1 -DelayedDetectionDemo
+powershell -ExecutionPolicy Bypass -File .\Tools\start_blue_live.ps1 -DelayedDetectionDemo -TrainingWorkbench
 ```
 
 The native `Istana.Simulation.BlueTeam.InitialLayoutContract` test passed.
@@ -71,6 +89,35 @@ camera detection range. The frozen temporal public
 prior and 406/407/408 checkpoints are intentionally unchanged. Omit the switch
 for live training/evaluation against the original map scenario; the standalone
 viewer and `-IstanaWarningApproachV2` benchmark are also unaffected.
+
+`-TrainingWorkbench` changes the opt-in live run's Blue allowance from three to
+five sites/cost units. It leaves the catalogue, approved sites, surface
+validation, Red speed/motion model and sensing model unchanged. It uses one
+drone in each of five declared approach lanes so native training episodes
+resolve cleanly without large-swarm congestion.
+The workbench lanes use the existing synthetic 120 m benchmark altitude, keeping
+the exercise above local obstacle-avoidance geometry rather than tailoring
+routes to the visual backdrop.
+It evaluates the documented 60 Hz camera model at a conservative 5 Hz and uses
+a 100 s episode, within the native 512-look validation bound.
+In the browser choose **Training**, then select one of:
+
+- **Untrained random policy** — zero initial actor logits.
+- **Five directional sensors · balanced approaches** — the fixed public-only
+  common-sense rule with uniform advertised sectors.
+- **Five directional sensors · public-prior weighted** — the same fixed rule
+  using the scene's published approach weights.
+
+Both common-sense choices use only the limited-FOV directional profile and
+initialize the trainable policy logits. They do not lock the five placements.
+Five static 24° fields of view cannot cover every direction continuously, so
+the layout is described as sensible sector coverage—not a universal detection
+guarantee—and the actual detected fraction is recorded per native episode.
+Only one owner may use a bridge: while Training is active, Live Unreal controls
+are disabled. Safe stop takes effect after the current native action. Artifacts
+are written to `Saved/WarningTraining/console-*`; completed named models are
+published atomically to `Saved/WarningTraining/models/trained-*`. Stopped or
+failed runs remain in their run directory but are not added to the model lists.
 
 In the console choose **Live Unreal → Connect to Unreal → Plan new episode**,
 then **Run episode** or **Step**. Select an experimental checkpoint (406/407/408)

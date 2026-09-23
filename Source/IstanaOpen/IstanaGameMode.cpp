@@ -46,8 +46,25 @@ AIstanaGameMode::AIstanaGameMode()
 }
 
 void AIstanaGameMode::ConfigureBlueLiveApproach(ARedTeamManager& Manager, ABlueTeamCoordinator& Coordinator,
-    bool bWarningApproachV2, bool bDelayedDetectionDemo)
+    bool bWarningApproachV2, bool bDelayedDetectionDemo, bool bTrainingWorkbench)
 {
+    // The browser training workbench deliberately expands only the synthetic
+    // deployment allowance. Sensor capabilities, approved sites and surface
+    // validation remain identical to ordinary live mode.
+    if (bTrainingWorkbench)
+    {
+        Coordinator.Budget = 5;
+        Coordinator.MaxSites = 5;
+        // One member in each of the five existing approach groups keeps every
+        // episode terminal and makes the five-camera exercise understandable;
+        // group centers, flight model and speed remain unchanged.
+        Manager.DronesPerSwarm = 1;
+        // Keep the fictional lane benchmark above local obstacle-avoidance
+        // geometry instead of fitting routes to the visual backdrop.
+        Manager.SpawnHeightOffsetCm = 12000;
+        Coordinator.PriorSwarmSize = 1;
+        UE_LOG(LogTemp, Display, TEXT("Blue training workbench: five sensors and five synthetic high-altitude approach lanes."));
+    }
     // The warning benchmark is a frozen, separate scenario and takes precedence
     // if command-line flags are combined outside the supported launchers.
     if (bWarningApproachV2)
@@ -74,7 +91,20 @@ void AIstanaGameMode::ConfigureBlueLiveApproach(ARedTeamManager& Manager, ABlueT
         Manager.MaxSpawnRadiusCm = 58000;
         Coordinator.TimeLimitSeconds = 220;
         Coordinator.PriorSpawnRadiusM = 570;
+        Coordinator.PriorAltitudeM = Manager.SpawnHeightOffsetCm / 100.;
+        const auto& Motion = Manager.MovementPreset ? Manager.MovementPreset->Settings : Manager.Settings;
+        Coordinator.PriorSpeedMps = Motion.CruiseSpeedCmPerSecond / 100.;
+        Coordinator.PriorSwarmSize = Manager.DronesPerSwarm;
         UE_LOG(LogTemp, Display, TEXT("Directional delayed-detection demo: 560-580m Red spawn annulus, beyond the 500m evaluation boundary."));
+    }
+    if (bTrainingWorkbench && bDelayedDetectionDemo)
+    {
+        // Five uncongested lanes resolve in under 70s. A conservative 5Hz look
+        // cadence represents an operating 60Hz camera while staying below the
+        // validated 512-look episode bound.
+        Coordinator.TimeLimitSeconds = 100;
+        Coordinator.LookIntervalSeconds = .2;
+        Coordinator.PriorSwarmSize = Manager.DronesPerSwarm;
     }
 }
 
@@ -114,7 +144,8 @@ void AIstanaGameMode::StartPlay()
                 // capabilities to make later checkpoints easier than earlier ones.
                 ConfigureBlueLiveApproach(*Manager, *Coordinator,
                     FParse::Param(FCommandLine::Get(), TEXT("IstanaWarningApproachV2")),
-                    FParse::Param(FCommandLine::Get(), TEXT("IstanaDelayedDetectionDemo")));
+                    FParse::Param(FCommandLine::Get(), TEXT("IstanaDelayedDetectionDemo")),
+                    FParse::Param(FCommandLine::Get(), TEXT("IstanaTrainingWorkbench")));
                 ARedTeamAgentBridge* Bridge = nullptr;
                 for (TActorIterator<ARedTeamAgentBridge> It(GetWorld()); It; ++It)
                     if (It->Manager == Manager) { Bridge = *It; break; }

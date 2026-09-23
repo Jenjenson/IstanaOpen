@@ -58,6 +58,8 @@ def test_session_offers_native_cases_separately_from_historical_replays(server):
     assert len(session["comparisonEpisodes"]) == 9
     assert {row["policyLabel"] for row in session["comparisonEpisodes"]} == {
         "Temporal RL · policy A", "Temporal RL · policy B", "Temporal RL · policy C"}
+    assert [row["id"] for row in session["comparisonLayouts"]] == [
+        "matched_common_sense", "directional_balanced_5"]
 
 
 def test_native_recordings_work_without_unreal_and_preserve_live(server):
@@ -70,6 +72,25 @@ def test_native_recordings_work_without_unreal_and_preserve_live(server):
     assert result["metrics"]["rl"]["target_count"] == result["metrics"]["baseline"]["target_count"] == 60
     assert not server.console_state.status()["connected"]
     assert server.console_state.view == {"existing_live_episode": True}
+
+
+def test_five_directional_placement_has_matched_native_warning_metrics(server):
+    body = {"episodeId": "native-406-1", "layoutId": "directional_balanced_5"}
+    code, scenario = request(server, "/api/comparison/scenario", body)
+    assert code == 200 and not scenario["layoutOnly"] and scenario["budget"] == 5
+    code, result = request(server, "/api/comparison/run", body)
+    assert code == 200 and not result["layoutOnly"]
+    assert result["metrics"]["baseline"]["mean_warning_s"] == pytest.approx(45.28544905032593)
+    assert result["metrics"]["rl"]["target_count"] == 5
+    assert len(result["baseline"]["placements"]) == 5
+    assert result["fairness"]["matched"] is True
+    assert server.console_state.view == {"existing_live_episode": True}
+
+
+def test_unknown_fixed_comparison_placement_is_rejected(server):
+    code, result = request(server, "/api/comparison/run", {
+        "episodeId": "native-406-1", "layoutId": "manual"})
+    assert code == 400 and "available fixed" in result["error"]
 
 
 @pytest.mark.parametrize("extra", [{"baseline": "manual"}, {"placements": []}, {"budget": 1000}, {"replayId": 0}])

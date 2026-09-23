@@ -45,16 +45,24 @@ the integration has passed native builds, 18 native tests and live headless
 smoke episodes on the Istana map. Use the source project's live launcher,
 not the older landscape-only downloadable release.
 
-Choose **Compare placements** for a side-by-side replay of existing RL policies
-against one fixed **Common-sense layout**. Nine paired native Istana evaluations
-use the current sensor catalogue, 60 drones, identical trajectories, and shared
-budgets and sensing draws. Select an RL policy and episode, then play or scrub
-both maps together. Results include detection and confirmation timing, warning,
-counts and cost differences. The saved comparisons play without Unreal.
+Choose **Compare placements** for a side-by-side replay of existing RL policies.
+The **Fixed placement** selector offers the original matched three-sensor
+common-sense evaluation and a measured five-directional-sensor workbench
+evaluation. Both show native detection, confirmation, warning, count and cost
+results and play without Unreal. The five-sensor option replays each archived RL
+layout and the new fixed placement against the same five drones, paths, speeds,
+sensor capabilities and seed. Its RL layouts were trained under the older
+three-sensor contract; they are not presented as trained five-sensor policies.
 The current RL checkpoints predate the directional thermal update; the display
 identifies their public-forecast orientation adapter and retains losing cases.
 See the [sensor placement comparison guide](Docs/SENSOR_PLACEMENT_COMPARISON.md).
 The common-sense planner is also selectable in Live Unreal mode.
+
+Choose **Training** to run the current directional warning-time policy directly
+from the browser. The tab exposes episode/batch/seed controls, live progress,
+warning-time history, retained checkpoints and the latest native layout. A run
+can start untrained or from either five-sensor common-sense initialization. The
+initial layout biases trainable logits; it is not frozen or replayed as RL.
 
 ### Set up the browser interface and live 3D simulation (Windows)
 
@@ -154,7 +162,7 @@ synthetic evaluations, not a live Unreal simulation.
 folder and run:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\Tools\start_blue_live.ps1 -DelayedDetectionDemo
+powershell -ExecutionPolicy Bypass -File .\Tools\start_blue_live.ps1 -DelayedDetectionDemo -TrainingWorkbench
 ```
 
 Wait for the Istana scene to finish loading; first-time shader compilation can
@@ -163,6 +171,17 @@ bridge on **127.0.0.1:8765**. Do not launch a second scene on the same port.
 `-DelayedDetectionDemo` starts Red outside the synthetic sensor ranges so the
 live 406/407/408 demonstration shows an approach before detections appear.
 Omit it when reproducing the original live training/evaluation scenario.
+`-TrainingWorkbench` raises the synthetic layout allowance to five sites and
+five catalogue cost units. It keeps sensor capabilities, approved sites,
+terrain support checks, Red speed/motion model, sensing physics, and the
+warning-time formula unchanged. The explicit workbench scenario uses one drone
+in each of five declared approach lanes (five drones total), avoiding
+large-swarm congestion.
+The five fictional lanes use the existing 120 m synthetic benchmark altitude
+so training does not fit routes to obstacle geometry in the visual backdrop.
+The workbench evaluates the documented 60 Hz camera model at a conservative
+5 Hz and uses a 100 s episode; all five uncongested lanes reach the target zone
+in roughly 66 s in the verified smoke case.
 
 **4. Deploy and run from the browser:**
 
@@ -174,6 +193,27 @@ Omit it when reproducing the original live training/evaluation scenario.
    in the Unreal scene. An empty scene before this step is expected.
 4. Click **Run episode**, **Pause**, or **Step** to control the shared simulation
    clock. Changing the planner only takes effect on **Plan new episode**.
+
+For training, choose **Training**, enter a unique model name, select a starting
+placement, training algorithm, episode count, batch size and seed, then click
+**Start training**. Available algorithms are **REINFORCE**, **Masked PPO**, and
+**Masked A2C**. All three use the identical categorical sensor/profile/site/yaw/
+pitch/STOP choices and native legality mask; only the optimizer changes. DDPG is
+not offered because its continuous action contract does not match the approved
+discrete mounting-site workflow.
+After every policy update the console evaluates the checkpoint on one fixed
+held-out native episode. When training finishes, it saves the highest-warning
+checkpoint under the chosen name and automatically adds its matched evaluation
+to **Compare placements**; the same saved best layout also appears in the Live
+Unreal planner list. The Training tab owns bridge
+port 8765 until the run completes or is stopped; Live Unreal controls cannot run
+at the same time. Run artifacts are retained under
+`Saved\WarningTraining\console-*`; named models are under
+`Saved\WarningTraining\models\trained-*`.
+The five-camera starting layouts use the current 24° directional frustum and
+public approach priors. They are designed to spread useful views, but five
+static 24° cameras cannot guarantee full 360° or universal detection; the UI
+therefore reports each episode's actual detected fraction.
 
 In Unreal, press **1** for a closer palace view or **3** for an aerial view;
 use **WASD + mouse** to explore and **E/Q** to move up/down. Sensors have cyan
