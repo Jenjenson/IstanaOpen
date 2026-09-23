@@ -18,6 +18,8 @@ import threading
 import time
 
 from triad_rl.istana_live import IstanaLiveClient, make_plan, scripted_red_centers
+from triad_rl.trained_models import TrainedModelRegistry
+from triad_rl.training_workbench import INITIALIZATIONS, TrainingManager
 from native_comparison import NativeComparisons, policy_label
 
 ROOT = Path(__file__).resolve().parent
@@ -53,8 +55,10 @@ def replay_view(replay):
 
 
 class ConsoleState:
-    def __init__(self, bridge_port=8765, client_factory=IstanaLiveClient, planner=make_plan):
+    def __init__(self, bridge_port=8765, client_factory=IstanaLiveClient, planner=make_plan,
+                 trained_models=None):
         self.bridge_port, self.client_factory, self.planner = bridge_port, client_factory, planner
+        self.trained_models = trained_models
         self.lock = threading.RLock()
         self.client = None
         self.view = None
@@ -108,14 +112,22 @@ class ConsoleState:
                     # Display saved output only; never invoke a planner or deploy Red.
                     from model_switch_demo import load_layouts, LAYOUT_SOURCE, ROOT as PROJECT_ROOT
                     from capture_warning_3d import capture
-                    layouts = load_layouts(LAYOUT_SOURCE)
                     selection = payload.get("policy", "")
-                    if not isinstance(selection, str) or not selection.startswith("saved-"):
+                    if not isinstance(selection, str) or not selection.startswith(("saved-", "trained-")):
                         raise ValueError("Select an available saved layout")
-                    key = selection.removeprefix("saved-")
-                    if key not in layouts:
-                        raise ValueError("Select an available saved layout")
-                    row = layouts[key]
+                    if selection.startswith("trained-"):
+                        if self.trained_models is None:
+                            raise ValueError("Named trained models are unavailable")
+                        model = self.trained_models.get(selection)
+                        key = selection
+                        row = {"label": model["name"], "seed": model["evaluationSeed"],
+                               "placements": model["deploymentPlacements"]}
+                    else:
+                        layouts = load_layouts(LAYOUT_SOURCE)
+                        key = selection.removeprefix("saved-")
+                        if key not in layouts:
+                            raise ValueError("Select an available saved layout")
+                        row = layouts[key]
                     self.client.reset(row["seed"])
                     self.context = self.client.get_blue_context()
                     # Archived layouts predate orientation. Keep their positions
@@ -208,10 +220,17 @@ class ConsoleState:
                 raise
 
 
-def make_server(port=9048, bridge_port=8765, *, state=None, replays=None, comparisons=None):
-    state = state or ConsoleState(bridge_port)
+def make_server(port=9048, bridge_port=8765, *, state=None, replays=None, comparisons=None, trainer=None):
+    model_root = BLUE_ROOT.parents[1] / "Saved/WarningTraining/models"
+    registry = (getattr(trainer, "registry", None) or getattr(comparisons, "registry", None)
+                or TrainedModelRegistry(model_root))
+    state = state or ConsoleState(bridge_port, trained_models=registry)
+    if getattr(state, "trained_models", None) is None:
+        state.trained_models = registry
     replays = replays if replays is not None else load_replays()
-    comparisons = comparisons if comparisons is not None else NativeComparisons()
+    comparisons = comparisons if comparisons is not None else NativeComparisons(registry=registry)
+    trainer = trainer or TrainingManager(
+        bridge_port, BLUE_ROOT.parents[1] / "Saved/WarningTraining", registry=registry)
     token = secrets.token_urlsafe(32)
     # Saved native evidence is read independently of the live bridge session.
     comparison_lock = threading.Lock()
@@ -239,17 +258,33 @@ def make_server(port=9048, bridge_port=8765, *, state=None, replays=None, compar
             if not self.valid_host():
                 return self.reply({"error": "Invalid local host"}, 403)
             if self.path == "/api/session":
+                named_models = trainer.registry.list()
+                archived_models = ([{"id": "saved-rl", "label": "RL Policy · saved output",
+                                     "kind": "archived"},
+                                    {"id": "saved-greedy", "label": "Greedy · saved output",
+                                     "kind": "archived"},
+                                    {"id": "saved-initial", "label": "Initial Policy · saved output",
+                                     "kind": "archived"}]
+                                   if all((BLUE_ROOT/f"Results/model-switch-demo/evaluation-{key}.json").exists()
+                                          for key in ("0000", "0128", "greedy")) else [])
                 return self.reply({"token": token, "status": state.status(), "replays": [
                     {"id": i, "profile": r["profile"], "policy": r["temporal_seed"], "case": r["case_index"],
                      "outcome": r["metrics"]["outcome"]} for i, r in enumerate(replays)],
                     "comparisonEpisodes": comparisons.list(),
-                    "savedModels": ([{"id": "saved-rl", "label": "RL Policy · saved output"},
-                                     {"id": "saved-greedy", "label": "Greedy · saved output"},
-                                     {"id": "saved-initial", "label": "Initial Policy · saved output"}]
-                                    if all((BLUE_ROOT/f"Results/model-switch-demo/evaluation-{key}.json").exists()
-                                           for key in ("0000", "0128", "greedy")) else [])})
+                    "comparisonLayouts": comparisons.layouts(), "training": trainer.status(),
+                    "trainingInitializations": [{"id": key, "label": label}
+                                                for key, label in INITIALIZATIONS.items()],
+                    "trainedModels": [{"id": row["id"], "label": row["name"],
+                                       "bestEpisode": row["bestEpisode"],
+                                       "bestWarningSeconds": row["bestWarningSeconds"]}
+                                      for row in named_models],
+                    "savedModels": archived_models + [
+                        {"id": row["id"], "label": f"{row['name']} · trained best",
+                         "kind": "trained"} for row in named_models]})
             if self.path == "/api/status":
                 return self.reply(state.status())
+            if self.path == "/api/training/status":
+                return self.reply(trainer.status())
             match = re.fullmatch(r"/api/replay/(\d+)", self.path)
             if match and int(match[1]) < len(replays):
                 return self.reply(replay_view(replays[int(match[1])]))
@@ -269,7 +304,8 @@ def make_server(port=9048, bridge_port=8765, *, state=None, replays=None, compar
                 return self.reply({"error": "Local session required"}, 403)
             match = re.fullmatch(r"/api/action/(connect|disconnect|reset|step|preview)", self.path)
             comparison = re.fullmatch(r"/api/comparison/(scenario|run)", self.path)
-            if not match and not comparison:
+            training = re.fullmatch(r"/api/training/(start|stop)", self.path)
+            if not match and not comparison and not training:
                 return self.reply({"error": "Unknown action"}, 404)
             try:
                 size = int(self.headers.get("Content-Length", "0"))
@@ -278,12 +314,27 @@ def make_server(port=9048, bridge_port=8765, *, state=None, replays=None, compar
                 payload = json.loads(self.rfile.read(size))
                 if not isinstance(payload, dict):
                     raise ValueError("Expected a JSON object")
-                if comparison:
-                    if set(payload) != {"episodeId"}:
+                if training:
+                    if training[1] == "start":
+                        with state.lock:
+                            state.close()
+                            state.view = state.context = None
+                            state.error = ""
+                        result = trainer.start(payload)
+                    else:
+                        if payload:
+                            raise ValueError("Stop does not accept training parameters")
+                        result = trainer.stop()
+                elif comparison:
+                    if set(payload) not in ({"episodeId"}, {"episodeId", "layoutId"}):
                         raise ValueError("Choose a native episode; comparison layouts are fixed and cannot be edited")
                     with comparison_lock:
-                        result = comparisons.get(payload["episodeId"], scenario=comparison[1] == "scenario")
+                        result = comparisons.get(payload["episodeId"],
+                                                 scenario=comparison[1] == "scenario",
+                                                 layout_id=payload.get("layoutId", "matched_common_sense"))
                 else:
+                    if trainer.status()["running"]:
+                        raise ValueError("Live controls are reserved by the active Training run")
                     result = state.action(match[1], payload)
                 self.reply(result)
             except (ValueError, KeyError, RuntimeError, OSError) as error:
@@ -291,6 +342,7 @@ def make_server(port=9048, bridge_port=8765, *, state=None, replays=None, compar
 
     server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
     server.console_state = state
+    server.training_manager = trainer
     return server
 
 
@@ -306,6 +358,7 @@ def main(argv=None):
     except KeyboardInterrupt:
         pass
     finally:
+        server.training_manager.close()
         server.console_state.close()
         server.server_close()
 

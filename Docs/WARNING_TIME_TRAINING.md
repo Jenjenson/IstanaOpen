@@ -16,17 +16,35 @@ simulation boundary and train on its native terminal warning reward:
 ```powershell
 # Repository root
 powershell -ExecutionPolicy Bypass -File .\Tools\build.ps1 -Target Editor
-powershell -ExecutionPolicy Bypass -File .\Tools\start_blue_live.ps1 -Port 8766 -DelayedDetectionDemo
+powershell -ExecutionPolicy Bypass -File .\Tools\start_blue_live.ps1 -Port 8766 -DelayedDetectionDemo -TrainingWorkbench
 cd RL\BlueTeam\Python
 ..\.venv\Scripts\python.exe train_warning_live.py --port 8766 --episodes 128 --batch-size 8 --eval-cases 8 --output ..\..\..\Saved\WarningTraining\my-directional-run
 ```
+
+The browser console also has a **Training** tab for shorter interactive runs.
+Start the scene on the console's configured bridge port with
+`-TrainingWorkbench -DelayedDetectionDemo`, open `http://127.0.0.1:9048/`, and
+select Training. Enter a unique model name, then choose an untrained start or a
+five-directional-sensor public-only common-sense warm start. Warm starting
+changes initial logits only; all selected and unselected actions remain
+trainable. After each batch update, the console evaluates that checkpoint on
+the same fixed held-out native episode. A successful run saves the checkpoint
+with the highest measured mean per-drone warning time under
+`Saved/WarningTraining/models/trained-*` and immediately lists it in **Compare
+placements** and the Live saved-layout selector. Its comparison replays that
+best checkpoint and the fixed five-directional start with the same Red episode,
+paths, speed, seed and sensing process. Browser run artifacts remain in
+`Saved/WarningTraining/console-*`. Stopped and failed runs are not registered.
+Use the CLI above for the full fixed multi-case evaluation protocol and audit
+reports; the console's single held-out case is a selection aid, not a general
+performance claim.
 
 For native early-to-trained footage, close the training scene, start the capture
 scene with the identical flag, and replay the fixed checkpoints:
 
 ```powershell
 # Repository root
-powershell -ExecutionPolicy Bypass -File .\Tools\start_blue_capture.ps1 -Port 8766 -DelayedDetectionDemo
+powershell -ExecutionPolicy Bypass -File .\Tools\start_blue_capture.ps1 -Port 8766 -DelayedDetectionDemo -TrainingWorkbench
 cd RL\BlueTeam\Python
 ..\.venv\Scripts\python.exe capture_warning_3d.py ..\..\..\Saved\WarningTraining\my-directional-run --output ..\..\..\Saved\WarningTraining\my-directional-capture --port 8766
 ..\.venv\Scripts\python.exe render_warning_3d.py ..\..\..\Saved\WarningTraining\my-directional-capture

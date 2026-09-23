@@ -5,6 +5,7 @@ import json
 import pytest
 
 from native_comparison import NativeComparisons, ROOT, _validate_episode, paired_timing
+from triad_rl.trained_models import COMPARISON_SCHEMA, TrainedModelRegistry
 
 
 def view(rows):
@@ -46,6 +47,32 @@ def test_all_current_native_results_have_consistent_counts_and_delta_direction()
         json.dumps(result, allow_nan=False)
 
 
+def test_five_directional_workbench_start_has_matched_native_warning_evidence():
+    store = NativeComparisons()
+    assert [row["id"] for row in store.layouts()] == [
+        "matched_common_sense", "directional_balanced_5"]
+    result = store.get("native-406-1", layout_id="directional_balanced_5")
+    assert not result["layoutOnly"] and result["metrics"]["rl"]["target_count"] == 5
+    assert result["audit"]["native_unreal_capture"]
+    assert result["audit"]["five_sensor_rl_trained"] is False
+    assert result["fairness"]["matched"]
+    assert len(result["baseline"]["placements"]) == 5
+    assert result["baseline"]["budget"] == result["baseline"]["maxSensors"] == 5
+    assert {row["sensor_id"] for row in result["baseline"]["placements"]} == {"thermal"}
+    assert [row["yaw_deg"] for row in result["baseline"]["placements"]] == [0., 180., 90., 270., 45.]
+    assert all(row["pitch_deg"] == 20. for row in result["baseline"]["placements"])
+    assert result["metrics"]["baseline"]["mean_warning_s"] == pytest.approx(45.28544905032593)
+    assert result["metrics"]["rl"]["mean_warning_s"] == pytest.approx(.5615509664243291)
+    assert all(len(frame["threats"]) == 5 for side in ("rl", "baseline")
+               for frame in result[side]["frames"])
+    json.dumps(result, allow_nan=False)
+
+
+def test_unknown_comparison_layout_fails_closed():
+    with pytest.raises(ValueError, match="available fixed"):
+        NativeComparisons().get("native-406-1", layout_id="manual")
+
+
 def test_changed_native_trajectories_are_rejected():
     bundle = json.loads(gzip.decompress((ROOT / "bundle.json.gz").read_bytes()))
     episode = deepcopy(bundle["episodes"][0])
@@ -68,3 +95,26 @@ def test_missing_capture_is_explicit_and_does_not_substitute_old_sensors(tmp_pat
     assert store.list() == []
     with pytest.raises(ValueError, match="unavailable"):
         store.get("native-406-1")
+
+
+def test_completed_named_model_is_discovered_and_served_in_comparison(tmp_path):
+    registry = TrainedModelRegistry(tmp_path / "models")
+    source = deepcopy(NativeComparisons()._workbench_bundle()["episodes"][0])
+    identifier = registry.identifier_for("Night Watch")
+    source.update(schema=COMPARISON_SCHEMA, id=identifier, policy=identifier,
+                  policyLabel="Night Watch", case=1,
+                  label="Night Watch · held-out native episode")
+    policy = tmp_path / "best.json"
+    policy.write_text("{}", encoding="utf-8")
+    registry.register(name="Night Watch", policy_path=policy, comparison_episode=source,
+        metadata={"bestEpisode": 12, "bestWarningSeconds": 31.5,
+                  "evaluationSeed": 2700000, "deploymentPlacements": []})
+    store = NativeComparisons(registry=registry)
+    row = next(row for row in store.list() if row["id"] == identifier)
+    assert row["policyLabel"] == "Night Watch"
+    assert row["defaultLayout"] == "directional_balanced_5" and row["trainedModel"]
+    result = store.get(identifier, layout_id="directional_balanced_5")
+    assert result["trainedModel"] and result["policyLabel"] == "Night Watch"
+    assert result["metrics"]["rl"]["target_count"] == 5
+    with pytest.raises(ValueError, match="matched five-sensor"):
+        store.get(identifier, layout_id="matched_common_sense")

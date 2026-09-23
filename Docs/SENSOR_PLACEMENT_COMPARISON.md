@@ -1,9 +1,33 @@
-# RL versus a fixed common-sense sensor layout
+# Native sensor-placement comparisons
 
 Open **Compare placements**, choose **Temporal RL · policy A, B or C**, and select
 one of three **Perimeter approach** episodes. Both layouts appear side by side.
 Play, pause, step or scrub the shared timeline to inspect exactly the same drone
 flight on both maps. There are no manual placement or sensor configuration controls.
+
+Use **Fixed placement** to select either:
+
+- **Matched common sense · 3 sensors**: the original 60-drone paired evaluation.
+- **Five directional sensors · measured workbench**: five surface-mounted,
+  limited-FOV thermal cameras facing the five declared synthetic approach lanes.
+
+The five-sensor choice is also measured native evidence, not a layout-only
+mock-up. It replays each archived RL placement unchanged in the same five-lane
+episode as the fixed placement. Both sides share the five drones, trajectories,
+speeds, sensor capabilities, sites, budget and seed. The archived RL checkpoint
+was trained under the older three-sensor contract and has **not** been retrained
+as a five-sensor policy, so use this view to inspect the placement and warning
+times rather than to claim a fair five-sensor RL benchmark.
+
+The recorded mean warning times are:
+
+| Episode | Archived policy A | Archived policy B | Archived policy C | Five sensors |
+| --- | ---: | ---: | ---: | ---: |
+| 1 | 0.56 s | 0.00 s | 0.12 s | 45.29 s |
+| 2 | 9.92 s | 0.00 s | 1.03 s | 44.78 s |
+| 3 | 9.36 s | 0.00 s | 7.30 s | 48.60 s |
+
+Missed drones contribute zero warning, as in the rest of the project.
 
 The nine comparisons are recordings of real runs in the repository's native
 Unreal simulator, using the current merged sensor model. Playback needs no
@@ -114,6 +138,10 @@ illustrative scenarios do not establish general performance.
 - `protocol.json`: preset episode seeds, policy checkpoint hashes, source hashes,
   native module hash, launch configuration and evaluation limitations.
 
+`RL/BlueTeam/Results/workbench-placement-comparison/` contains the corresponding
+bundle, manifest and protocol for the measured five-directional-sensor option.
+Its protocol records that the archived layouts were replayed without retraining.
+
 The three episode seeds were selected before outcomes were known. All three
 published RL policies and all three cases are retained. The baseline layout is
 checked to remain unchanged. Native drone trajectories and sample times must
@@ -142,6 +170,14 @@ simulations (three policies plus the fixed baseline for each of three episodes).
 Only after exact pairing checks pass does it write the portable bundle. No new
 policy is trained or selected by this command. Serve a replacement bundle only
 after reviewing the results and updating its manifest together.
+
+To regenerate the five-sensor workbench evidence, launch the explicit workbench
+contract and write to new output directories for review:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\Tools\start_blue_live.ps1 -DelayedDetectionDemo -TrainingWorkbench
+python .\RL\BlueTeam\Python\build_workbench_comparison.py --port 8765 --output D:\Path\To\new-workbench-comparison --raw-output D:\Path\To\new-workbench-raw
+```
 
 ## Verification
 

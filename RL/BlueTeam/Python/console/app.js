@@ -3,7 +3,8 @@ const $ = id => document.getElementById(id);
 let token='', catalog=[], view=null, frameIndex=0, mode='recorded', playing=false, busy=false, busyOperation='', connected=false;
 let elapsed=0, lastWall=0, liveWall=0, loadSequence=0;
 let nativeImage=null, eventSignature='';
-const comparison={episodes:[],scenario:null,result:null,loading:false,episodeId:null,sequence:0};
+const comparison={episodes:[],layouts:[],scenario:null,result:null,loading:false,episodeId:null,sequence:0};
+const training={status:{running:false,phase:'idle',episode:0,totalEpisodes:0,history:[]},timer:null,lastViewerEpisode:-1,polling:false};
 const drawingCache=new WeakMap();
 const fmt=(v,n=1)=>Number.isFinite(v)?v.toFixed(n):'—';
 const pct=v=>Number.isFinite(v)?`${Math.round(v*100)}%`:'—';
@@ -19,9 +20,9 @@ async function api(path,body){
  if(!response.ok)throw new Error(data.error||'Request failed');return data;
 }
 function connectionStatus(){
- const label=mode==='comparison'?'Comparison · native evaluation':mode==='recorded'?'Replay ready':connected?'Unreal connected':'Unreal disconnected';
+ const label=mode==='training'?(training.status.running?'Training · Unreal connected':`Training · ${training.status.phase}`):mode==='comparison'?'Comparison · native evaluation':mode==='recorded'?'Replay ready':connected?'Unreal connected':'Unreal disconnected';
  $('connection-label').textContent=label;
- $('connection').firstChild.style.background=mode==='live'&&!connected?'#ffb18a':'#6ce8c8';
+ $('connection').firstChild.style.background=(mode==='live'&&!connected)||(mode==='training'&&training.status.phase==='failed')?'#ffb18a':'#6ce8c8';
  $('connect').textContent=connected?'Disconnect':'Connect to Unreal';
 }
 function controls(){
@@ -31,8 +32,10 @@ function controls(){
  $('step').disabled=!view||playing||busy||blocking||liveEnded||draft;
  $('restart').disabled=!view||mode==='live'||blocking||draft;
  $('timeline').disabled=!view||blocking||draft;$('speed').disabled=!view||draft;
- $('connect').disabled=busy||playing;$('plan').disabled=!connected||busy||playing;
- for(const id of ['recorded-mode','live-mode','comparison-mode'])$(id).disabled=busy||playing||comparison.loading;
+ $('connect').disabled=busy||playing||training.status.running;$('plan').disabled=!connected||busy||playing||training.status.running;
+ $('training-start').disabled=busy||training.status.running;$('training-stop').disabled=!training.status.running;
+ for(const id of ['training-name','training-initialization','training-episodes','training-batch','training-seed'])$(id).disabled=training.status.running;
+ for(const id of ['recorded-mode','live-mode','comparison-mode','training-mode'])$(id).disabled=busy||playing||comparison.loading;
  comparisonControls();
 }
 function pause(){playing=false;lastWall=0;controls();}
@@ -48,8 +51,8 @@ function syncTimeline(){
 }
 function element(tag,text,cls){const el=document.createElement(tag);if(cls)el.className=cls;el.textContent=text;return el;}
 function sensorDetails(){
- $('active-policy').textContent=mode==='live'&&view?`Active: ${view.policy}`:'No active planner.';
- $('surface-status').textContent=mode==='live'&&view?(view.surfaceMounted?'Surface-mounted · unsupported sites excluded.':'Legacy build: surface support not enforced. Rebuild Unreal.'):'Surface support is checked by Unreal before deployment.';
+ $('active-policy').textContent=mode==='training'&&view?'Active: trainable directional warning policy':mode==='live'&&view?`Active: ${view.policy}`:'No active planner.';
+ $('surface-status').textContent=mode==='training'?'Every training placement is checked against native surface, spacing, FOV and budget constraints.':mode==='live'&&view?(view.surfaceMounted?'Surface-mounted · unsupported sites excluded.':'Legacy build: surface support not enforced. Rebuild Unreal.'):'Surface support is checked by Unreal before deployment.';
  $('sensors').replaceChildren();
  for(const [i,p] of (view?.placements||[]).entries()){
   const c=view.catalogue.find(c=>c.id===p.sensor_id)||{};
@@ -68,10 +71,10 @@ function results(){
  $('result-timely').textContent=pct(timely);$('result-return').textContent=fmt(m?.return,2);
  $('result-team-warning').textContent=warningText(m?.team_warning_seconds_lower_bound);
  $('result-mean-warning').textContent=warningText(m?.mean_drone_warning_seconds_lower_bound);
- $('results-tag').textContent=mode==='recorded'?'RECORDED FINAL':mode==='comparison'?(m?'NATIVE FINAL':'LOADING EPISODE'):m?'MEASURED FINAL':'AWAITING EPISODE END';
- $('outcome-label').textContent=mode==='recorded'?'Recorded final result':mode==='comparison'?'Native final result':'Episode status';
- $('detected-label').textContent=mode!=='live'?'Detected so far':'Public tracks';
- $('result-note').textContent=mode==='recorded'?'Synthetic sensing outcomes. Timely confirmation means detection before the deadline; no interception is simulated. Warning is unavailable when the replay does not contain the exact metric.':mode==='comparison'?'Matched native sensing outcomes. Both layouts face the same adversary episode and deployment limits.':'Live metrics appear when the native episode ends. Directional thermal sensors use Unreal world-static line-of-sight; probability parameters remain simulator assumptions. Warning values are measured lower bounds from detection to 20 m objective-zone arrival.';
+ $('results-tag').textContent=mode==='recorded'?'RECORDED FINAL':mode==='comparison'?(m?'NATIVE FINAL':'LOADING EPISODE'):mode==='training'?(m?'LATEST NATIVE EPISODE':'TRAINING READY'):m?'MEASURED FINAL':'AWAITING EPISODE END';
+ $('outcome-label').textContent=mode==='recorded'?'Recorded final result':mode==='comparison'?'Native final result':mode==='training'?'Training status':'Episode status';
+ $('detected-label').textContent=mode==='live'?'Public tracks':mode==='training'?'Latest detected':'Detected so far';
+ $('result-note').textContent=mode==='recorded'?'Synthetic sensing outcomes. Timely confirmation means detection before the deadline; no interception is simulated. Warning is unavailable when the replay does not contain the exact metric.':mode==='comparison'?'Matched native sensing outcomes. Both layouts face the same adversary episode and deployment limits.':mode==='training'?'Latest complete native episode. RL optimizes mean per-drone warning time; undetected arrivals count as zero. Common-sense initialization biases trainable logits and does not lock the layout.':'Live metrics appear when the native episode ends. Directional thermal sensors use Unreal world-static line-of-sight; probability parameters remain simulator assumptions. Warning values are measured lower bounds from detection to 20 m objective-zone arrival.';
 }
 function setView(data){view=data;nativeImage=null;eventSignature='';if(data.nativePreview){const image=new Image();image.onload=()=>{if(view===data){nativeImage=image;render();}};image.src=data.nativePreview.image;}$('map').setAttribute('aria-label',data.nativePreview?'Native Unreal sensor placement preview':'Top-down simulation view');document.body.classList.toggle('native-preview',Boolean(data.nativePreview));frameIndex=0;elapsed=0;$('empty').hidden=true;syncTimeline();$('episode-title').textContent=view.label;$('coordinates').textContent=view.coordinateLabel;sensorDetails();results();render();controls();}
 async function loadReplay(){
@@ -81,25 +84,28 @@ async function loadReplay(){
  try{const data=await api(`/api/replay/${row.id}`);if(seq!==loadSequence||mode!=='recorded')return;setView(data);showError('');}catch(e){showError(e.message);}
 }
 async function switchMode(next){
- pause();mode=next;++loadSequence;showError('');
- for(const id of ['recorded','live','comparison'])$(id+'-mode').setAttribute('aria-pressed',String(mode===id));
+ pause();if(next!=='training'&&training.timer){clearTimeout(training.timer);training.timer=null;}mode=next;++loadSequence;showError('');
+ if(mode==='recorded'&&$('policy').value.startsWith('trained-'))$('policy').value='406';
+ if(mode!=='comparison')$('transport').hidden=false;
+ for(const id of ['recorded','live','comparison','training'])$(id+'-mode').setAttribute('aria-pressed',String(mode===id));
  document.body.classList.toggle('comparison-mode',mode==='comparison');
+ document.body.classList.toggle('training-mode',mode==='training');
  if(mode==='comparison')$('comparison-panel').insertBefore($('transport'),$('comparison-results'));else $('single-map-container').after($('transport'));
- $('recorded-controls').hidden=mode==='live';$('profile').hidden=mode==='comparison';$('profile-label').hidden=mode==='comparison';$('deployment-controls').hidden=mode==='comparison';$('single-map-container').hidden=mode==='comparison';
- $('case-label').textContent=mode==='comparison'?'Episode':'Recorded case';$('policy-label').textContent=mode==='comparison'?'RL policy':'Trained checkpoint';$('episode-help').textContent=mode==='comparison'?'Each episode uses 60 adversaries in the native Istana environment. Both layouts face the same episode.':'All three checkpoints and all 18 published cases are available, including failures.';fillEpisodeOptions();$('live-controls').hidden=mode!=='live';$('comparison-controls').hidden=mode!=='comparison';$('comparison-panel').hidden=mode!=='comparison';
- $('source-badge').textContent=mode==='recorded'?'RECORDED · SYNTHETIC':mode==='comparison'?'COMPARISON · NATIVE UNREAL':'LIVE UNREAL · SYNTHETIC';
- $('provenance').textContent=mode==='recorded'?'Published temporal-v6 evidence · 18 recorded cases':mode==='comparison'?'Matched native Unreal evaluation · fixed common-sense baseline':'Local Unreal bridge · scripted Red · experimental Blue';
- if(mode==='recorded')await loadReplay();else if(mode==='comparison')await loadComparisonScenario();else{view=null;$('empty').hidden=false;$('episode-title').textContent='Awaiting live episode';$('clock').textContent='00:00.0';$('progress').textContent='Fixed-step simulation';sensorDetails();results();render();controls();}
+ $('recorded-controls').hidden=mode==='live'||mode==='training';$('profile').hidden=mode==='comparison';$('profile-label').hidden=mode==='comparison';$('deployment-controls').hidden=mode==='comparison';$('single-map-container').hidden=mode==='comparison';
+ $('case-label').textContent=mode==='comparison'?'Episode':'Recorded case';$('policy-label').textContent=mode==='comparison'?'RL policy':'Trained checkpoint';$('episode-help').textContent=mode==='comparison'?'Each episode uses 60 adversaries in the native Istana environment. Both layouts face the same episode.':'All three checkpoints and all 18 published cases are available, including failures.';fillEpisodeOptions();$('live-controls').hidden=mode!=='live';$('training-controls').hidden=mode!=='training';$('comparison-controls').hidden=mode!=='comparison';$('comparison-panel').hidden=mode!=='comparison';
+ $('source-badge').textContent=mode==='recorded'?'RECORDED · SYNTHETIC':mode==='comparison'?'COMPARISON · NATIVE UNREAL':mode==='training'?'TRAINING · NATIVE UNREAL':'LIVE UNREAL · SYNTHETIC';
+ $('provenance').textContent=mode==='recorded'?'Published temporal-v6 evidence · 18 recorded cases':mode==='comparison'?'Matched native Unreal evaluation · fixed common-sense baseline':mode==='training'?'Local native training · directional policy · retained checkpoints':'Local Unreal bridge · scripted Red · experimental Blue';
+ if(mode==='recorded')await loadReplay();else if(mode==='comparison')await loadComparisonScenario();else if(mode==='training'){$('empty-title').textContent='Start a native training run';$('empty-copy').textContent='Launch the scene with -TrainingWorkbench -DelayedDetectionDemo, then choose a starting placement and start training.';$('empty-note').textContent='The latest completed placement will appear here.';if(view?.mode!=='training')view=null;await refreshTraining();if(!view){$('empty').hidden=false;$('episode-title').textContent='Training workbench ready';$('clock').textContent='00:00.0';$('progress').textContent='No completed training episode';sensorDetails();results();render();controls();}}else{$('empty-title').textContent='Connect your Unreal scene';$('empty-copy').textContent='Launch Istana with -IstanaBlueLive, then connect from the left panel.';$('empty-note').textContent='Recorded replays remain available.';view=null;$('empty').hidden=false;$('episode-title').textContent='Awaiting live episode';$('clock').textContent='00:00.0';$('progress').textContent='Fixed-step simulation';sensorDetails();results();render();controls();}
  connectionStatus();
 }
 function render(){
  const frame=view?.frames[frameIndex];syncTimeline();
  $('clock').textContent=timeText(frame?.time||0);
- $('progress').textContent=view?mode==='live'?`Step ${frame?.completedSteps??0} / ${liveTimelineMax()} · ${view.ended?'ended':playing?`running at ${$('speed').value}×`:'paused'}`:`Frame ${frameIndex+1} / ${view.frames.length} · ${fmt(view.frames.at(-1).time)} s`:'No episode';
- $('threat-count').textContent=frame?frame.threats.length:'—';
- $('detected-count').textContent=frame?(mode==='live'?(frame.tracks||[]).length:frame.threats.filter(t=>t.ever_detected).length):'—';
+ $('progress').textContent=view?mode==='live'?`Step ${frame?.completedSteps??0} / ${liveTimelineMax()} · ${view.ended?'ended':playing?`running at ${$('speed').value}×`:'paused'}`:mode==='training'?`Latest complete episode ${training.status.episode} / ${training.status.totalEpisodes}`:`Frame ${frameIndex+1} / ${view.frames.length} · ${fmt(view.frames.at(-1).time)} s`:'No episode';
+ $('threat-count').textContent=mode==='training'?(view?.metrics?.targets??'—'):frame?frame.threats.length:'—';
+ $('detected-count').textContent=mode==='training'&&Number.isFinite(view?.metrics?.detected_fraction)?Math.round(view.metrics.targets*view.metrics.detected_fraction):frame?(mode==='live'?(frame.tracks||[]).length:frame.threats.filter(t=>t.ever_detected).length):'—';
  $('confirmed-count').textContent=frame?(mode==='live'?(frame.tracks||[]).filter(t=>t.confirmed).length:frame.threats.filter(t=>t.tracked).length):'—';
- $('outcome').textContent=view?(view.outcome==='defended'?'Timely sensing':view.outcome==='running'?'In progress':mode==='live'?'Episode ended':view.outcome.replaceAll('_',' ')):'—';
+ $('outcome').textContent=mode==='training'?training.status.phase.replaceAll('_',' '):view?(view.outcome==='defended'?'Timely sensing':view.outcome==='running'?'In progress':mode==='live'?'Episode ended':view.outcome.replaceAll('_',' ')):'—';
  $('outcome').title=view?.outcome||'';
  if(mode==='comparison'&&!comparison.result){$('progress').textContent='Loading paired episode';for(const id of ['threat-count','detected-count','confirmed-count','outcome'])$(id).textContent='—';}
  draw(frame);if(mode!=='comparison')events(frame);
@@ -136,7 +142,7 @@ function draw(frame){
   const data=pair?.[method],index=data?Math.max(0,data.frames.findLastIndex(f=>f.time<=time)):0,current=data?.frames[index];
   drawMap($(`comparison-map-${method}`),data,current,index,sharedExtent);
   const detected=current?.threats.filter(t=>t.ever_detected??t.detected).length||0,confirmed=current?.threats.filter(t=>t.tracked??t.confirmed).length||0;
-  $(`comparison-${method}-now`).textContent=current?`${detected} detected · ${confirmed} confirmed at ${fmt(time,1)} s`:'Awaiting episode';
+  $(`comparison-${method}-now`).textContent=pair?.layoutOnly&&data?`${data.placements.length} sensors · placement preview`:current?`${detected} detected · ${confirmed} confirmed at ${fmt(time,1)} s`:'Awaiting episode';
  }
 }
 function drawMap(canvas,renderView,frame,renderIndex,sharedExtent=null){
@@ -197,14 +203,24 @@ function fillEpisodeOptions(){
  for(const row of rows){const option=element('option',row.label);option.value=row.id;select.append(option);}
  if(rows.some(row=>String(row.id)===previous))select.value=previous;
  else if(mode==='comparison'&&previousCase!==undefined){const equivalent=rows.find(row=>row.case===previousCase);if(equivalent)select.value=equivalent.id;}
+ const chosen=rows.find(row=>String(row.id)===select.value);if(mode==='comparison'&&chosen?.defaultLayout)$('comparison-layout').value=chosen.defaultLayout;
+}
+
+function syncModelCatalog(session){
+ comparison.episodes=session.comparisonEpisodes||comparison.episodes;
+ $('trained-comparison-models')?.remove();
+ if(session.trainedModels?.length){const group=document.createElement('optgroup');group.id='trained-comparison-models';group.label='Models trained on this device';for(const model of session.trainedModels){const option=element('option',`${model.label} · best episode ${model.bestEpisode}`);option.value=model.id;group.append(option);}$('policy').append(group);}
+ $('saved-live-models')?.remove();
+ if(session.savedModels?.length){const group=document.createElement('optgroup');group.id='saved-live-models';group.label='Saved native layouts';for(const model of session.savedModels){const option=element('option',model.label);option.value=model.id;group.append(option);}$('live-policy').append(group);}
 }
 function comparisonControls(){
  const locked=comparison.loading||busy;
- for(const id of ['profile','policy','case'])$(id).disabled=locked;
+ for(const id of ['profile','policy','case','comparison-layout'])$(id).disabled=locked;
 }
 function comparisonClearResults(){
  for(const method of ['rl','baseline','delta'])for(const metric of ['detected','confirmed','timely','cost','first-detection','detection-time','confirmation-time','warning'])$(`comparison-${method}-${metric}`).textContent='—';
  for(const method of ['rl','baseline'])$(`comparison-${method}-layout`).textContent='Loading layout…';
+ $('comparison-results').hidden=false;$('comparison-layout-note').hidden=true;$('transport').hidden=false;
  $('comparison-verdict').textContent='Loading the paired native episode…';$('comparison-timing-note').textContent='';
 }
 function comparisonCost(data){return (data.placements||[]).reduce((sum,p)=>sum+(p.cost??data.catalogue.find(c=>c.id===p.sensor_id)?.cost??0),0);}
@@ -222,14 +238,31 @@ function pairedTimes(rl,baseline,key){
 }
 function signed(value,unit=''){return Number.isFinite(value)?`${value>0?'+':''}${fmt(value,unit?2:0)}${unit}`:'Unavailable';}
 function comparisonResults(result){
+ if(result.layoutOnly){
+  $('comparison-results').hidden=true;$('comparison-layout-note').hidden=false;$('transport').hidden=true;
+  $('comparison-layout-note').textContent='Placement geometry only · the archived RL layout uses its original three-sensor contract, while the new workbench start uses five directional sensors. Detection, warning-time and reward metrics are intentionally not compared.';
+  for(const method of ['rl','baseline']){
+   const data=result[method],cost=comparisonCost(data),name=method==='rl'?'Archived reinforcement-learning':'Five-directional-sensor';
+   $(`comparison-${method}-layout`).textContent=`${data.placements.length} sensors · ${fmt(cost)} / ${fmt(data.budget)} cost`;
+   $(`comparison-map-${method}`).setAttribute('aria-label',`${name} placement preview with ${data.placements.length} sensors. No performance metrics are shown.`);
+  }
+  return;
+ }
+ $('comparison-results').hidden=false;$('comparison-layout-note').hidden=true;$('transport').hidden=false;
  const summaries={rl:comparisonSummary(result.rl,result.metrics?.rl),baseline:comparisonSummary(result.baseline,result.metrics?.baseline)};
+  const fiveSensor=result.method==='directional_balanced_5',trainedModel=Boolean(result.trainedModel);
+  $('comparison-rl-column').textContent=fiveSensor?'Archived RL layout':trainedModel?result.policyLabel:'RL';
+  $('comparison-baseline-column').textContent=fiveSensor||trainedModel?'Five sensors':'Common sense';
+  $('comparison-delta-column').textContent=fiveSensor||trainedModel?'Difference':'RL difference';
+  $('comparison-delta-caption').textContent=trainedModel?`Difference = ${result.policyLabel} − five-sensor placement`:fiveSensor?'Difference = archived RL layout − five-sensor placement':'RL difference = RL − common sense';
  for(const method of ['rl','baseline']){
   const summary=summaries[method],data=result[method];
   for(const metric of ['detected','confirmed','timely'])$(`comparison-${method}-${metric}`).textContent=Number.isFinite(summary[metric])?`${summary[metric]} / ${summary.total}`:'Unavailable';
   $(`comparison-${method}-cost`).textContent=`${fmt(summary.cost)} / ${fmt(data.budget)}`;
   $(`comparison-${method}-warning`).textContent=Number.isFinite(summary.warning)?`${fmt(summary.warning,2)} s`:'Unavailable';
   $(`comparison-${method}-layout`).textContent=`${data.placements.length} sensors · ${fmt(summary.cost)} / ${fmt(data.budget)} cost`;
-  $(`comparison-map-${method}`).setAttribute('aria-label',`${method==='rl'?'Reinforcement learning':'Fixed common-sense'} layout: ${data.placements.length} sensors, ${summary.detected} of ${summary.total} adversaries detected by episode end. Shared playback shows sensing over time.`);
+   const layoutName=method==='rl'?(fiveSensor?'Archived reinforcement-learning':trainedModel?result.policyLabel:'Reinforcement learning'):(fiveSensor||trainedModel?'Five-directional-sensor':'Fixed common-sense');
+  $(`comparison-map-${method}`).setAttribute('aria-label',`${layoutName} layout: ${data.placements.length} sensors, ${summary.detected} of ${summary.total} adversaries detected by episode end. Shared playback shows sensing over time.`);
  }
  for(const metric of ['detected','confirmed','timely','cost','warning']){
   const left=summaries.rl[metric],right=summaries.baseline[metric],delta=Number.isFinite(left)&&Number.isFinite(right)?left-right:null;
@@ -248,39 +281,86 @@ function comparisonResults(result){
   $(`comparison-delta-${metric}`).textContent=pair.count?`${signed(delta,' s')}${delta<0?' · earlier':delta>0?' · later':' · same time'}`:'Not comparable';
  }
  const difference=summaries.rl.detected-summaries.baseline.detected;
- $('comparison-verdict').textContent=difference===0?'Both layouts detected the same number of adversaries in this episode.':`RL detected ${Math.abs(difference)} ${difference>0?'more':'fewer'} adversar${Math.abs(difference)===1?'y':'ies'} in this episode.`;
- $('comparison-timing-note').textContent=`Detection timing compares the same ${detection.count} adversar${detection.count===1?'y':'ies'} detected by both layouts; confirmation timing compares the same ${confirmation.count} confirmed by both. Negative timing differences mean RL was earlier. Positive warning differences mean more advance notice. One episode does not establish overall performance.`;
+  const subject=fiveSensor?'The archived RL layout':trainedModel?result.policyLabel:'RL';
+ $('comparison-verdict').textContent=difference===0?'Both layouts detected the same number of adversaries in this episode.':`${subject} detected ${Math.abs(difference)} ${difference>0?'more':'fewer'} adversar${Math.abs(difference)===1?'y':'ies'} in this episode.`;
+  $('comparison-timing-note').textContent=fiveSensor||trainedModel?`Detection timing compares the same ${detection.count} adversar${detection.count===1?'y':'ies'} detected by both layouts; confirmation timing compares the same ${confirmation.count} confirmed by both. Differences are ${trainedModel?result.policyLabel:'archived RL layout'} minus five-sensor placement. One episode does not establish overall performance.`:`Detection timing compares the same ${detection.count} adversar${detection.count===1?'y':'ies'} detected by both layouts; confirmation timing compares the same ${confirmation.count} confirmed by both. Negative timing differences mean RL was earlier. Positive warning differences mean more advance notice. One episode does not establish overall performance.`;
 }
 async function loadComparisonScenario(){
  pause();const sequence=++comparison.sequence,row=comparison.episodes.find(row=>String(row.id)===$('case').value&&String(row.policy)===$('policy').value);
+ const layoutId=$('comparison-layout').value||'matched_common_sense';
  comparison.scenario=null;comparison.result=null;comparison.episodeId=row?.id;comparison.loading=true;view=null;eventSignature='';nativeImage=null;document.body.classList.remove('native-preview');$('empty').hidden=true;
  $('comparison-budget').textContent='';$('comparison-reasoning').textContent='Loading the sensor model and evaluation details…';$('comparison-status').textContent='Loading both layouts and native sensing results…';$('episode-title').textContent='Preparing comparison';
  for(const id of ['comparison-forecast','comparison-weather','comparison-reports'])$(id).textContent='';
  comparisonClearResults();results();render();controls();showError('');
  try{
   if(!row)throw new Error('No paired native evaluation is available for this policy. Choose another policy.');
-  const result=await api('/api/comparison/run',{episodeId:row.id});
+  const result=await api('/api/comparison/run',{episodeId:row.id,layoutId});
   if(sequence!==comparison.sequence||mode!=='comparison')return;
-  comparison.result=result;comparison.scenario=result.scenario||{};
-  $('comparison-rl-label').textContent=row.policyLabel||$('policy').selectedOptions[0].textContent;
-  $('comparison-budget').textContent=`Same deployment limits: ${fmt(result.rl.budget)} budget units, up to ${result.rl.maxSensors??result.baseline.maxSensors??3} sensors.`;
+   comparison.result=result;comparison.scenario=result.scenario||{};const fiveSensor=result.method==='directional_balanced_5',trainedModel=Boolean(result.trainedModel);
+   $('comparison-rl-label').textContent=fiveSensor?`Archived ${row.policyLabel||$('policy').selectedOptions[0].textContent} layout`:row.policyLabel||$('policy').selectedOptions[0].textContent;
+   $('comparison-baseline-label').textContent=fiveSensor||trainedModel?'Five directional sensors':'Common-sense coverage';
+   $('comparison-control-heading').textContent=fiveSensor||trainedModel?'Five directional sensors':'Common-sense coverage';
+   $('comparison-control-copy').textContent=fiveSensor||trainedModel?'Five surface-mounted, limited-FOV thermal cameras face the five declared synthetic workbench lanes.':'Favor affordable sensors, spread coverage across approaches, and avoid redundant coverage. The baseline stays fixed for each episode.';
+   $('episode-help').textContent=trainedModel?'The named best checkpoint and baseline use the same held-out native episode, paths, speeds, seed and sensing draws.':fiveSensor?'Each episode uses the same five native drones, paths, speeds and seed for both layouts. The archived RL layout has not yet been retrained for five sensors.':'Each episode uses 60 adversaries in the native Istana environment. Both layouts face the same episode.';
+   $('comparison-heading').textContent=trainedModel?`${row.policyLabel} vs five-directional start`:fiveSensor?'Archived RL layout vs five-directional start':'Reinforcement learning vs common sense';
+   $('comparison-budget').textContent=trainedModel?`Same held-out workbench limit: ${fmt(result.rl.budget)} budget units, up to ${result.rl.maxSensors??5} sensors.`:fiveSensor?`Same workbench limit: ${fmt(result.rl.budget)} budget units, up to ${result.rl.maxSensors??5} sensors. The archived RL layout still contains only the sensors selected under its older contract.`:`Same deployment limits: ${fmt(result.rl.budget)} budget units, up to ${result.rl.maxSensors??result.baseline.maxSensors??3} sensors.`;
   $('comparison-reasoning').textContent=result.selection?.explanation||result.scenario?.selection?.explanation||'The fixed baseline favors affordable sensors that add new coverage, using approved sites and the same sensor catalogue, spacing and budget as RL. It chooses its layout before observing the realised adversary paths.';
   $('comparison-fairness').textContent=result.fairness?.description||'Both layouts use the current native sensor models, the same adversary episode, and the same deployment limits.';
   $('comparison-forecast').textContent=result.description||row.description||`${row.label} · ${result.rl.frames?.[0]?.threats?.length||60} adversaries · scripted Red approaches in the native Istana environment.`;
   $('comparison-weather').textContent=`Sensor profiles: ${(result.rl.catalogue||[]).filter(c=>(result.rl.availableSensorIds||result.rl.catalogue.map(c=>c.id)).includes(c.id)).map(c=>c.label||c.name||c.id).join(' · ')}.`;
-  $('comparison-reports').textContent='Boson thermal uses directional fields of view and Unreal world line-of-sight; the other native sensor profiles currently use radial coverage. Existing temporal RL policies; sensor directions use the current public-forecast adapter. These checkpoints were not retrained for the directional sensor update. Timely confirmation means a confirmed track at least 4 seconds before objective entry. Sensor probability parameters are simulator assumptions; no interception is simulated.';
-  $('comparison-tag').textContent='MATCHED NATIVE RESULTS';$('comparison-status').textContent='Comparison ready. Play, step or scrub to watch both layouts at the same time.';
+   $('comparison-reports').textContent=trainedModel?'This is the automatically saved best checkpoint and its matched held-out native evaluation. Warning values are measured; one episode does not establish overall performance. No interception is simulated.':fiveSensor?'Warning time, detection and confirmation values are measured from this native workbench replay. Both layouts share the episode, but the archived RL placement was trained for an earlier three-sensor contract, so this is not evidence of a fair trained-policy advantage. No interception is simulated.':'Boson thermal uses directional fields of view and Unreal world line-of-sight; the other native sensor profiles currently use radial coverage. Existing temporal RL policies; sensor directions use the current public-forecast adapter. These checkpoints were not retrained for the directional sensor update. Timely confirmation means a confirmed track at least 4 seconds before objective entry. Sensor probability parameters are simulator assumptions; no interception is simulated.';
+   $('comparison-tag').textContent=trainedModel?'TRAINED MODEL RESULT':fiveSensor?'MATCHED WORKBENCH RESULTS':'MATCHED NATIVE RESULTS';$('comparison-status').textContent=fiveSensor||trainedModel?'Measured comparison ready. Play, step or scrub to inspect both layouts and their warning-time results.':'Comparison ready. Play, step or scrub to watch both layouts at the same time.';
+  $('comparison-timeline-note').textContent='Both maps share the playback time and map scale.';
+   $('provenance').textContent=trainedModel?'Completed named training run · matched held-out native evaluation':fiveSensor?'Matched native workbench evaluation · archived RL layout vs five directional sensors':'Matched native Unreal evaluation · fixed common-sense baseline';
   setView({...result.rl,label:row.label,coordinateLabel:'Objective-relative metres'});comparisonResults(result);
  }catch(e){if(sequence===comparison.sequence){comparison.result=null;view=null;showError(`Could not load comparison: ${e.message}`);$('comparison-status').textContent='Choose another episode or select Compare placements again to retry.';$('comparison-verdict').textContent='Comparison unavailable.';render();}}
  finally{if(sequence===comparison.sequence){comparison.loading=false;controls();}}
 }
+function drawTrainingChart(history){
+ const canvas=$('training-chart'),ratio=window.devicePixelRatio||1,width=Math.max(180,canvas.clientWidth),height=Math.max(80,canvas.clientHeight);
+ canvas.width=Math.round(width*ratio);canvas.height=Math.round(height*ratio);const ctx=canvas.getContext('2d');ctx.scale(ratio,ratio);ctx.clearRect(0,0,width,height);
+ ctx.strokeStyle='#263343';ctx.lineWidth=1;for(let i=1;i<4;i++){ctx.beginPath();ctx.moveTo(0,height*i/4);ctx.lineTo(width,height*i/4);ctx.stroke();}
+ const values=(history||[]).map(row=>Number(row.reward)).filter(Number.isFinite);if(!values.length){ctx.fillStyle='#7890a8';ctx.font='11px Segoe UI';ctx.fillText('Warning-time history appears after episode 1',10,height/2);return;}
+ const low=Math.min(...values),high=Math.max(...values),span=Math.max(1e-6,high-low);ctx.beginPath();
+ values.forEach((value,index)=>{const x=values.length===1?width/2:8+index*(width-16)/(values.length-1),y=8+(high-value)*(height-16)/span;if(index)ctx.lineTo(x,y);else ctx.moveTo(x,y);});ctx.strokeStyle='#6ce8c8';ctx.lineWidth=2;ctx.stroke();
+ ctx.fillStyle='#97a7b9';ctx.font='9px Consolas';ctx.fillText(`${fmt(high,2)} s`,5,10);ctx.fillText(`${fmt(low,2)} s`,5,height-4);
+}
+function applyTrainingStatus(status){
+ training.status=status;const total=status.totalEpisodes||0,episode=status.episode||0,latest=status.history?.at(-1);
+ $('training-progress').textContent=`${episode} / ${total}`;$('training-progress-bar').style.width=`${total?Math.min(100,episode/total*100):0}%`;
+ $('training-warning').textContent=latest?`${fmt(latest.reward,2)} s`:'—';$('training-detected').textContent=latest?pct(latest.detectedFraction):'—';
+ const labels={idle:'Ready to train',connecting:'Connecting to native Unreal…',training:'Native episodes are running',evaluating:'Running fixed final evaluation…',stopping:'Stopping after the current native action…',stopped:'Training stopped safely',complete:'Training complete',failed:'Training failed'};
+ $('training-status').textContent=`${labels[status.phase]||status.phase}. ${status.modelName?`Model: ${status.modelName}.`:''} ${status.initializationLabel||''}`.trim();
+ $('training-output').textContent=status.registeredModel?`Saved “${status.registeredModel.name}” from best episode ${status.registeredModel.bestEpisode} (${fmt(status.registeredModel.bestWarningSeconds,2)} s held-out warning) and added it to Compare placements.`:status.outputDirectory?`Artifacts: ${status.outputDirectory}`:'';
+ if(status.initialLayout?.coverage_intent)$('training-initialization-help').textContent=status.initialLayout.coverage_intent+' The layout initializes trainable logits and is not locked.';
+ else $('training-initialization-help').textContent='The selected common-sense layout initializes trainable logits; it is not locked during RL.';
+ drawTrainingChart(status.history);
+ const signature=`${status.episode}-${status.phase}`;if(status.viewer&&(training.lastViewerEpisode!==signature||view?.mode!=='training')){training.lastViewerEpisode=signature;setView(status.viewer);}
+ if(status.phase==='failed'&&status.error)showError(status.error);controls();connectionStatus();
+}
+async function refreshTraining(){
+ if(training.polling)return;training.polling=true;
+ try{const wasRunning=training.status.running,status=await api('/api/training/status');applyTrainingStatus(status);if(wasRunning&&status.phase==='complete'){const session=await api('/api/session');syncModelCatalog(session);}}
+ catch(e){showError(`Could not read training status: ${e.message}`);}
+ finally{training.polling=false;if(mode==='training'&&training.status.running)training.timer=setTimeout(refreshTraining,750);}
+}
+async function trainingAction(action){
+ if(busy)return;busy=true;busyOperation=`training-${action}`;controls();showError('');
+ try{
+  const payload=action==='start'?{name:$('training-name').value,episodes:Number($('training-episodes').value),batchSize:Number($('training-batch').value),seed:Number($('training-seed').value),initialization:$('training-initialization').value}:{};
+  const status=await api(`/api/training/${action}`,payload);connected=false;applyTrainingStatus(status);
+  if(status.running){if(training.timer)clearTimeout(training.timer);training.timer=setTimeout(refreshTraining,250);}
+ }catch(e){showError(e.message);}finally{busy=false;busyOperation='';controls();connectionStatus();}
+}
 for(const id of ['profile','case'])$(id).addEventListener('change',loadReplay);
 $('policy').addEventListener('change',()=>{if(mode==='comparison')fillEpisodeOptions();loadReplay();});
+$('comparison-layout').addEventListener('change',loadComparisonScenario);
 for(const id of ['ranges','trails','drone-rings','sites'])$(id).addEventListener('change',()=>render());
-$('recorded-mode').onclick=()=>switchMode('recorded');$('live-mode').onclick=()=>switchMode('live');$('comparison-mode').onclick=()=>switchMode('comparison');
+$('recorded-mode').onclick=()=>switchMode('recorded');$('live-mode').onclick=()=>switchMode('live');$('comparison-mode').onclick=()=>switchMode('comparison');$('training-mode').onclick=()=>switchMode('training');
+$('training-start').onclick=()=>trainingAction('start');$('training-stop').onclick=()=>trainingAction('stop');
 $('connect').onclick=()=>{pause();liveAction(connected?'disconnect':'connect');};
-$('plan').onclick=()=>{pause();liveAction($('live-policy').value.startsWith('saved-')?'preview':'reset',{seed:Number($('seed').value),policy:$('live-policy').value});};
-$('live-policy').onchange=()=>{$('plan').textContent=$('live-policy').value.startsWith('saved-')?'Apply saved layout':'Plan new episode';};
+$('plan').onclick=()=>{pause();liveAction($('live-policy').value.startsWith('saved-')||$('live-policy').value.startsWith('trained-')?'preview':'reset',{seed:Number($('seed').value),policy:$('live-policy').value});};
+$('live-policy').onchange=()=>{$('plan').textContent=$('live-policy').value.startsWith('saved-')||$('live-policy').value.startsWith('trained-')?'Apply saved layout':'Plan new episode';};
 $('presentation').onchange=()=>{document.body.classList.toggle('presentation',$('presentation').checked);$('live-policy').size=$('presentation').checked?9:1;render();};
 $('play').onclick=()=>{if(playing)return pause();if(!view)return;if(mode!=='live'&&frameIndex===view.frames.length-1){frameIndex=0;render();}else if(mode==='live'&&frameIndex<view.frames.length-1){frameIndex=view.frames.length-1;render();}elapsed=view.frames[frameIndex].time;lastWall=0;liveWall=0;playing=true;controls();render();};
 $('step').onclick=()=>{pause();if(mode==='live')liveAction('step');else if(view){frameIndex=Math.min(frameIndex+1,view.frames.length-1);render();}};
@@ -289,5 +369,5 @@ $('timeline').oninput=()=>{pause();const requested=Number($('timeline').value);i
 $('speed').onchange=()=>render();
 const mapResizeObserver=new ResizeObserver(()=>draw(view?.frames[frameIndex]));
 for(const id of ['map','comparison-map-rl','comparison-map-baseline'])mapResizeObserver.observe($(id).parentElement);
-api('/api/session').then(async session=>{token=session.token;catalog=session.replays;comparison.episodes=session.comparisonEpisodes||[];connected=session.status.connected;if(session.savedModels?.length){const group=document.createElement('optgroup');group.label='Archived native layouts (no inference)';for(const model of session.savedModels){const option=document.createElement('option');option.value=model.id;option.textContent=model.label;group.append(option);}$('live-policy').append(group);}await loadReplay();connectionStatus();}).catch(e=>showError(e.message));
+api('/api/session').then(async session=>{token=session.token;catalog=session.replays;comparison.layouts=session.comparisonLayouts||[];for(const item of comparison.layouts){const option=element('option',item.label);option.value=item.id;$('comparison-layout').append(option);}connected=session.status.connected;training.status=session.training||training.status;for(const item of session.trainingInitializations||[]){const option=element('option',item.label);option.value=item.id;$('training-initialization').append(option);}if($('training-initialization').querySelector('[value="directional_balanced_5"]'))$('training-initialization').value='directional_balanced_5';syncModelCatalog(session);applyTrainingStatus(training.status);await loadReplay();connectionStatus();}).catch(e=>showError(e.message));
 controls();requestAnimationFrame(animate);

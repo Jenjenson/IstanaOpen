@@ -35,15 +35,18 @@ bool FBlueLiveApproachModes::RunTest(const FString& Parameters)
     Manager->MinSpawnRadiusCm = 3000; Manager->MaxSpawnRadiusCm = 10000;
     Manager->SwarmSpreadRadiusCm = 1000; Manager->SpawnHeightOffsetCm = 0;
 
-    AIstanaGameMode::ConfigureBlueLiveApproach(*Manager, *Blue, false, false);
+    AIstanaGameMode::ConfigureBlueLiveApproach(*Manager, *Blue, false, false, false);
     TestEqual(TEXT("Ordinary live mode preserves the map minimum"), Manager->MinSpawnRadiusCm, 3000.);
     TestEqual(TEXT("Ordinary live mode preserves the map maximum"), Manager->MaxSpawnRadiusCm, 10000.);
 
-    AIstanaGameMode::ConfigureBlueLiveApproach(*Manager, *Blue, false, true);
+    AIstanaGameMode::ConfigureBlueLiveApproach(*Manager, *Blue, false, true, false);
     TestEqual(TEXT("Delayed demo minimum"), Manager->MinSpawnRadiusCm, 56000.);
     TestEqual(TEXT("Delayed demo maximum"), Manager->MaxSpawnRadiusCm, 58000.);
     TestEqual(TEXT("Delayed demo preserves height"), Manager->SpawnHeightOffsetCm, 0.);
     TestEqual(TEXT("Delayed demo advertises its approach radius"), Blue->PriorSpawnRadiusM, 570.);
+    TestEqual(TEXT("Delayed demo advertises its physical altitude"), Blue->PriorAltitudeM, 0.);
+    TestEqual(TEXT("Delayed demo advertises its physical speed"), Blue->PriorSpeedMps,
+        Manager->Settings.CruiseSpeedCmPerSecond / 100.);
     TestEqual(TEXT("Delayed demo allows physical approach time"), Blue->TimeLimitSeconds, 220.);
     double MaximumSiteRadiusM = 0, MaximumSensorRangeM = 0;
     for (const FVector2D& Site : Blue->ApprovedSitesM) MaximumSiteRadiusM = FMath::Max(MaximumSiteRadiusM, Site.Size());
@@ -57,12 +60,22 @@ bool FBlueLiveApproachModes::RunTest(const FString& Parameters)
     TestTrue(TEXT("Nominal inward approach reaches the objective within the frozen horizon"),
         (ScriptedStartRadiusM - Blue->ObjectiveRadiusM) / CruiseSpeedMps < Blue->TimeLimitSeconds);
 
-    AIstanaGameMode::ConfigureBlueLiveApproach(*Manager, *Blue, true, true);
+    AIstanaGameMode::ConfigureBlueLiveApproach(*Manager, *Blue, true, true, false);
     TestEqual(TEXT("Warning benchmark takes precedence"), Manager->MinSpawnRadiusCm, 26000.);
     TestEqual(TEXT("Warning benchmark maximum is unchanged"), Manager->MaxSpawnRadiusCm, 30000.);
     TestEqual(TEXT("Warning benchmark height is unchanged"), Manager->SpawnHeightOffsetCm, 12000.);
     TestEqual(TEXT("Warning benchmark horizon is unchanged"), Blue->TimeLimitSeconds, 180.);
     TestEqual(TEXT("Warning benchmark prior is unchanged"), Blue->PriorSpawnRadiusM, 280.);
+    Blue->Budget = 3; Blue->MaxSites = 3; Blue->TimeLimitSeconds = 96; Manager->DronesPerSwarm = 12;
+    AIstanaGameMode::ConfigureBlueLiveApproach(*Manager, *Blue, false, true, true);
+    TestEqual(TEXT("Training workbench provides five cost units"), Blue->Budget, 5.);
+    TestEqual(TEXT("Training workbench permits five placements"), Blue->MaxSites, 5);
+    TestEqual(TEXT("Training workbench uses one drone in each approach group"), Manager->DronesPerSwarm, 1);
+    TestEqual(TEXT("Training public prior matches the per-group count"), Blue->PriorSwarmSize, 1);
+    TestEqual(TEXT("Training lanes stay above map-specific avoidance geometry"), Manager->SpawnHeightOffsetCm, 12000.);
+    TestEqual(TEXT("Training prior advertises the synthetic lane altitude"), Blue->PriorAltitudeM, 120.);
+    TestEqual(TEXT("Five-lane training horizon retains complete terminal evidence"), Blue->TimeLimitSeconds, 100.);
+    TestEqual(TEXT("Training camera sensing runs at a conservative five hertz"), Blue->LookIntervalSeconds, .2);
     GEngine->DestroyWorldContext(World);
     World->DestroyWorld(false);
     return true;

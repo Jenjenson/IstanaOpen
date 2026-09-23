@@ -36,7 +36,7 @@ public:
     // Applies only opt-in Blue-live scenario overrides. Kept separate from the
     // saved map defaults so native automation can verify the mode boundary.
     static void ConfigureBlueLiveApproach(ARedTeamManager& Manager, ABlueTeamCoordinator& Coordinator,
-        bool bWarningApproachV2, bool bDelayedDetectionDemo);
+        bool bWarningApproachV2, bool bDelayedDetectionDemo, bool bTrainingWorkbench = false);
 };
 
 UCLASS()
