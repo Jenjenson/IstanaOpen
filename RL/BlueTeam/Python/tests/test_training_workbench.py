@@ -11,7 +11,9 @@ from triad_rl.adaptive_inputs import INPUT_SCHEMA
 from triad_rl.directional_inputs import BOSON_PLUS_640_18MM
 from triad_rl.temporal_inputs import TemporalConfig
 from triad_rl.training_workbench import (
-    BALANCED_LANE_YAWS, TrainingManager, _red_centers, _viewer, common_sense_start)
+    BALANCED_LANE_YAWS, TrainingManager, _red_centers, _trajectory_digest, _viewer,
+    common_sense_start)
+from triad_rl.warning_algorithms import MaskedA2CPolicy, MaskedPPOPolicy, TRAINING_ALGORITHMS
 from triad_rl.warning_policy import WarningPolicy
 
 
@@ -64,6 +66,15 @@ def test_seeded_red_centers_stay_inside_the_five_declared_fov_lanes():
         angle = math.degrees(math.atan2(y + 200., x - 100.)) % 360.
         assert abs((angle - lane + 180) % 360 - 180) <= 4.
         assert math.isclose(math.hypot(x - 100., y + 200.), 57000.) and z == 300.
+
+
+def test_trajectory_digest_excludes_blue_detection_annotations():
+    frame = {"time": 1., "completedSteps": 20, "detections": [], "tracks": [],
+             "threats": [{"id": "drone-1", "position": [1., 2., 3.], "active": True,
+                          "observer_truth": True, "detected": False, "confirmed": False}]}
+    changed = deepcopy(frame)
+    changed["threats"][0].update(detected=True, confirmed=True)
+    assert _trajectory_digest([frame]) == _trajectory_digest([changed])
 
 
 def test_five_sensor_start_requires_explicit_native_workbench_allowance():
@@ -150,7 +161,8 @@ def test_background_manager_retains_progress_checkpoints_and_summary(tmp_path):
 
     manager = TrainingManager(8765, tmp_path, client_factory=Client,
                               policy_factory=Policy, episode_runner=episode)
-    manager.start({"name": "Perimeter watcher", "episodes": 4, "batchSize": 2,
+    manager.start({"name": "Perimeter watcher", "algorithm": "reinforce",
+                   "episodes": 4, "batchSize": 2,
                    "seed": 917, "initialization": "untrained"})
     manager.thread.join(timeout=5)
     status = manager.status()
@@ -173,5 +185,43 @@ def test_background_manager_retains_progress_checkpoints_and_summary(tmp_path):
 @pytest.mark.parametrize("name", ["", "   ", "bad\nname", "x" * 65])
 def test_training_requires_a_safe_nonempty_model_name(name):
     with pytest.raises(ValueError, match="Model name"):
-        TrainingManager.validate({"name": name, "episodes": 4, "batchSize": 2,
+        TrainingManager.validate({"name": name, "algorithm": "reinforce",
+                                  "episodes": 4, "batchSize": 2,
                                   "seed": 1, "initialization": "untrained"})
+
+
+def test_training_rejects_unknown_algorithm():
+    with pytest.raises(ValueError, match="algorithm"):
+        TrainingManager.validate({"name": "test", "algorithm": "ddpg",
+                                  "episodes": 4, "batchSize": 2,
+                                  "seed": 1, "initialization": "untrained"})
+
+
+@pytest.mark.parametrize("policy_type,algorithm", [
+    (MaskedPPOPolicy, "ppo"), (MaskedA2CPolicy, "a2c")])
+def test_masked_actor_critic_trains_saves_and_reloads(policy_type, algorithm, tmp_path):
+    context = native_context()
+    policy = policy_type(context, seed=31)
+    episodes = []
+    for seed, reward in ((4, 5.), (5, 40.), (6, 15.), (7, 32.)):
+        placements, records = policy.plan(context, rng=np.random.default_rng(seed))
+        assert len(placements) <= 5 and records
+        assert all(record["mask"][record["action"]] for record in records)
+        episodes.append((records, reward))
+    before = policy.logits()
+    report = policy.update(episodes)
+    assert report["algorithm"] == algorithm and report["update"] == 1
+    assert np.isfinite(policy.logits()).all() and not np.array_equal(before, policy.logits())
+    assert np.isfinite(policy.values).all() and np.any(policy.value_updates)
+    checkpoint = tmp_path / f"{algorithm}.json"
+    policy.save(checkpoint)
+    restored = policy_type.load(checkpoint, context)
+    np.testing.assert_allclose(restored.logits(), policy.logits())
+    np.testing.assert_allclose(restored.values, policy.values)
+    assert restored.updates == policy.updates and restored.optimizer_steps == policy.optimizer_steps
+
+
+def test_training_algorithm_catalogue_has_the_three_supported_choices():
+    assert list(TRAINING_ALGORITHMS) == ["reinforce", "ppo", "a2c"]
+    assert {row["label"] for row in TRAINING_ALGORITHMS.values()} == {
+        "REINFORCE", "Masked PPO", "Masked A2C"}

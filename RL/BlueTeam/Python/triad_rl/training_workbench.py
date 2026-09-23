@@ -23,6 +23,7 @@ from .common_sense import plan_common_sense
 from .directional_inputs import apply_placement, build_observation
 from .istana_live import IstanaLiveClient, public_planning_inputs
 from .trained_models import COMPARISON_SCHEMA, TrainedModelRegistry, validate_model_name
+from .warning_algorithms import TRAINING_ALGORITHMS
 from .warning_policy import WarningPolicy, warning_metrics
 
 
@@ -138,7 +139,13 @@ def _capture_frame(red, blue, origin):
 
 
 def _trajectory_digest(frames):
-    value = [{key: row[key] for key in ("time", "completedSteps", "threats")} for row in frames]
+    # Detection/confirmation annotations depend on the Blue layout and are not
+    # Red trajectory truth.  Excluding them makes equality mean what the fair
+    # comparison contract claims: same times, positions and active states.
+    value = [{"time": row["time"], "completedSteps": row["completedSteps"],
+              "threats": [{key: threat[key] for key in
+                           ("id", "position", "active", "observer_truth")}
+                          for threat in row["threats"]]} for row in frames]
     return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":"),
                                      allow_nan=False).encode()).hexdigest()
 
@@ -280,11 +287,16 @@ def _starting_view(context, layout, total):
 class TrainingManager:
     """Own one cancellable background training run and its serial bridge."""
     def __init__(self, bridge_port=8765, output_root=None, *, client_factory=IstanaLiveClient,
-                 policy_factory=WarningPolicy, episode_runner=run_episode, registry=None):
+                 policy_factory=None, policy_factories=None, episode_runner=run_episode, registry=None):
         self.bridge_port = bridge_port
         self.output_root = Path(output_root or Path.cwd() / "Saved/WarningTraining")
         self.client_factory = client_factory
-        self.policy_factory = policy_factory
+        if policy_factory is not None and policy_factories is not None:
+            raise ValueError("Choose either one injected policy factory or an algorithm factory map")
+        self.policy_factories = ({key: row["factory"] for key, row in TRAINING_ALGORITHMS.items()}
+                                 if policy_factories is None else dict(policy_factories))
+        if policy_factory is not None:
+            self.policy_factories["reinforce"] = policy_factory
         self.episode_runner = episode_runner
         self.registry = registry or TrainedModelRegistry(self.output_root / "models")
         self.lock = threading.RLock()
@@ -296,6 +308,7 @@ class TrainingManager:
         return {"running": False, "phase": "idle", "episode": 0, "totalEpisodes": 0,
                 "history": [], "checkpoints": [], "initialization": "untrained",
                 "initializationLabel": INITIALIZATIONS["untrained"], "initialLayout": None,
+                "algorithm": "reinforce", "algorithmLabel": TRAINING_ALGORITHMS["reinforce"]["label"],
                 "modelName": "", "bestEpisode": None, "bestWarningSeconds": None,
                 "registeredModel": None, "viewer": None, "outputDirectory": None,
                 "error": "", "stopRequested": False}
@@ -310,9 +323,10 @@ class TrainingManager:
 
     @staticmethod
     def validate(config):
-        required = {"name", "episodes", "batchSize", "seed", "initialization"}
+        required = {"name", "algorithm", "episodes", "batchSize", "seed", "initialization"}
         if not isinstance(config, dict) or set(config) != required:
-            raise ValueError("Training requires a model name, episodes, batchSize, seed and initialization")
+            raise ValueError(
+                "Training requires a model name, algorithm, episodes, batchSize, seed and initialization")
         episodes, batch = config["episodes"], config["batchSize"]
         seed, initialization = config["seed"], config["initialization"]
         if type(episodes) is not int or not 4 <= episodes <= 512:
@@ -323,6 +337,8 @@ class TrainingManager:
             raise ValueError("Training seed must be a signed 32-bit integer")
         if initialization not in INITIALIZATIONS:
             raise ValueError("Select an available training initialization")
+        if config["algorithm"] not in TRAINING_ALGORITHMS:
+            raise ValueError("Select an available training algorithm")
         result = deepcopy(config)
         result["name"] = validate_model_name(config["name"])
         return result
@@ -332,11 +348,15 @@ class TrainingManager:
         with self.lock:
             if self.thread is not None and self.thread.is_alive():
                 raise ValueError("A training run is already active")
+            if config["algorithm"] not in self.policy_factories:
+                raise ValueError("The selected training algorithm is unavailable")
             self.registry.ensure_available(config["name"])
             self.stop_event.clear()
             self._status = self._blank()
             self._status.update(running=True, phase="connecting", totalEpisodes=config["episodes"],
                                 modelName=config["name"],
+                                algorithm=config["algorithm"],
+                                algorithmLabel=TRAINING_ALGORITHMS[config["algorithm"]]["label"],
                                 initialization=config["initialization"],
                                 initializationLabel=INITIALIZATIONS[config["initialization"]])
             self.thread = threading.Thread(target=self._run, args=(config,), daemon=True,
@@ -365,7 +385,7 @@ class TrainingManager:
             client = self.client_factory(port=self.bridge_port, timeout=120.)
             client.reset(1600000)
             context = client.get_blue_context()
-            policy = self.policy_factory(context, seed=config["seed"])
+            policy = self.policy_factories[config["algorithm"]](context, seed=config["seed"])
             start_layout = None
             if config["initialization"] != "untrained":
                 start_layout = common_sense_start(context, config["initialization"])
@@ -439,17 +459,19 @@ class TrainingManager:
             if final["trajectory_sha256"] != baseline["trajectory_sha256"]:
                 raise RuntimeError("Best-model and baseline comparison trajectories differ")
             model_id = self.registry.identifier_for(config["name"])
-            policy_selection = {"label": config["name"], "kind": "trained_warning_policy",
+            algorithm_label = TRAINING_ALGORITHMS[config["algorithm"]]["label"]
+            policy_selection = {"label": f"{config['name']} · {algorithm_label}",
+                "kind": "trained_warning_policy", "algorithm": config["algorithm"],
                 "explanation": (
-                    "Best checkpoint selected by mean per-drone warning time on the fixed "
+                    f"{algorithm_label} best checkpoint selected by mean per-drone warning time on the fixed "
                     "held-out native episode after each policy update.")}
             baseline_selection = {"label": INITIALIZATIONS["directional_balanced_5"],
                 "kind": "fixed_directional_workbench_start",
                 "explanation": baseline_layout["selection"]["explanation"]}
             comparison_episode = {"schema": COMPARISON_SCHEMA, "id": model_id,
-                "policy": model_id, "policyLabel": config["name"], "case": 1,
+                "policy": model_id, "policyLabel": f"{config['name']} · {algorithm_label}", "case": 1,
                 "label": f"{config['name']} · held-out native episode", "seed": 2700000,
-                "rl": _comparison_view(final, config["name"], policy_selection),
+                "rl": _comparison_view(final, f"{config['name']} · {algorithm_label}", policy_selection),
                 "baseline": _comparison_view(
                     baseline, INITIALIZATIONS["directional_balanced_5"], baseline_selection),
                 "audit": {"sameTrajectories": True, "sameBudget": True,
@@ -462,10 +484,12 @@ class TrainingManager:
                     "trainingOutput": str(output), "trainingEpisodes": config["episodes"],
                     "bestEpisode": best_episode, "bestWarningSeconds":
                         final["metrics"]["mean_drone_warning_s"],
+                    "algorithm": config["algorithm"], "algorithmLabel": algorithm_label,
                     "evaluationSeed": 2700000, "initialization": config["initialization"],
                     "deploymentPlacements": final["placements"]})
             summary = {"schema": "istana.console_warning_training_summary.v1",
                        "modelName": config["name"], "modelId": registered["id"],
+                       "algorithm": config["algorithm"], "algorithmLabel": algorithm_label,
                        "episodes": config["episodes"], "initialization": config["initialization"],
                        "bestEpisode": best_episode, "bestEvaluation": final["metrics"],
                        "comparisonBaselineEvaluation": baseline["metrics"],
@@ -473,6 +497,7 @@ class TrainingManager:
             (output / "summary.json").write_text(json.dumps(summary, indent=2, allow_nan=False), encoding="utf-8")
             self._set(running=False, phase="complete", registeredModel={
                 "id": registered["id"], "name": registered["name"],
+                "algorithm": config["algorithm"], "algorithmLabel": algorithm_label,
                 "bestEpisode": best_episode,
                 "bestWarningSeconds": final["metrics"]["mean_drone_warning_s"]},
                 viewer=_viewer(final, best_episode, config["episodes"]))

@@ -27,7 +27,12 @@ Start the scene on the console's configured bridge port with
 select Training. Enter a unique model name, then choose an untrained start or a
 five-directional-sensor public-only common-sense warm start. Warm starting
 changes initial logits only; all selected and unselected actions remain
-trainable. After each batch update, the console evaluates that checkpoint on
+trainable. Select REINFORCE, Masked PPO or Masked A2C. Each optimizer consumes
+the same complete native episode reward and legal categorical action records;
+PPO and A2C add a placement-step value baseline without changing the simulator
+or observations. DDPG is not exposed because the native contract is a discrete
+choice among approved sensor/site/yaw/pitch options plus STOP. After each batch
+update, the console evaluates that checkpoint on
 the same fixed held-out native episode. A successful run saves the checkpoint
 with the highest measured mean per-drone warning time under
 `Saved/WarningTraining/models/trained-*` and immediately lists it in **Compare

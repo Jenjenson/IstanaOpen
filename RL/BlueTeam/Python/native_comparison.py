@@ -245,7 +245,7 @@ class NativeComparisons:
               "policyLabel": policy_label(row["policy"]), "case": row["case"],
               "label": row["label"]} for row in self._bundle()["episodes"]])
         rows.extend({"id": model["id"], "policy": model["id"],
-            "policyLabel": model["name"], "case": 1,
+            "policyLabel": f"{model['name']} · {model.get('algorithmLabel', 'REINFORCE')}", "case": 1,
             "label": f"{model['name']} · held-out episode",
             "defaultLayout": "directional_balanced_5", "trainedModel": True}
             for model in self.registry.list())

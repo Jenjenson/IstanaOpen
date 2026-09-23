@@ -195,7 +195,12 @@ in roughly 66 s in the verified smoke case.
    clock. Changing the planner only takes effect on **Plan new episode**.
 
 For training, choose **Training**, enter a unique model name, select a starting
-placement, episode count, batch size and seed, then click **Start training**.
+placement, training algorithm, episode count, batch size and seed, then click
+**Start training**. Available algorithms are **REINFORCE**, **Masked PPO**, and
+**Masked A2C**. All three use the identical categorical sensor/profile/site/yaw/
+pitch/STOP choices and native legality mask; only the optimizer changes. DDPG is
+not offered because its continuous action contract does not match the approved
+discrete mounting-site workflow.
 After every policy update the console evaluates the checkpoint on one fixed
 held-out native episode. When training finishes, it saves the highest-warning
 checkpoint under the chosen name and automatically adds its matched evaluation

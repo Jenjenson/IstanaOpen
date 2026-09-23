@@ -111,7 +111,7 @@ def test_completed_named_model_is_discovered_and_served_in_comparison(tmp_path):
                   "evaluationSeed": 2700000, "deploymentPlacements": []})
     store = NativeComparisons(registry=registry)
     row = next(row for row in store.list() if row["id"] == identifier)
-    assert row["policyLabel"] == "Night Watch"
+    assert row["policyLabel"] == "Night Watch · REINFORCE"
     assert row["defaultLayout"] == "directional_balanced_5" and row["trainedModel"]
     result = store.get(identifier, layout_id="directional_balanced_5")
     assert result["trainedModel"] and result["policyLabel"] == "Night Watch"

@@ -1,10 +1,10 @@
 {
   "schema": "istana.workbench_layout_comparison_capture.v1",
-  "createdUtc": "2026-09-23T07:21:45.497328+00:00",
-  "baseCommit": "c8d9d258ade95c27d32005a5eff54a06835ba111",
+  "createdUtc": "2026-09-23T07:51:07.822552+00:00",
+  "baseCommit": "23ebc12ed81cda51ec6fe1aab71886cfbbf4c806",
   "sourceSha256": {
     "RL/BlueTeam/Python/build_workbench_comparison.py": "b8fe27da2ac8a19839d1f4bce2bd9b196073c8f2c6c53f3f80af2ec67ccb6ac7",
-    "RL/BlueTeam/Python/triad_rl/training_workbench.py": "5e3f8e092961b802311c4f4ebb780b3ff97beb7dca2d31f4b098833f800f4340",
+    "RL/BlueTeam/Python/triad_rl/training_workbench.py": "9adb1fc55261d338a63bcf61a12a0668785ace97f52ded7b78c402e7bb76a6be",
     "RL/BlueTeam/Python/triad_rl/istana_live.py": "93722ec7b2722103e5a3840b7e4896afa385c030455df78fdefce79bd78c8677",
     "RL/BlueTeam/Python/triad_rl/warning_policy.py": "ec4a9f4f9ff77d968d50172eb49d9acbc02f68596817ef2be068e2e7cb6d9828",
     "Source/IstanaOpen/IstanaGameMode.cpp": "fb9aa2ecd98de0ffd405f64cea46815b2f2555b10ae8245534af8798ad753782",

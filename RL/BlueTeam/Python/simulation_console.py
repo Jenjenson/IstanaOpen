@@ -20,6 +20,7 @@ import time
 from triad_rl.istana_live import IstanaLiveClient, make_plan, scripted_red_centers
 from triad_rl.trained_models import TrainedModelRegistry
 from triad_rl.training_workbench import INITIALIZATIONS, TrainingManager
+from triad_rl.warning_algorithms import TRAINING_ALGORITHMS
 from native_comparison import NativeComparisons, policy_label
 
 ROOT = Path(__file__).resolve().parent
@@ -120,7 +121,8 @@ class ConsoleState:
                             raise ValueError("Named trained models are unavailable")
                         model = self.trained_models.get(selection)
                         key = selection
-                        row = {"label": model["name"], "seed": model["evaluationSeed"],
+                        row = {"label": f"{model['name']} · {model.get('algorithmLabel', 'REINFORCE')}",
+                               "seed": model["evaluationSeed"],
                                "placements": model["deploymentPlacements"]}
                     else:
                         layouts = load_layouts(LAYOUT_SOURCE)
@@ -274,12 +276,17 @@ def make_server(port=9048, bridge_port=8765, *, state=None, replays=None, compar
                     "comparisonLayouts": comparisons.layouts(), "training": trainer.status(),
                     "trainingInitializations": [{"id": key, "label": label}
                                                 for key, label in INITIALIZATIONS.items()],
-                    "trainedModels": [{"id": row["id"], "label": row["name"],
+                    "trainingAlgorithms": [{"id": key, "label": row["label"],
+                                             "description": row["description"]}
+                                            for key, row in TRAINING_ALGORITHMS.items()],
+                    "trainedModels": [{"id": row["id"],
+                                       "label": f"{row['name']} · {row.get('algorithmLabel', 'REINFORCE')}",
                                        "bestEpisode": row["bestEpisode"],
                                        "bestWarningSeconds": row["bestWarningSeconds"]}
                                       for row in named_models],
                     "savedModels": archived_models + [
-                        {"id": row["id"], "label": f"{row['name']} · trained best",
+                        {"id": row["id"],
+                         "label": f"{row['name']} · {row.get('algorithmLabel', 'REINFORCE')} best",
                          "kind": "trained"} for row in named_models]})
             if self.path == "/api/status":
                 return self.reply(state.status())

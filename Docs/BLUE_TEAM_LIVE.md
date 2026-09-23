@@ -57,6 +57,12 @@ the console scores that checkpoint on the same fixed held-out native episode;
 on successful completion it publishes the best checkpoint and its matched
 five-directional-sensor comparison. The named model then appears immediately in
 **Compare placements** and as a saved-layout choice in **Live Unreal**.
+The algorithm selector offers REINFORCE, Masked PPO and Masked A2C. They share
+the exact environment, reward, warm starts, action mask and deployment contract.
+PPO uses clipped categorical actor updates with a placement-step critic; A2C
+uses synchronous advantage actor-critic updates. DDPG is intentionally omitted
+because this console selects discrete approved mount/type/orientation actions,
+not unconstrained continuous positions.
 
 ## Live mode
 

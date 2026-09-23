@@ -34,7 +34,7 @@ function controls(){
  $('timeline').disabled=!view||blocking||draft;$('speed').disabled=!view||draft;
  $('connect').disabled=busy||playing||training.status.running;$('plan').disabled=!connected||busy||playing||training.status.running;
  $('training-start').disabled=busy||training.status.running;$('training-stop').disabled=!training.status.running;
- for(const id of ['training-name','training-initialization','training-episodes','training-batch','training-seed'])$(id).disabled=training.status.running;
+ for(const id of ['training-name','training-algorithm','training-initialization','training-episodes','training-batch','training-seed'])$(id).disabled=training.status.running;
  for(const id of ['recorded-mode','live-mode','comparison-mode','training-mode'])$(id).disabled=busy||playing||comparison.loading;
  comparisonControls();
 }
@@ -330,8 +330,8 @@ function applyTrainingStatus(status){
  $('training-progress').textContent=`${episode} / ${total}`;$('training-progress-bar').style.width=`${total?Math.min(100,episode/total*100):0}%`;
  $('training-warning').textContent=latest?`${fmt(latest.reward,2)} s`:'—';$('training-detected').textContent=latest?pct(latest.detectedFraction):'—';
  const labels={idle:'Ready to train',connecting:'Connecting to native Unreal…',training:'Native episodes are running',evaluating:'Running fixed final evaluation…',stopping:'Stopping after the current native action…',stopped:'Training stopped safely',complete:'Training complete',failed:'Training failed'};
- $('training-status').textContent=`${labels[status.phase]||status.phase}. ${status.modelName?`Model: ${status.modelName}.`:''} ${status.initializationLabel||''}`.trim();
- $('training-output').textContent=status.registeredModel?`Saved “${status.registeredModel.name}” from best episode ${status.registeredModel.bestEpisode} (${fmt(status.registeredModel.bestWarningSeconds,2)} s held-out warning) and added it to Compare placements.`:status.outputDirectory?`Artifacts: ${status.outputDirectory}`:'';
+ $('training-status').textContent=`${labels[status.phase]||status.phase}. ${status.modelName?`Model: ${status.modelName}.`:''} ${status.algorithmLabel||''}. ${status.initializationLabel||''}`.trim();
+ $('training-output').textContent=status.registeredModel?`Saved “${status.registeredModel.name}” (${status.registeredModel.algorithmLabel}) from best episode ${status.registeredModel.bestEpisode} (${fmt(status.registeredModel.bestWarningSeconds,2)} s held-out warning) and added it to Compare placements.`:status.outputDirectory?`Artifacts: ${status.outputDirectory}`:'';
  if(status.initialLayout?.coverage_intent)$('training-initialization-help').textContent=status.initialLayout.coverage_intent+' The layout initializes trainable logits and is not locked.';
  else $('training-initialization-help').textContent='The selected common-sense layout initializes trainable logits; it is not locked during RL.';
  drawTrainingChart(status.history);
@@ -347,7 +347,7 @@ async function refreshTraining(){
 async function trainingAction(action){
  if(busy)return;busy=true;busyOperation=`training-${action}`;controls();showError('');
  try{
-  const payload=action==='start'?{name:$('training-name').value,episodes:Number($('training-episodes').value),batchSize:Number($('training-batch').value),seed:Number($('training-seed').value),initialization:$('training-initialization').value}:{};
+  const payload=action==='start'?{name:$('training-name').value,algorithm:$('training-algorithm').value,episodes:Number($('training-episodes').value),batchSize:Number($('training-batch').value),seed:Number($('training-seed').value),initialization:$('training-initialization').value}:{};
   const status=await api(`/api/training/${action}`,payload);connected=false;applyTrainingStatus(status);
   if(status.running){if(training.timer)clearTimeout(training.timer);training.timer=setTimeout(refreshTraining,250);}
  }catch(e){showError(e.message);}finally{busy=false;busyOperation='';controls();connectionStatus();}
@@ -358,6 +358,7 @@ $('comparison-layout').addEventListener('change',loadComparisonScenario);
 for(const id of ['ranges','trails','drone-rings','sites'])$(id).addEventListener('change',()=>render());
 $('recorded-mode').onclick=()=>switchMode('recorded');$('live-mode').onclick=()=>switchMode('live');$('comparison-mode').onclick=()=>switchMode('comparison');$('training-mode').onclick=()=>switchMode('training');
 $('training-start').onclick=()=>trainingAction('start');$('training-stop').onclick=()=>trainingAction('stop');
+$('training-algorithm').onchange=()=>{$('training-algorithm-help').textContent=$('training-algorithm').selectedOptions[0]?.dataset.description||'';};
 $('connect').onclick=()=>{pause();liveAction(connected?'disconnect':'connect');};
 $('plan').onclick=()=>{pause();liveAction($('live-policy').value.startsWith('saved-')||$('live-policy').value.startsWith('trained-')?'preview':'reset',{seed:Number($('seed').value),policy:$('live-policy').value});};
 $('live-policy').onchange=()=>{$('plan').textContent=$('live-policy').value.startsWith('saved-')||$('live-policy').value.startsWith('trained-')?'Apply saved layout':'Plan new episode';};
@@ -369,5 +370,5 @@ $('timeline').oninput=()=>{pause();const requested=Number($('timeline').value);i
 $('speed').onchange=()=>render();
 const mapResizeObserver=new ResizeObserver(()=>draw(view?.frames[frameIndex]));
 for(const id of ['map','comparison-map-rl','comparison-map-baseline'])mapResizeObserver.observe($(id).parentElement);
-api('/api/session').then(async session=>{token=session.token;catalog=session.replays;comparison.layouts=session.comparisonLayouts||[];for(const item of comparison.layouts){const option=element('option',item.label);option.value=item.id;$('comparison-layout').append(option);}connected=session.status.connected;training.status=session.training||training.status;for(const item of session.trainingInitializations||[]){const option=element('option',item.label);option.value=item.id;$('training-initialization').append(option);}if($('training-initialization').querySelector('[value="directional_balanced_5"]'))$('training-initialization').value='directional_balanced_5';syncModelCatalog(session);applyTrainingStatus(training.status);await loadReplay();connectionStatus();}).catch(e=>showError(e.message));
+api('/api/session').then(async session=>{token=session.token;catalog=session.replays;comparison.layouts=session.comparisonLayouts||[];for(const item of comparison.layouts){const option=element('option',item.label);option.value=item.id;$('comparison-layout').append(option);}connected=session.status.connected;training.status=session.training||training.status;for(const item of session.trainingAlgorithms||[]){const option=element('option',item.label);option.value=item.id;option.dataset.description=item.description;$('training-algorithm').append(option);}if($('training-algorithm').querySelector('[value="reinforce"]'))$('training-algorithm').value='reinforce';$('training-algorithm').onchange();for(const item of session.trainingInitializations||[]){const option=element('option',item.label);option.value=item.id;$('training-initialization').append(option);}if($('training-initialization').querySelector('[value="directional_balanced_5"]'))$('training-initialization').value='directional_balanced_5';syncModelCatalog(session);applyTrainingStatus(training.status);await loadReplay();connectionStatus();}).catch(e=>showError(e.message));
 controls();requestAnimationFrame(animate);

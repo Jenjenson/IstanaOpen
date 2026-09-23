@@ -39,6 +39,8 @@
     <p class="helper live-note">Train the directional warning-time policy against native scripted Red episodes. This tab temporarily owns the Unreal bridge.</p>
     <label for="training-name">Model name</label><input id="training-name" type="text" maxlength="64" value="My warning model" autocomplete="off" spellcheck="false">
     <p class="helper">After training, the best held-out checkpoint is saved under this name and added to Compare placements automatically.</p>
+    <label for="training-algorithm">Training algorithm</label><select id="training-algorithm"></select>
+    <p id="training-algorithm-help" class="helper">Choose how complete native episode returns update the masked placement policy.</p>
     <label for="training-initialization">Starting placement</label><select id="training-initialization"></select>
     <p id="training-initialization-help" class="helper">The selected common-sense layout initializes trainable logits; it is not locked during RL.</p>
     <div class="training-grid"><label for="training-episodes">Episodes<input id="training-episodes" type="number" min="4" max="512" step="4" value="32"></label><label for="training-batch">Batch size<input id="training-batch" type="number" min="2" max="32" step="1" value="4"></label></div>
