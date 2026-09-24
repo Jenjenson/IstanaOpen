@@ -10,7 +10,7 @@ import hashlib
 import json
 import math
 from pathlib import Path
-from statistics import mean
+from statistics import mean, stdev
 
 from triad_rl.training_workbench import BALANCED_LANE_YAWS
 from triad_rl.trained_models import TrainedModelRegistry
@@ -30,6 +30,63 @@ COMPARISON_LAYOUTS = (
 
 def policy_label(identifier):
     return POLICY_LABELS.get(str(identifier), f"RL policy {identifier}")
+
+
+def held_out_summary(evaluation):
+    """Read a complete saved test panel, never a replay or training-score fallback.
+
+    Older registries may have only aggregate means. Those can be displayed without
+    an interval; partial/malformed paired evidence must not invent a sample size.
+    """
+    def finite(value):
+        return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
+
+    def agrees(left, right):
+        return math.isclose(left, right, rel_tol=1e-9, abs_tol=1e-7)
+
+    if not isinstance(evaluation, dict):
+        return None
+    count = evaluation.get("caseCount")
+    if type(count) is not int or count < 1:
+        return None
+    policy = evaluation.get("meanWarningSeconds")
+    baseline = evaluation.get("baselineMeanWarningSeconds")
+    delta = evaluation.get("deltaSeconds")
+    if (not all(finite(value) for value in (policy, baseline, delta))
+            or min(policy, baseline) < 0 or not agrees(delta, policy - baseline)):
+        return None
+    seeds = evaluation.get("seeds")
+    if "seeds" in evaluation and (not isinstance(seeds, list) or len(seeds) != count
+            or any(type(seed) is not int for seed in seeds) or len(set(seeds)) != count):
+        return None
+    cases = evaluation.get("cases")
+    if "cases" in evaluation:
+        if (not isinstance(cases, list) or len(cases) != count
+                or any(not isinstance(row, dict) or not finite(row.get("mean_drone_warning_s"))
+                       or row["mean_drone_warning_s"] < 0 for row in cases)
+                or not agrees(mean(row["mean_drone_warning_s"] for row in cases), policy)):
+            return None
+        case_seeds = [row.get("seed") for row in cases]
+        if (any(type(seed) is not int for seed in case_seeds) or len(set(case_seeds)) != count
+                or (seeds is not None and case_seeds != seeds)):
+            return None
+    paired = evaluation.get("pairedDeltasSeconds")
+    if "pairedDeltasSeconds" in evaluation and (
+            not isinstance(paired, list) or len(paired) != count
+            or not all(finite(value) for value in paired) or not agrees(mean(paired), delta)):
+        return None
+    interval = None
+    if paired is not None and count >= 2:
+        standard_error = stdev(paired) / math.sqrt(count)
+        low, high = delta - 1.96 * standard_error, delta + 1.96 * standard_error
+        if all(finite(value) for value in (standard_error, low, high)):
+            interval = {"lowerSeconds": low, "upperSeconds": high,
+                        "standardErrorSeconds": standard_error,
+                        "method": "normal_approximation"}
+    return {"source": "testEvaluation", "caseCount": count,
+            "meanWarningSeconds": policy, "baselineMeanWarningSeconds": baseline,
+            "deltaSeconds": delta, "pairedCaseCount": count if paired is not None else 0,
+            "interval95": interval}
 
 
 def _validate_directional_pair(episode, model=None, policy=None):
@@ -371,7 +428,8 @@ class NativeComparisons:
             if layout_id != "directional_balanced_8":
                 raise ValueError("Named warning models use their matched selected-count evaluation")
             episode = self.registry.comparison(identifier)
-            _validate_directional_pair(episode, self.registry.get(identifier), json.loads(
+            model = self.registry.get(identifier)
+            _validate_directional_pair(episode, model, json.loads(
                 self.registry.policy_path(identifier).read_text(encoding="utf-8")))
             result = comparison_result(episode)
             sensor_count = result["baseline"].get(
@@ -389,6 +447,9 @@ class NativeComparisons:
                 "blue_policy": "Named best warning-time checkpoint selected during training",
                 "exact_sensor_count": sensor_count,
                 "exact_count_rl_trained": True})
+            summary = held_out_summary(model.get("testEvaluation"))
+            if summary is not None:
+                result["heldOutSummary"] = summary
             if scenario:
                 return {"episodeId": identifier, "label": result["label"],
                         "selection": result["selection"], "layoutId": layout_id,

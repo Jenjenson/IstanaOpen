@@ -50,7 +50,9 @@
     <details class="training-settings"><summary>Exploration and evaluation</summary>
      <label for="training-exploration">Starting exploration<input id="training-exploration" type="number" min="0.05" max="0.8" step="0.05" value="0.2"></label>
      <p class="helper">Local refinement starts with equal chances for each sensor's nearby legal edits and ignores this legacy setting. For the other algorithms, 0.2 gives the first placement decision a 20% chance of choosing outside the starting layout.</p>
-     <label for="training-validation">Fixed validation scenarios<input id="training-validation" type="number" min="2" max="20" step="1" value="8"></label>
+     <label for="training-validation">Fixed validation scenarios<input id="training-validation" type="number" min="2" max="200" step="1" value="8"></label>
+     <label for="training-validation-interval">Evaluate every N episodes<input id="training-validation-interval" type="number" min="1" max="10000" step="1" placeholder="Same as batch size"></label>
+     <p class="helper">Leave blank to evaluate after each batch. The final episode and saved-policy milestones are also evaluated.</p>
      <label for="training-checkpoint">Save policy every N episodes<input id="training-checkpoint" type="number" min="1" max="10000" step="1" value="500"></label>
      <p class="helper">Local refinement measures each sampled layout against the contractor on identical drone routes; its training reward is the difference in warning time. Fresh validation and test scenarios are fixed at the start of each run. This uses two native simulations per training episode. Logs retain both results.</p>
     </details>
@@ -97,6 +99,17 @@
    </section>
    <section id="comparison-panel" class="comparison-panel" aria-label="Placement comparison" hidden>
     <div class="comparison-heading"><div><h2 id="comparison-heading">Reinforcement learning vs common sense</h2><p id="comparison-fairness" class="helper">Two layouts. The same adversaries, sensor model and deployment limits.</p></div><span id="comparison-tag" class="source-badge">NATIVE EVALUATION</span></div>
+    <section id="comparison-held-out" class="comparison-held-out" aria-labelledby="comparison-held-out-title" hidden>
+     <h3 id="comparison-held-out-title">Unseen test scenarios · aggregate warning</h3>
+     <div class="comparison-held-out-metrics">
+      <div><span>Matched scenarios</span><strong id="comparison-test-count">—</strong></div>
+      <div><span>RL mean warning</span><strong id="comparison-test-rl">—</strong></div>
+      <div><span>Contractor mean warning</span><strong id="comparison-test-contractor">—</strong></div>
+      <div><span>Mean gain · RL − contractor</span><strong id="comparison-test-gain">—</strong></div>
+     </div>
+     <p id="comparison-test-uncertainty" class="helper"></p>
+     <p class="helper">Recorded internal test of the validation-selected policy, separate from training and checkpoint selection. Missed detections count as zero warning. The single-episode replay below is illustrative.</p>
+    </section>
     <div class="comparison-map-grid">
      <article class="comparison-map-card"><div class="comparison-map-title"><h3 id="comparison-rl-label">Reinforcement learning</h3><span id="comparison-rl-layout" class="helper">Loading layout…</span></div><div class="comparison-map-surface"><canvas id="comparison-map-rl" role="img" aria-label="Reinforcement learning sensor layout and threat movement"></canvas></div><div id="comparison-rl-now" class="comparison-now">Awaiting episode</div></article>
      <article class="comparison-map-card baseline-card"><div class="comparison-map-title"><h3 id="comparison-baseline-label">Common-sense coverage</h3><span id="comparison-baseline-layout" class="helper">Loading layout…</span></div><div class="comparison-map-surface"><canvas id="comparison-map-baseline" role="img" aria-label="Fixed common-sense sensor layout and threat movement"></canvas></div><div id="comparison-baseline-now" class="comparison-now">Awaiting episode</div></article>

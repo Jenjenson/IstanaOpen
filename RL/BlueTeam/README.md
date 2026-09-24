@@ -9,6 +9,8 @@ The [native local-refinement pilot](Results/local-refinement-20260924/README.md)
 changes layouts but has not improved on the contractor: validation retained the
 starting checkpoint, and the final trained weights regressed. Both artifacts
 and the complete comparison evidence are included.
+For the subsequent finite-action learner that assigns a separate measured value
+to each legal edit, see [Paired action-value RL](PAIRED_LAYOUT_BANDIT.md).
 
 Blue learns **which sensor profile to deploy and where to place it** around a
 synthetic objective. It supports passive RF, search radar, electro-optical,

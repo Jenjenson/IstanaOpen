@@ -11,6 +11,8 @@ class Element {
   setAttribute(name, value) { this[name] = value; }
   get options() { return this.children.flatMap(child => child.children?.length ? child.options : [child]); }
   set options(rows) { this.children = rows; }
+  closest(selector) { return selector === 'label' ? this.parentElement || null : null; }
+  querySelector(selector) { const match = selector.match(/^\[value="([^"]+)"\]$/); return match ? this.options.find(option => option.value === match[1]) || null : null; }
   remove() {}
 }
 
@@ -32,6 +34,13 @@ async function main() {
   };
   vm.createContext(context);
   vm.runInContext(source.slice(source.indexOf('function trainingReplayLabel('), source.indexOf('async function refreshTraining(')), context);
+  const algorithmSelect = context.$('training-algorithm');
+  algorithmSelect.options = ['reinforce', 'ppo', 'local_ppo', 'paired_bandit'].map(value => ({ value, dataset: { description: `${value} catalogue description` } }));
+  const initializationSelect = context.$('training-initialization');
+  initializationSelect.options = ['untrained', 'directional_balanced_8'].map(value => ({ value }));
+  const explorationLabel = new Element();
+  explorationLabel.nextElementSibling = new Element('Legacy exploration explanation');
+  context.$('training-exploration').parentElement = explorationLabel;
   const latestViewer = { mode: 'training', frames: [{ time: 0 }] };
   const status = {
     outputDirectory: '/run/one', phase: 'training', running: true, episode: 1000, totalEpisodes: 1500,
@@ -64,6 +73,31 @@ async function main() {
   assert.match(nodes.get('training-exploration-summary').textContent, /Local edits start with equal probabilities/);
   assert.doesNotMatch(nodes.get('training-exploration-summary').textContent, /Initial exploration target/);
   assert.match(nodes.get('training-initialization-help').textContent, /no probability advantage/);
+  const banditStatus = { ...status, algorithm: 'paired_bandit', algorithmLabel: 'Paired action-value RL',
+    rewardMode: 'paired_contractor_delta',
+    exploration: { ...status.exploration, localEdits: true, explorationProbability: null, meanNormalizedEntropy: 0 },
+    history: [{ episode: 1000, meanWarningSeconds: 9, trainingReward: -2,
+      pairedTraining: { contractorWarningSeconds: 11 } }] };
+  context.applyTrainingStatus(banditStatus);
+  assert.match(nodes.get('training-status').textContent, /Paired action-value RL/);
+  assert.doesNotMatch(nodes.get('training-status').textContent, /PPO|Adam|neural/);
+  assert.match(nodes.get('training-algorithm-help').textContent, /One-step action-value RL/);
+  assert.match(nodes.get('training-algorithm-help').textContent, /single-sensor edit layouts/);
+  assert.match(nodes.get('training-initialization-help').textContent, /KEEP action/);
+  assert.match(nodes.get('training-initialization-help').textContent, /moves or rotates one sensor/);
+  assert.match(nodes.get('training-initialization-help').textContent, /entropy regularization settings do not apply/);
+  assert.doesNotMatch(nodes.get('training-initialization-help').textContent, /PPO|Adam|neural|logits/);
+  assert.equal(nodes.get('training-sample-warning').textContent, '9.00 s');
+  assert.match(nodes.get('training-sample-note').textContent, /contractor 11.00 s · gain -2.00 s/);
+  assert.match(nodes.get('training-exploration-summary').textContent, /Estimate-based exploration: balanced samples first, then upper confidence bounds/);
+  assert.doesNotMatch(nodes.get('training-exploration-summary').textContent, /entropy|uniform|equal probabilities|Initial exploration target|action diversity/);
+  assert.equal(explorationLabel.hidden, true);
+  assert.equal(explorationLabel.nextElementSibling.hidden, true);
+  algorithmSelect.value = 'ppo';
+  context.applyTrainingStatus({ ...banditStatus, running: false, phase: 'complete' });
+  assert.match(nodes.get('training-exploration-summary').textContent, /Estimate-based exploration/, 'past bandit evidence must retain its algorithm semantics when the next-run form changes');
+  assert.equal(explorationLabel.hidden, false);
+  assert.match(nodes.get('training-initialization-help').textContent, /starting preference/);
   context.applyTrainingStatus(status);
 
   await context.selectTrainingReplay('checkpoint-500');
@@ -112,6 +146,40 @@ async function main() {
   context.$('training-algorithm').value = 'ppo';
   context.updateTrainingInitializationHelp();
   assert.match(nodes.get('training-initialization-help').textContent, /starting preference/);
+  algorithmSelect.value = 'paired_bandit';
+  initializationSelect.value = 'untrained';
+  context.$('training-exploration').value = 'not applicable';
+  context.updateTrainingAlgorithmSelection();
+  assert.equal(initializationSelect.value, 'directional_balanced_8');
+  assert.equal(initializationSelect.querySelector('[value="untrained"]').disabled, true);
+  assert.equal(nodes.get('training-exploration').disabled, true);
+  assert.equal(explorationLabel.hidden, true);
+  assert.equal(explorationLabel.nextElementSibling.hidden, true);
+  assert.match(nodes.get('training-algorithm-help').textContent, /upper confidence bounds/);
+  assert.equal(Object.hasOwn(context.trainingConfiguration(), 'explorationProbability'), false, 'irrelevant hidden settings must not enter a bandit request');
+  algorithmSelect.value = 'ppo';
+  context.$('training-exploration').value = '0.35';
+  context.updateTrainingAlgorithmSelection();
+  assert.equal(initializationSelect.querySelector('[value="untrained"]').disabled, false);
+  assert.equal(nodes.get('training-exploration').disabled, false);
+  assert.equal(explorationLabel.hidden, false);
+  assert.equal(explorationLabel.nextElementSibling.hidden, false);
+  assert.equal(nodes.get('training-algorithm-help').textContent, 'ppo catalogue description');
+  assert.equal(context.trainingConfiguration().explorationProbability, 0.35);
+  context.$('training-validation-interval').value = '';
+  assert.equal('validationInterval' in context.trainingConfiguration(), false, 'blank interval delegates to the backend batch-size default');
+  context.$('training-validation-interval').value = '  ';
+  assert.equal('validationInterval' in context.trainingConfiguration(), false);
+  context.$('training-validation-interval').value = '50';
+  assert.equal(context.trainingConfiguration().validationInterval, 50);
+  context.$('training-validation-interval').value = '';
+  algorithmSelect.value = 'local_ppo';
+  initializationSelect.value = 'untrained';
+  context.updateTrainingAlgorithmSelection();
+  assert.equal(initializationSelect.value, 'directional_balanced_8');
+  assert.equal(nodes.get('training-exploration').disabled, true);
+  assert.equal(explorationLabel.hidden, false, 'the existing local-PPO explanation remains available');
+  assert.match(nodes.get('training-initialization-help').textContent, /no probability advantage/);
   vm.runInContext(source.slice(source.indexOf('function isSavedLayout('), source.indexOf('function syncModelCatalog(')), context);
   context.comparison = { selectedPolicy: null, episodes: [
     { policy: '406' }, { policy: 'trained-new', trainedModel: true },
