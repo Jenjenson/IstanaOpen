@@ -1,0 +1,427 @@
+{
+  "schema": "istana.portable_four_sensor_study.v1",
+  "archivedUtc": "2026-09-24T10:39:59.955456+00:00",
+  "archiveAssemblyCommit": "f406bcf45becdf84687c59da154812ef913646a2",
+  "trainingCommit": null,
+  "trainingCommitNote": "The original run did not record a training commit; assembly commit is not training provenance.",
+  "sourceIdsAreDependencies": false,
+  "portability": "JSON/text remove the original machine root and operational console/bridge keys; policies and decompressed JSONL retain exact original bytes. Embedded historical hashes refer to originals. Source IDs identify provenance, not required paths.",
+  "trials": [
+    {
+      "trial": "A",
+      "seed": 917,
+      "directory": "trials/A-917",
+      "sourceRun": "Saved/WarningTraining/console-20260924-063309-225823",
+      "sourceModelId": "trained-four-sensor-study-2026-09-24-trial-a-4ebcf74784",
+      "completedEpisodes": 500,
+      "selectedEpisode": 0,
+      "finalPolicy": "trials/A-917/final-policy.json",
+      "selectedPolicy": "trials/A-917/best-policy.json",
+      "sourceCheckpointMatches": {
+        "policy-0500.json": "6414838cc07a998ffe68b5738b3270852b1489981582724cacc3b316459164c9",
+        "policy-0000.json": "894f9bf8fb02c40f433660429068454bee385419af77b2a9326138b4ae78d903"
+      }
+    },
+    {
+      "trial": "B",
+      "seed": 918,
+      "directory": "trials/B-918",
+      "sourceRun": "Saved/WarningTraining/console-20260924-063312-011590",
+      "sourceModelId": "trained-four-sensor-study-2026-09-24-trial-b-26860f6235",
+      "completedEpisodes": 500,
+      "selectedEpisode": 0,
+      "finalPolicy": "trials/B-918/final-policy.json",
+      "selectedPolicy": "trials/B-918/best-policy.json",
+      "sourceCheckpointMatches": {
+        "policy-0500.json": "1d32e325e601ddf649d137515532732d9d9044dc091422c016215c6962b0e310",
+        "policy-0000.json": "5dc80cdc203a48bad29b3a18228b0859ac3eafea9cb61100925140fc1cd81af6"
+      }
+    },
+    {
+      "trial": "C",
+      "seed": 919,
+      "directory": "trials/C-919",
+      "sourceRun": "Saved/WarningTraining/console-20260924-063314-533939",
+      "sourceModelId": "trained-four-sensor-study-2026-09-24-trial-c-f6564a4a6c",
+      "completedEpisodes": 500,
+      "selectedEpisode": 0,
+      "finalPolicy": "trials/C-919/final-policy.json",
+      "selectedPolicy": "trials/C-919/best-policy.json",
+      "sourceCheckpointMatches": {
+        "policy-0500.json": "2747e6cfd7bc2978ea42b8813b9911aaa7bab5bb32a7ba89161355ccef438b80",
+        "policy-0000.json": "a05ed5abd98a6ba07231b018c4dab8342f15e4d78a2df2fc555c1a45847d166e"
+      }
+    }
+  ],
+  "files": [
+    {
+      "path": "trials/A-917/configuration.json",
+      "bytes": 4438,
+      "sha256": "e16a615fba9f85e3577d5c0c2fb072e5569722cc70c0f36d1f06621b28bf408f",
+      "source": "Saved/WarningTraining/console-20260924-063309-225823/configuration.json",
+      "sourceSha256": "8f6783a87e6763198dc41cf8c3ac5478b58703f6004c2904bd46f5f75cb0362d",
+      "transformation": "json"
+    },
+    {
+      "path": "trials/A-917/summary.json",
+      "bytes": 24856,
+      "sha256": "53b345eeb6047348d18cca796aec58b494cc32b62b57b2220bc8260d7d73d994",
+      "source": "Saved/WarningTraining/console-20260924-063309-225823/summary.json",
+      "sourceSha256": "53b345eeb6047348d18cca796aec58b494cc32b62b57b2220bc8260d7d73d994",
+      "transformation": "json"
+    },
+    {
+      "path": "trials/A-917/evaluation-summary.json",
+      "bytes": 17927,
+      "sha256": "a000245d2394d85a289b312fe8ececb94ae2a959e4230ad431798e092576158a",
+      "source": "Saved/WarningTraining/console-20260924-063309-225823/evaluation-summary.json",
+      "sourceSha256": "a000245d2394d85a289b312fe8ececb94ae2a959e4230ad431798e092576158a",
+      "transformation": "json"
+    },
+    {
+      "path": "trials/A-917/test-evaluation.json",
+      "bytes": 11664,
+      "sha256": "8077fb7713b64fe49be2b63061c02636ee2a06270a95cff7b3ff841b2bd29059",
+      "source": "Saved/WarningTraining/console-20260924-063309-225823/test-evaluation.json",
+      "sourceSha256": "8077fb7713b64fe49be2b63061c02636ee2a06270a95cff7b3ff841b2bd29059",
+      "transformation": "json"
+    },
+    {
+      "path": "trials/A-917/training.jsonl.gz",
+      "bytes": 210234,
+      "sha256": "27cfaeda2e94ea1b75003e5b6101b78bb16ce89b4c7db80fb6ea41ea50a9782e",
+      "source": "Saved/WarningTraining/console-20260924-063309-225823/training.jsonl",
+      "sourceSha256": "2c17487a5b7f935a9aed9680a7ca208be9ec1471902a127bc4a40e04aa82a967",
+      "transformation": "gzip",
+      "uncompressedSha256": "2c17487a5b7f935a9aed9680a7ca208be9ec1471902a127bc4a40e04aa82a967"
+    },
+    {
+      "path": "trials/A-917/evaluations.jsonl.gz",
+      "bytes": 2172,
+      "sha256": "628814fb12283b1add367607cf5a0ab60a13356408e774d16d6a278cea68d194",
+      "source": "Saved/WarningTraining/console-20260924-063309-225823/evaluations.jsonl",
+      "sourceSha256": "01aefe665b4107a2ba088ec23fa711e4f5baa3b1f7dc4a35de62bfb818c82fed",
+      "transformation": "gzip",
+      "uncompressedSha256": "01aefe665b4107a2ba088ec23fa711e4f5baa3b1f7dc4a35de62bfb818c82fed"
+    },
+    {
+      "path": "trials/A-917/final-policy.json",
+      "bytes": 183893,
+      "sha256": "6414838cc07a998ffe68b5738b3270852b1489981582724cacc3b316459164c9",
+      "source": "Saved/WarningTraining/console-20260924-063309-225823/final-policy.json",
+      "sourceSha256": "6414838cc07a998ffe68b5738b3270852b1489981582724cacc3b316459164c9",
+      "transformation": "copy"
+    },
+    {
+      "path": "trials/A-917/best-policy.json",
+      "bytes": 151214,
+      "sha256": "894f9bf8fb02c40f433660429068454bee385419af77b2a9326138b4ae78d903",
+      "source": "Saved/WarningTraining/models/trained-four-sensor-study-2026-09-24-trial-a-4ebcf74784/best-policy.json",
+      "sourceSha256": "894f9bf8fb02c40f433660429068454bee385419af77b2a9326138b4ae78d903",
+      "transformation": "copy"
+    },
+    {
+      "path": "trials/A-917/native-context.json",
+      "bytes": 9617,
+      "sha256": "a21a7e22e53ca8cebadaad4e08105c72c4b271881ae0eb620b77878b788e99ba",
+      "source": "Saved/WarningTraining/console-20260924-063309-225823/recording-manifest.json",
+      "sourceSha256": "7bc18ac8ccb98206a5401ea58bb496bf8532c9e71b0e3e5e10deb644e39b1384",
+      "transformation": "extract",
+      "jsonPointerKeys": [
+        "context"
+      ]
+    },
+    {
+      "path": "trials/A-917/model-metadata.json",
+      "bytes": 13844,
+      "sha256": "0a007a3b9ba96298efa7587385dd5775502f3ceb7f08f1cf79fbeec50ac667f6",
+      "source": "Saved/WarningTraining/models/trained-four-sensor-study-2026-09-24-trial-a-4ebcf74784/model.json",
+      "sourceSha256": "9eeb3e083e0e37fd5d5967428c69ace4ce890dd1f46d39474e7ce1de6bdf1ccc",
+      "transformation": "json"
+    },
+    {
+      "path": "trials/B-918/configuration.json",
+      "bytes": 4438,
+      "sha256": "6470fdcc9894c6bacc4996ae79bf6ca6984cc3cc9b7bf61d9e4c092f2198e28f",
+      "source": "Saved/WarningTraining/console-20260924-063312-011590/configuration.json",
+      "sourceSha256": "579de3dc1e9a5f299ffd7849b5f07872157ae810165c240b0451219eb8a0914f",
+      "transformation": "json"
+    },
+    {
+      "path": "trials/B-918/summary.json",
+      "bytes": 24854,
+      "sha256": "42ed757e4e2f023e5328c600df13eca3cd257d32ebd78d348c70ca3d8b2cc679",
+      "source": "Saved/WarningTraining/console-20260924-063312-011590/summary.json",
+      "sourceSha256": "42ed757e4e2f023e5328c600df13eca3cd257d32ebd78d348c70ca3d8b2cc679",
+      "transformation": "json"
+    },
+    {
+      "path": "trials/B-918/evaluation-summary.json",
+      "bytes": 17927,
+      "sha256": "a000245d2394d85a289b312fe8ececb94ae2a959e4230ad431798e092576158a",
+      "source": "Saved/WarningTraining/console-20260924-063312-011590/evaluation-summary.json",
+      "sourceSha256": "a000245d2394d85a289b312fe8ececb94ae2a959e4230ad431798e092576158a",
+      "transformation": "json"
+    },
+    {
+      "path": "trials/B-918/test-evaluation.json",
+      "bytes": 11664,
+      "sha256": "8077fb7713b64fe49be2b63061c02636ee2a06270a95cff7b3ff841b2bd29059",
+      "source": "Saved/WarningTraining/console-20260924-063312-011590/test-evaluation.json",
+      "sourceSha256": "8077fb7713b64fe49be2b63061c02636ee2a06270a95cff7b3ff841b2bd29059",
+      "transformation": "json"
+    },
+    {
+      "path": "trials/B-918/training.jsonl.gz",
+      "bytes": 211015,
+      "sha256": "092a8b98c31c48f11b58c20fb51c6b33828ac737abed99e125c19c80c9e65d17",
+      "source": "Saved/WarningTraining/console-20260924-063312-011590/training.jsonl",
+      "sourceSha256": "95e100027981c0d201d416587625be3643fe4fccbeb86241ee1cee6b4bd5372f",
+      "transformation": "gzip",
+      "uncompressedSha256": "95e100027981c0d201d416587625be3643fe4fccbeb86241ee1cee6b4bd5372f"
+    },
+    {
+      "path": "trials/B-918/evaluations.jsonl.gz",
+      "bytes": 2172,
+      "sha256": "628814fb12283b1add367607cf5a0ab60a13356408e774d16d6a278cea68d194",
+      "source": "Saved/WarningTraining/console-20260924-063312-011590/evaluations.jsonl",
+      "sourceSha256": "01aefe665b4107a2ba088ec23fa711e4f5baa3b1f7dc4a35de62bfb818c82fed",
+      "transformation": "gzip",
+      "uncompressedSha256": "01aefe665b4107a2ba088ec23fa711e4f5baa3b1f7dc4a35de62bfb818c82fed"
+    },
+    {
+      "path": "trials/B-918/final-policy.json",
+      "bytes": 184168,
+      "sha256": "1d32e325e601ddf649d137515532732d9d9044dc091422c016215c6962b0e310",
+      "source": "Saved/WarningTraining/console-20260924-063312-011590/final-policy.json",
+      "sourceSha256": "1d32e325e601ddf649d137515532732d9d9044dc091422c016215c6962b0e310",
+      "transformation": "copy"
+    },
+    {
+      "path": "trials/B-918/best-policy.json",
+      "bytes": 151215,
+      "sha256": "5dc80cdc203a48bad29b3a18228b0859ac3eafea9cb61100925140fc1cd81af6",
+      "source": "Saved/WarningTraining/models/trained-four-sensor-study-2026-09-24-trial-b-26860f6235/best-policy.json",
+      "sourceSha256": "5dc80cdc203a48bad29b3a18228b0859ac3eafea9cb61100925140fc1cd81af6",
+      "transformation": "copy"
+    },
+    {
+      "path": "trials/B-918/native-context.json",
+      "bytes": 9616,
+      "sha256": "cbe09031ac7953c84e3c8fe9b549e8182201afc7954585cde06299e94f5d6574",
+      "source": "Saved/WarningTraining/console-20260924-063312-011590/recording-manifest.json",
+      "sourceSha256": "97da0a9ae6535408f23b04caae3b5c10cd4433dc0040ce2ea1ce08293d2ab728",
+      "transformation": "extract",
+      "jsonPointerKeys": [
+        "context"
+      ]
+    },
+    {
+      "path": "trials/B-918/model-metadata.json",
+      "bytes": 13843,
+      "sha256": "b03b53f906c59156f3fb6cbe0884677f266d87a93661e54e3edfcbfc1858c52d",
+      "source": "Saved/WarningTraining/models/trained-four-sensor-study-2026-09-24-trial-b-26860f6235/model.json",
+      "sourceSha256": "50d77e3cdd56f1ad3fb53c00773d2e94e1be1b716a2e113729a307e45f0e871e",
+      "transformation": "json"
+    },
+    {
+      "path": "trials/C-919/configuration.json",
+      "bytes": 4438,
+      "sha256": "03410d4aa38cbf45f54348d0f3b4b6797f385b13d26142e704b05f088e19ec96",
+      "source": "Saved/WarningTraining/console-20260924-063314-533939/configuration.json",
+      "sourceSha256": "14321ac094b2c90ec14b70f39ad2c27f6a3f4592139c63ad3554f3af059830ff",
+      "transformation": "json"
+    },
+    {
+      "path": "trials/C-919/summary.json",
+      "bytes": 24855,
+      "sha256": "30704b2a03bf0f95a21b71b99378c817fcf162c135704af26a18b448c7033d06",
+      "source": "Saved/WarningTraining/console-20260924-063314-533939/summary.json",
+      "sourceSha256": "30704b2a03bf0f95a21b71b99378c817fcf162c135704af26a18b448c7033d06",
+      "transformation": "json"
+    },
+    {
+      "path": "trials/C-919/evaluation-summary.json",
+      "bytes": 17927,
+      "sha256": "a000245d2394d85a289b312fe8ececb94ae2a959e4230ad431798e092576158a",
+      "source": "Saved/WarningTraining/console-20260924-063314-533939/evaluation-summary.json",
+      "sourceSha256": "a000245d2394d85a289b312fe8ececb94ae2a959e4230ad431798e092576158a",
+      "transformation": "json"
+    },
+    {
+      "path": "trials/C-919/test-evaluation.json",
+      "bytes": 11664,
+      "sha256": "8077fb7713b64fe49be2b63061c02636ee2a06270a95cff7b3ff841b2bd29059",
+      "source": "Saved/WarningTraining/console-20260924-063314-533939/test-evaluation.json",
+      "sourceSha256": "8077fb7713b64fe49be2b63061c02636ee2a06270a95cff7b3ff841b2bd29059",
+      "transformation": "json"
+    },
+    {
+      "path": "trials/C-919/training.jsonl.gz",
+      "bytes": 210266,
+      "sha256": "5f04ab7d41f87e0bc43638a1ace059b4d614e69ccdf0fc8a498a1ee6905fc796",
+      "source": "Saved/WarningTraining/console-20260924-063314-533939/training.jsonl",
+      "sourceSha256": "2b5f3d3cbad1ff28d08f169d87fa0549e8898a7949813b619ecd65fc96916ffa",
+      "transformation": "gzip",
+      "uncompressedSha256": "2b5f3d3cbad1ff28d08f169d87fa0549e8898a7949813b619ecd65fc96916ffa"
+    },
+    {
+      "path": "trials/C-919/evaluations.jsonl.gz",
+      "bytes": 2172,
+      "sha256": "628814fb12283b1add367607cf5a0ab60a13356408e774d16d6a278cea68d194",
+      "source": "Saved/WarningTraining/console-20260924-063314-533939/evaluations.jsonl",
+      "sourceSha256": "01aefe665b4107a2ba088ec23fa711e4f5baa3b1f7dc4a35de62bfb818c82fed",
+      "transformation": "gzip",
+      "uncompressedSha256": "01aefe665b4107a2ba088ec23fa711e4f5baa3b1f7dc4a35de62bfb818c82fed"
+    },
+    {
+      "path": "trials/C-919/final-policy.json",
+      "bytes": 183982,
+      "sha256": "2747e6cfd7bc2978ea42b8813b9911aaa7bab5bb32a7ba89161355ccef438b80",
+      "source": "Saved/WarningTraining/console-20260924-063314-533939/final-policy.json",
+      "sourceSha256": "2747e6cfd7bc2978ea42b8813b9911aaa7bab5bb32a7ba89161355ccef438b80",
+      "transformation": "copy"
+    },
+    {
+      "path": "trials/C-919/best-policy.json",
+      "bytes": 151213,
+      "sha256": "a05ed5abd98a6ba07231b018c4dab8342f15e4d78a2df2fc555c1a45847d166e",
+      "source": "Saved/WarningTraining/models/trained-four-sensor-study-2026-09-24-trial-c-f6564a4a6c/best-policy.json",
+      "sourceSha256": "a05ed5abd98a6ba07231b018c4dab8342f15e4d78a2df2fc555c1a45847d166e",
+      "transformation": "copy"
+    },
+    {
+      "path": "trials/C-919/native-context.json",
+      "bytes": 9616,
+      "sha256": "826a12ddb78288abba9c04440055a70e19ba490cc2676dc512fca30909bca334",
+      "source": "Saved/WarningTraining/console-20260924-063314-533939/recording-manifest.json",
+      "sourceSha256": "ad3e80a205ce095e14420f71a018f2bdb3168ed1523e83123a7ddd9d8d92977e",
+      "transformation": "extract",
+      "jsonPointerKeys": [
+        "context"
+      ]
+    },
+    {
+      "path": "trials/C-919/model-metadata.json",
+      "bytes": 13843,
+      "sha256": "adf0bcf132c5b995a90ea5acf51fa61aafbd234188cf9512840c78048737078b",
+      "source": "Saved/WarningTraining/models/trained-four-sensor-study-2026-09-24-trial-c-f6564a4a6c/model.json",
+      "sourceSha256": "731307ef790f41b69260e70de0b5087b01865d0e847e13ae0936a95d7e370f31",
+      "transformation": "json"
+    },
+    {
+      "path": "protocol.json",
+      "bytes": 1513,
+      "sha256": "cc27e7f6a9193bc154791b6b2ea40bfe0f0b56a349e3015055ea09e3111fde9f",
+      "source": "Saved/Experiments/four-sensor-20260924/protocol.json",
+      "sourceSha256": "6fc5622cfabaec956d6676c369d134a16512e585339bb2b6ebe88d8b85696319",
+      "transformation": "json"
+    },
+    {
+      "path": "results.json",
+      "bytes": 8181,
+      "sha256": "5833cdedec2655c9d500f992b5e07fdec9013ae07f6043517c8acef99672ec33",
+      "source": "Saved/Experiments/four-sensor-20260924/results.json",
+      "sourceSha256": "1e5dfa3ee7a3c392715d6dbcd40aa8dfe27ac163c6b41253290a80bd4b7d1f04",
+      "transformation": "json"
+    },
+    {
+      "path": "diagnostics.json",
+      "bytes": 112156,
+      "sha256": "5a03a9539272939e2089a4aafd56f47a590b96dfce3a8e04a68ad2833ebab94a",
+      "source": "Saved/Experiments/four-sensor-20260924/diagnostics.json",
+      "sourceSha256": "1c864bfe6138b58cfcd99f763ce0f59cc84e55e96be4733c3ac7c3ac69b5c1d1",
+      "transformation": "json"
+    },
+    {
+      "path": "reporting-recovery.json",
+      "bytes": 2210,
+      "sha256": "6647720438fe982f38a87d641e9d9af8e2708b30c91c5af00674404445e0e9a8",
+      "source": "Saved/Experiments/four-sensor-20260924/reporting-recovery.json",
+      "sourceSha256": "d772ed560e7b54d3f4c70547f3db76b81629e4ab0ebde987512d1582c9be10e1",
+      "transformation": "json"
+    },
+    {
+      "path": "report.md",
+      "bytes": 3959,
+      "sha256": "b4c89518979794098c21fab1e93b5e6440d59f70b81feb41f7462adb5ac77bc9",
+      "source": "Saved/Experiments/four-sensor-20260924/report.md",
+      "sourceSha256": "db4d17d7f55d08d83f1565f92ada78412cdf261c5d59b05f8ce44556bcb57ab4",
+      "transformation": "text"
+    },
+    {
+      "path": "diagnostics.md",
+      "bytes": 2214,
+      "sha256": "4e68cd8186c86881c50b626ff7cac004f3e601e007173e33719b80923f1265f4",
+      "source": "Saved/Experiments/four-sensor-20260924/diagnostics.md",
+      "sourceSha256": "4e68cd8186c86881c50b626ff7cac004f3e601e007173e33719b80923f1265f4",
+      "transformation": "text"
+    },
+    {
+      "path": "history/attempt-01-startup-failure/ATTEMPT.md",
+      "bytes": 1317,
+      "sha256": "c46dd23e987e7b7b9b014181c112725f6f86e44fb5c979c2238af7d828f2085f",
+      "source": "Saved/Experiments/four-sensor-20260924/attempt-01-startup-failure/ATTEMPT.md",
+      "sourceSha256": "8db9e9fa27b5cac73527027a62c98bbde70705b9379c97735ba845be0b7ee278",
+      "transformation": "text"
+    },
+    {
+      "path": "history/attempt-01-startup-failure/results.json",
+      "bytes": 2143,
+      "sha256": "cda75fcb7a0bc65da72d1143fb43f6e800adf101105cae39a623b44c323eab23",
+      "source": "Saved/Experiments/four-sensor-20260924/attempt-01-startup-failure/results.json",
+      "sourceSha256": "54479ec1c19200949b4f5d601e1d5d0a933eb4b4bf5a5e30a610ba45e697b434",
+      "transformation": "json"
+    },
+    {
+      "path": "history/attempt-01-startup-failure/report.md",
+      "bytes": 1471,
+      "sha256": "b8dfc080193fb78f1f3a5d130802fe7d2e317a6f566715509af5f268aaba0d3c",
+      "source": "Saved/Experiments/four-sensor-20260924/attempt-01-startup-failure/report.md",
+      "sourceSha256": "c7d011d0705254ea5d4056d6730a02c18dbbc6da50c066371c967117b9bb4d72",
+      "transformation": "text"
+    },
+    {
+      "path": "history/reporting-failure-evidence/README.md",
+      "bytes": 395,
+      "sha256": "d5c91ab4b4bbcb7dd0c4e78eeb84be018c94ce1e5c2890363c6980c0dee4faaa",
+      "source": "Saved/Experiments/four-sensor-20260924/reporting-failure-evidence/README.md",
+      "sourceSha256": "d5c91ab4b4bbcb7dd0c4e78eeb84be018c94ce1e5c2890363c6980c0dee4faaa",
+      "transformation": "text"
+    },
+    {
+      "path": "history/reporting-failure-evidence/results.json",
+      "bytes": 4435,
+      "sha256": "42c9f3b34d453b7cb59f2c8927e29e19027c310d27c260e31335db134d67891e",
+      "source": "Saved/Experiments/four-sensor-20260924/reporting-failure-evidence/results.json",
+      "sourceSha256": "1bd8d5467c3851256c13b90f9af86781c0136837d29749dbd901747c4ca71f22",
+      "transformation": "json"
+    },
+    {
+      "path": "history/reporting-failure-evidence/report.md",
+      "bytes": 2650,
+      "sha256": "ed96578aa5ecdc3012145ade4a89e729e6d2e33d7edd06c5480207f86ad57a64",
+      "source": "Saved/Experiments/four-sensor-20260924/reporting-failure-evidence/report.md",
+      "sourceSha256": "519c280c7af1eca8358be1a9ad401b81bda0408a2e37ec49e0c433e15c658f2e",
+      "transformation": "text"
+    },
+    {
+      "path": "README.md",
+      "bytes": 6267,
+      "sha256": "d09b5704154daa1626f5d77cc671c81c860d9d1e85b27cf69277b03b91172a5d",
+      "transformation": "archive-support"
+    },
+    {
+      "path": "archive.py",
+      "bytes": 15509,
+      "sha256": "f5c81bf9d5d3b41fc9696574683a9b18d0a7f9ac91a965b4c9df91510271633d",
+      "transformation": "archive-support"
+    },
+    {
+      "path": ".gitattributes",
+      "bytes": 85,
+      "sha256": "d66b397c169531d7cd148ba789bc5d11d02aa08366f1a875621bb957ec5ca3f2",
+      "transformation": "archive-support"
+    }
+  ]
+}

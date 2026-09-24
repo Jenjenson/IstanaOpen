@@ -1,0 +1,25 @@
+--- launched/triad_rl\local_refinement_policy.py
++++ current/triad_rl\local_refinement_policy.py
+@@ -96,7 +96,10 @@
+         likewise imply legal sequential deployment. Native deploy still checks
+         the authoritative terrain/support contract represented by blocked sites.
+         """
++        # The canonical public mask uses 300 m as the empty-layout nearest
++        # distance. Respect that limit too, even when pairwise spacing fits.
+         if (state["done"] or state["placements"] or not placements
++                or state["min_separation"] > 300. + 1e-9
+                 or len(placements) > state["max_sites"]):
+             return False
+         sensors = {row["id"]: row for row in catalogue}
+--- launched/triad_rl/training_evidence.py
++++ current/triad_rl/training_evidence.py
+@@ -44,7 +44,8 @@
+         public = context["publicSnapshot"]
+         value = {key: context[key] for key in ("catalogue", "temporalConfig", "worldOriginCm")}
+         value["deployment"] = {key: public.get(key) for key in (
+-            "budget_total", "max_sites", "sites", "blocked_sites", "min_separation",
++            "budget_total", "budget_remaining", "max_sites", "sites", "blocked_sites", "min_separation",
++            "deployment_min_radius", "deployment_max_radius",
+             "weather", "forecast", "available_sensor_ids")}
+         return hashlib.sha256(json.dumps(value, sort_keys=True, allow_nan=False).encode()).hexdigest()
+     cases = [{"seed": run["seed"], **deepcopy(run["metrics"]),

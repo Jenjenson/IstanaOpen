@@ -1,0 +1,70 @@
+{
+  "startedAt": "2026-09-24T10:47:29.079152+00:00",
+  "testsPassedNote": "Root GO:24focused localpolicy tests,17pairing/seed tests,54existing integrations, and4episode native paired smoke passed;8772released.",
+  "gitRevision": "f406bcf45becdf84687c59da154812ef913646a2",
+  "sourceSha256": {
+    "RL\\BlueTeam\\Python\\triad_rl\\training_workbench.py": "746e22e61c1ba6c642591c3d3fadcd15b6376f572dc05d951fc94206a79160cb",
+    "RL\\BlueTeam\\Python\\triad_rl\\training_evidence.py": "6191afc18d117573edcfa526989555fd95571890e8de40da612e195eae530027",
+    "RL\\BlueTeam\\Python\\triad_rl\\warning_policy.py": "cfc5413c33d3520e7a46bd8f3fc9da977f2d92d8e8ffa2331460e114d092ae14",
+    "RL\\BlueTeam\\Python\\triad_rl\\warning_algorithms.py": "1070de7adcf91fd61619b0e5c1402c23adc6bab14a3ecfb339ccfd9f0596b276",
+    "RL\\BlueTeam\\Python\\triad_rl\\local_refinement_policy.py": "c1e2974027346dbc98bc489ab25feb05749c26715cc323b64dbb8d2c347cd614",
+    "RL\\BlueTeam\\Python\\triad_rl\\red_policy.py": "8621943dfab4524952738ca2dfdca8810fc9fb1cd3b1e19966df6240097705e3",
+    "RL\\BlueTeam\\Python\\triad_rl\\istana_live.py": "93722ec7b2722103e5a3840b7e4896afa385c030455df78fdefce79bd78c8677"
+  },
+  "configurations": [
+    {
+      "episodes": 200,
+      "batchSize": 8,
+      "scenarioSeed": 61000000,
+      "validationCases": 8,
+      "checkpointInterval": 100,
+      "headroomProbes": 0,
+      "sensorCount": 4,
+      "sensorIds": [
+        "thermal"
+      ],
+      "initialization": "directional_balanced_8",
+      "entropyCoefficient": 0.01,
+      "explorationProbability": 0.2,
+      "algorithm": "local_ppo",
+      "seed": 917,
+      "name": "Local refinement pilot 2026-09-24 A917"
+    },
+    {
+      "episodes": 200,
+      "batchSize": 8,
+      "scenarioSeed": 61000000,
+      "validationCases": 8,
+      "checkpointInterval": 100,
+      "headroomProbes": 0,
+      "sensorCount": 4,
+      "sensorIds": [
+        "thermal"
+      ],
+      "initialization": "directional_balanced_8",
+      "entropyCoefficient": 0.01,
+      "explorationProbability": 0.2,
+      "algorithm": "local_ppo",
+      "seed": 918,
+      "name": "Local refinement pilot 2026-09-24 A918"
+    },
+    {
+      "episodes": 200,
+      "batchSize": 8,
+      "scenarioSeed": 61000000,
+      "validationCases": 8,
+      "checkpointInterval": 100,
+      "headroomProbes": 0,
+      "sensorCount": 4,
+      "sensorIds": [
+        "thermal"
+      ],
+      "initialization": "directional_balanced_8",
+      "entropyCoefficient": 0.01,
+      "explorationProbability": 0.2,
+      "algorithm": "ppo",
+      "seed": 917,
+      "name": "Legacy PPO pilot 2026-09-24 control917"
+    }
+  ]
+}

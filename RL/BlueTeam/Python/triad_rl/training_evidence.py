@@ -44,7 +44,8 @@ def evaluation_summary(runs, baseline=None):
         public = context["publicSnapshot"]
         value = {key: context[key] for key in ("catalogue", "temporalConfig", "worldOriginCm")}
         value["deployment"] = {key: public.get(key) for key in (
-            "budget_total", "max_sites", "sites", "blocked_sites", "min_separation",
+            "budget_total", "budget_remaining", "max_sites", "sites", "blocked_sites", "min_separation",
+            "deployment_min_radius", "deployment_max_radius",
             "weather", "forecast", "available_sensor_ids")}
         return hashlib.sha256(json.dumps(value, sort_keys=True, allow_nan=False).encode()).hexdigest()
     cases = [{"seed": run["seed"], **deepcopy(run["metrics"]),
@@ -72,6 +73,26 @@ def evaluation_summary(runs, baseline=None):
                       tiedCases=int(np.sum(np.abs(deltas) <= 1e-9)),
                       worseCases=int(np.sum(deltas < -1e-9)))
     return result
+
+
+def paired_training_reward(run, contractor_run):
+    """Subtract an action-independent native control on the identical scenario.
+
+    The control is evaluation evidence only; it is never passed to plan().
+    Reuse the formal comparison checks before allowing a delta into PPO.
+    """
+    reference = evaluation_summary([contractor_run])
+    result = evaluation_summary([run], reference)
+    if (run["metrics"]["targets"] != contractor_run["metrics"]["targets"]
+            or run["metrics"]["cost"] != contractor_run["metrics"]["cost"]
+            or sorted(row["profileId"] for row in run["placements"]) !=
+               sorted(row["profileId"] for row in contractor_run["placements"])):
+        raise ValueError("Paired training requires the same drones and sensor inventory")
+    return {"mode": "paired_contractor_delta", "rewardSeconds": result["deltaSeconds"],
+            "policyWarningSeconds": result["meanWarningSeconds"],
+            "contractorWarningSeconds": reference["meanWarningSeconds"],
+            "seed": run["seed"], "trajectorySha256": result["cases"][0]["trajectorySha256"],
+            "constraintsSha256": result["cases"][0]["constraintsSha256"]}
 
 
 def legal_layout_probes(context, placements, limit=4):

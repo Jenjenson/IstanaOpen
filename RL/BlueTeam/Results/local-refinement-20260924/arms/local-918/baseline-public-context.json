@@ -1,0 +1,497 @@
+{
+  "runId": "D695EC494A8D4FE6A633B4849E7E330F",
+  "revision": 904,
+  "completedSteps": 0,
+  "committed": false,
+  "coordinateSystem": "unreal_xy_relative_m_z_up",
+  "worldOriginCm": {
+    "x": 10,
+    "y": 90,
+    "z": 2560
+  },
+  "publicSnapshot": {
+    "schema": "triad.sensor_input.v1",
+    "source": "istana-synthetic-blue-v1",
+    "episode_id": "D695EC494A8D4FE6A633B4849E7E330F",
+    "timestamp": 0,
+    "max_track_age": 10,
+    "sites": [
+      [
+        30,
+        0
+      ],
+      [
+        27.71638584988142,
+        11.480503273833133
+      ],
+      [
+        21.213202971967117,
+        21.213203899225725
+      ],
+      [
+        11.480502888324049,
+        27.71638600956451
+      ],
+      [
+        -1.3113416982189022e-06,
+        29.999999999999968
+      ],
+      [
+        -11.48050531136752,
+        27.716385005906925
+      ],
+      [
+        -21.213203562078885,
+        21.21320330911397
+      ],
+      [
+        -27.71638787997547,
+        11.48049837275145
+      ],
+      [
+        -29.999999999999883,
+        -2.6226834001117425e-06
+      ],
+      [
+        -27.716385872660883,
+        -11.480503218838635
+      ],
+      [
+        -21.21319985304415,
+        -21.213207018148104
+      ],
+      [
+        -11.480493857178551,
+        -27.716389750385698
+      ],
+      [
+        3.5774641180721085e-07,
+        -29.999999999999996
+      ],
+      [
+        11.480507734410903,
+        -27.716384002249125
+      ],
+      [
+        21.213210474216755,
+        -21.213196396973764
+      ],
+      [
+        27.71638614646813,
+        -11.480502557809455
+      ],
+      [
+        45,
+        0
+      ],
+      [
+        41.57457877482213,
+        17.220754910749697
+      ],
+      [
+        31.819804457950678,
+        31.819805848838588
+      ],
+      [
+        17.22075433248607,
+        41.57457901434676
+      ],
+      [
+        -1.9670125473283534e-06,
+        44.99999999999995
+      ],
+      [
+        -17.220757967051277,
+        41.574577508860386
+      ],
+      [
+        -31.81980534311833,
+        31.819804963670954
+      ],
+      [
+        -41.57458181996321,
+        17.220747559127176
+      ],
+      [
+        -44.99999999999982,
+        -3.934025100167613e-06
+      ],
+      [
+        -41.574578808991326,
+        -17.220754828257952
+      ],
+      [
+        -31.819799779566225,
+        -31.819810527222153
+      ],
+      [
+        -17.220740785767827,
+        -41.574584625578545
+      ],
+      [
+        5.366196177108163e-07,
+        -44.99999999999999
+      ],
+      [
+        17.220761601616353,
+        -41.574576003373686
+      ],
+      [
+        31.81981571132513,
+        -31.819794595460642
+      ],
+      [
+        41.574579219702194,
+        -17.220753836714184
+      ]
+    ],
+    "placements": [],
+    "available_sensor_ids": [
+      "rf",
+      "radar",
+      "eo",
+      "thermal",
+      "fused"
+    ],
+    "blocked_sites": [
+      1,
+      7,
+      9,
+      15,
+      17,
+      23
+    ],
+    "tracks": [],
+    "fresh_track_fraction": 0,
+    "budget_total": 8,
+    "budget_remaining": 8,
+    "max_sites": 8,
+    "min_separation": 20,
+    "deployment_min_radius": 30,
+    "deployment_max_radius": 150,
+    "weather": {
+      "visibility": 1,
+      "rain": 0,
+      "illumination": 1,
+      "humidity": 0.4,
+      "rf_noise": 0.1
+    },
+    "forecast": {
+      "approach_weights": [
+        0.125,
+        0.125,
+        0.125,
+        0.125,
+        0.125,
+        0.125,
+        0.125,
+        0.125
+      ],
+      "altitude": 120,
+      "speed": 9,
+      "emitter_probability": 0.5,
+      "swarm_size": 1,
+      "target_size_m": 0.5,
+      "angular_uncertainty": 0.4
+    },
+    "done": false
+  },
+  "catalogue": [
+    {
+      "id": "rf",
+      "label": "Passive RF",
+      "cost": 0.8,
+      "height_m": 4,
+      "ranges": {
+        "rf": 130,
+        "radar": 0,
+        "eo": 0,
+        "thermal": 0
+      },
+      "strengths": {
+        "rf": 0.88,
+        "radar": 0,
+        "eo": 0,
+        "thermal": 0
+      },
+      "directional": false
+    },
+    {
+      "id": "radar",
+      "label": "Search radar",
+      "cost": 1.2,
+      "height_m": 4,
+      "ranges": {
+        "rf": 0,
+        "radar": 100,
+        "eo": 0,
+        "thermal": 0
+      },
+      "strengths": {
+        "rf": 0,
+        "radar": 0.86,
+        "eo": 0,
+        "thermal": 0
+      },
+      "directional": false
+    },
+    {
+      "id": "eo",
+      "label": "Electro-optical",
+      "cost": 0.7,
+      "height_m": 4,
+      "ranges": {
+        "rf": 0,
+        "radar": 0,
+        "eo": 100,
+        "thermal": 0
+      },
+      "strengths": {
+        "rf": 0,
+        "radar": 0,
+        "eo": 0.94,
+        "thermal": 0
+      },
+      "directional": false
+    },
+    {
+      "id": "thermal",
+      "label": "Teledyne FLIR Boson+ 640 18 mm",
+      "cost": 1,
+      "height_m": 4,
+      "ranges": {
+        "rf": 0,
+        "radar": 0,
+        "eo": 0,
+        "thermal": 500
+      },
+      "strengths": {
+        "rf": 0,
+        "radar": 0,
+        "eo": 0,
+        "thermal": 0.98
+      },
+      "directional": true,
+      "manufacturer_specifications": {
+        "manufacturer": "Teledyne FLIR",
+        "model": "Boson+ 640, 24deg HFOV, 18 mm",
+        "modality": "uncooled LWIR thermal",
+        "source": "https://oem.flir.com/products/boson-plus/?model=22640A024",
+        "resolution": [
+          640,
+          512
+        ],
+        "pixel_pitch_um": 12,
+        "horizontal_fov_deg": 24,
+        "ifov_mrad": 0.667,
+        "frame_rate_hz": 60,
+        "selectable_frame_rate_hz": 30,
+        "industrial_nedt_mk_max": 20
+      },
+      "calculated_geometry": {
+        "vertical_fov_deg": 19.30113014350932,
+        "method": "rectilinear HFOV and 640:512 detector aspect ratio"
+      },
+      "simulation_assumptions": {
+        "detection_model": "pixels_on_target_v1",
+        "max_evaluation_distance_m": 500,
+        "nominal_thermal_contrast_k": 8,
+        "contrast_noise_multiplier": 8,
+        "pixels_for_63_percent": 3,
+        "atmospheric_attenuation_distance_m": 900,
+        "rain_loss_at_maximum": 0.45,
+        "humidity_loss_at_maximum": 0.35,
+        "edge_falloff_exponent": 1.5,
+        "requires_line_of_sight": true
+      },
+      "yaw_bins_deg": [
+        0,
+        45,
+        90,
+        135,
+        180,
+        225,
+        270,
+        315
+      ],
+      "pitch_bins_deg": [
+        0,
+        10,
+        20
+      ]
+    },
+    {
+      "id": "fused",
+      "label": "Radar + thermal",
+      "cost": 2,
+      "height_m": 4,
+      "ranges": {
+        "rf": 0,
+        "radar": 100,
+        "eo": 0,
+        "thermal": 125
+      },
+      "strengths": {
+        "rf": 0,
+        "radar": 0.86,
+        "eo": 0,
+        "thermal": 0.86
+      },
+      "directional": false
+    }
+  ],
+  "siteSurfacesWorldCm": [
+    [
+      3010,
+      90,
+      1504
+    ],
+    null,
+    [
+      2131.3202971967116,
+      2211.3203899225723,
+      0.01097200832737144
+    ],
+    [
+      1158.050288832405,
+      2861.638600956451,
+      0.013368831729167141
+    ],
+    [
+      9.999868865830178,
+      3089.999999999997,
+      0.016918137480388395
+    ],
+    [
+      -1138.050531136752,
+      2861.6385005906927,
+      0.02053082791098859
+    ],
+    [
+      -2111.3203562078884,
+      2211.320330911397,
+      0.023656902732909657
+    ],
+    null,
+    [
+      -2989.999999999988,
+      89.99973773165999,
+      1504
+    ],
+    null,
+    [
+      -2111.319985304415,
+      -2031.3207018148105,
+      0.023734675167361274
+    ],
+    [
+      -1138.049385717855,
+      -2681.6389750385697,
+      9.9985082186613
+    ],
+    [
+      10.00003577464118,
+      -2909.9999999999995,
+      9.998582030457328
+    ],
+    [
+      1158.0507734410903,
+      -2681.6384002249124,
+      9.996958385178004
+    ],
+    [
+      2131.3210474216753,
+      -2031.3196396973763,
+      0.011131275852676481
+    ],
+    null,
+    [
+      4510,
+      90,
+      1500
+    ],
+    null,
+    [
+      3191.9804457950677,
+      3271.9805848838587,
+      0.02265541056112852
+    ],
+    [
+      1732.075433248607,
+      4247.457901434676,
+      0.016430416973889805
+    ],
+    [
+      9.999803298745267,
+      4589.999999999995,
+      0.016709965173504315
+    ],
+    [
+      -1712.0757967051277,
+      4247.457750886038,
+      0.022129000833956525
+    ],
+    [
+      -3171.980534311833,
+      3271.9804963670954,
+      0.020066696641151793
+    ],
+    null,
+    [
+      -4489.999999999982,
+      89.99960659748999,
+      1500
+    ],
+    [
+      -4147.457880899133,
+      -1632.0754828257952,
+      118
+    ],
+    [
+      -3171.9799779566224,
+      -3091.9810527222153,
+      9.996778252636432
+    ],
+    [
+      -1712.0740785767828,
+      -4067.4584625578545,
+      0.023282953421585262
+    ],
+    [
+      10.000053661961772,
+      -4409.999999999999,
+      12
+    ],
+    [
+      1732.0761601616352,
+      -4067.4576003373686,
+      0.012539962146547623
+    ],
+    [
+      3191.981571132513,
+      -3091.9794595460644,
+      9.997110588374198
+    ],
+    [
+      4167.457921970219,
+      -1632.0753836714184,
+      118
+    ]
+  ],
+  "placementRule": "static_surface_directional_mast_v2",
+  "temporalConfig": {
+    "objective_radius_m": 20,
+    "lead_time_s": 4,
+    "look_interval_s": 0.2,
+    "required_confirmations": 2,
+    "confirmation_window": 3,
+    "horizon_s": 100,
+    "prior_spawn_radius_m": 570,
+    "altitude_uncertainty_m": 10,
+    "max_hypotheses": 64,
+    "rf_persistent_weight": 0.5
+  },
+  "fixedStepSeconds": 0.05,
+  "timeLimitSeconds": 100,
+  "sensorModel": "generic directional profile v1; 3D frustum + world-static LOS + pixels-on-target probability; temporal confirmation unchanged"
+}

@@ -1,0 +1,650 @@
+{
+  "schema": "istana.evidence_manifest.v1",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 66,
+      "sha256": "f4ae27c52faffc22604a40c265de2211722783acb809aa77194378a3dc02b943"
+    },
+    {
+      "path": "archive.py",
+      "bytes": 16847,
+      "sha256": "f2440db617e2d755d51cb484791f420cde4349e739ed8adc0293802ca3f85c9b"
+    },
+    {
+      "path": "arms/legacy-917/baseline-public-context.json",
+      "bytes": 10113,
+      "sha256": "a5d88714237b76635717e33b6f7b833885db53d13d708dca1e6e03e799e98c44"
+    },
+    {
+      "path": "arms/legacy-917/configuration.json",
+      "bytes": 4497,
+      "sha256": "fe0eac21bd7e1aa791307420d732def8d7e6ad62632f4217c3b9374fd948d496"
+    },
+    {
+      "path": "arms/legacy-917/confirmation-paired-cases.jsonl.gz",
+      "bytes": 9016,
+      "sha256": "84dcb0bd20daa78361ea501b0191842c6722628e03c8b60fd439f920fb8cd771"
+    },
+    {
+      "path": "arms/legacy-917/confirmation.json",
+      "bytes": 114958,
+      "sha256": "7004051ddf9cb2ed6b64b61fdd4a51be4c45e1ca0e66617a0e7327de7db695c8"
+    },
+    {
+      "path": "arms/legacy-917/contractor-placements.json",
+      "bytes": 412,
+      "sha256": "b649a378d26ca4ad93d6c682381a705f20db4531af3a33ac40f42a64354f075a"
+    },
+    {
+      "path": "arms/legacy-917/evaluation-summary.json",
+      "bytes": 14628,
+      "sha256": "bd3c7f99447a47e2f3d744a7339010db248f4f1c7544f505ef4fa4647e0a9e69"
+    },
+    {
+      "path": "arms/legacy-917/evaluations.jsonl.gz",
+      "bytes": 1802,
+      "sha256": "a8e66b20e4efe360da9e022a080bebda95405cc8f6d29625c7fcd68ad37c038c"
+    },
+    {
+      "path": "arms/legacy-917/final-layout.json",
+      "bytes": 412,
+      "sha256": "6e91c5b187bbfc4c12a4bb823412e3eb730e5dac3a5399c7593e0d32765f2c88"
+    },
+    {
+      "path": "arms/legacy-917/final-policy.json",
+      "bytes": 184063,
+      "sha256": "bb62e2482cb790fccba0e0b8dd975110248af3295d4cf61b2811001d7b43ed91"
+    },
+    {
+      "path": "arms/legacy-917/initial-policy.json",
+      "bytes": 151214,
+      "sha256": "894f9bf8fb02c40f433660429068454bee385419af77b2a9326138b4ae78d903"
+    },
+    {
+      "path": "arms/legacy-917/native-calls.jsonl.gz",
+      "bytes": 30545,
+      "sha256": "7b9ac3a6cf28048da802158ed13d49f039f68bd10bda87d90973612c965fe9fe"
+    },
+    {
+      "path": "arms/legacy-917/native-cost.json",
+      "bytes": 344,
+      "sha256": "d21f0343bfe1d0a8841428f441f92334b69b19440d89461df09b92ec413bfeb7"
+    },
+    {
+      "path": "arms/legacy-917/recording-manifest.json",
+      "bytes": 54545,
+      "sha256": "16fd7b3e90e283eebf17791177814e3b905bc8382d6c402fd79e3067e2dcfa91"
+    },
+    {
+      "path": "arms/legacy-917/secondary-final-confirmation.json",
+      "bytes": 115089,
+      "sha256": "7fb4df182f8ac41b083884d2e1c9bf19c359694765cdfe082c239060c49d496b"
+    },
+    {
+      "path": "arms/legacy-917/secondary-final-paired-cases.jsonl.gz",
+      "bytes": 9016,
+      "sha256": "84dcb0bd20daa78361ea501b0191842c6722628e03c8b60fd439f920fb8cd771"
+    },
+    {
+      "path": "arms/legacy-917/selected-layout.json",
+      "bytes": 412,
+      "sha256": "f932c4dfeef3ce5ce7a2d94e847de943ae37628ef5d763b71ef2442f47163e56"
+    },
+    {
+      "path": "arms/legacy-917/selected-policy.json",
+      "bytes": 151214,
+      "sha256": "894f9bf8fb02c40f433660429068454bee385419af77b2a9326138b4ae78d903"
+    },
+    {
+      "path": "arms/legacy-917/summary.json",
+      "bytes": 20600,
+      "sha256": "5741a6ff143dedc113d0df4564c6720747bf14d3aad6b27ab4989e08ab7fe685"
+    },
+    {
+      "path": "arms/legacy-917/test-evaluation.json",
+      "bytes": 9501,
+      "sha256": "e4c69cdd16f2e172dfdda6964cbc27bbe6afd3ff9103ea8305023fcdad651894"
+    },
+    {
+      "path": "arms/legacy-917/training.jsonl.gz",
+      "bytes": 86138,
+      "sha256": "63e166d01397d112e5b5275b8b3913e4b182ebf9d6b5f3493583492fbbb3ea11"
+    },
+    {
+      "path": "arms/local-917/baseline-public-context.json",
+      "bytes": 10114,
+      "sha256": "e190519bc017da2036a37ecfc91e03334b514bf397d8979a3594fc8e9592e735"
+    },
+    {
+      "path": "arms/local-917/configuration.json",
+      "bytes": 5367,
+      "sha256": "2171e6eada75490ec1caa0a46a96fd21e5d9a3c2191364e322153f6d1b7270b4"
+    },
+    {
+      "path": "arms/local-917/confirmation-paired-cases.jsonl.gz",
+      "bytes": 9016,
+      "sha256": "84dcb0bd20daa78361ea501b0191842c6722628e03c8b60fd439f920fb8cd771"
+    },
+    {
+      "path": "arms/local-917/confirmation.json",
+      "bytes": 114958,
+      "sha256": "fd06d9b0de09c2cb56823162216282eba5a54fb795e770c091e2d01f49736caa"
+    },
+    {
+      "path": "arms/local-917/contractor-placements.json",
+      "bytes": 412,
+      "sha256": "b649a378d26ca4ad93d6c682381a705f20db4531af3a33ac40f42a64354f075a"
+    },
+    {
+      "path": "arms/local-917/evaluation-summary.json",
+      "bytes": 14628,
+      "sha256": "bd3c7f99447a47e2f3d744a7339010db248f4f1c7544f505ef4fa4647e0a9e69"
+    },
+    {
+      "path": "arms/local-917/evaluations.jsonl.gz",
+      "bytes": 2831,
+      "sha256": "5ea1fae837a8c9803050b89448a1c1b7426245718272ac36b3cbcacd8b131286"
+    },
+    {
+      "path": "arms/local-917/final-layout.json",
+      "bytes": 411,
+      "sha256": "314f1ca3d63b722fad33810c1e3180ddf14ff1e7626785feb3bc7f3d2f1ede4e"
+    },
+    {
+      "path": "arms/local-917/final-policy.json",
+      "bytes": 133574,
+      "sha256": "ca5d4e517709907b711a1a43e49f5b47588b0feba680b7a782180095d1c1f82d"
+    },
+    {
+      "path": "arms/local-917/initial-policy.json",
+      "bytes": 132253,
+      "sha256": "3bf8a6b965063225e066c1a901d8f502a489bfbaec52f8f388e7cf25958ab381"
+    },
+    {
+      "path": "arms/local-917/native-calls.jsonl.gz",
+      "bytes": 41248,
+      "sha256": "190fda08c73f57c6b0b06f5b9c35061162399c780c353837e63c7146455d3162"
+    },
+    {
+      "path": "arms/local-917/native-cost.json",
+      "bytes": 384,
+      "sha256": "5f2e12d205b50901a0ea2e495ca44f0720b4370d62caf5b7a6af554d596fde9b"
+    },
+    {
+      "path": "arms/local-917/recording-manifest.json",
+      "bytes": 55702,
+      "sha256": "e73c3eeb919e380b81c0da6f022bd891c167a6de35c802b732cc695b7ee18a5a"
+    },
+    {
+      "path": "arms/local-917/secondary-final-confirmation.json",
+      "bytes": 116773,
+      "sha256": "3d2db16b6598ebab61a1b3d2e7cc5ecc4648c6c56d6baf57ce079098c415d32f"
+    },
+    {
+      "path": "arms/local-917/secondary-final-paired-cases.jsonl.gz",
+      "bytes": 11107,
+      "sha256": "984e272240bae7517572b087f584ffd19e76d4e56b0c11137e7a131996f78b0d"
+    },
+    {
+      "path": "arms/local-917/selected-layout.json",
+      "bytes": 412,
+      "sha256": "b649a378d26ca4ad93d6c682381a705f20db4531af3a33ac40f42a64354f075a"
+    },
+    {
+      "path": "arms/local-917/selected-policy.json",
+      "bytes": 132253,
+      "sha256": "3bf8a6b965063225e066c1a901d8f502a489bfbaec52f8f388e7cf25958ab381"
+    },
+    {
+      "path": "arms/local-917/summary.json",
+      "bytes": 21241,
+      "sha256": "5510a6c1e877f40afaf0901bd9cc79aba380efce3bf9265261dad8be6b421d22"
+    },
+    {
+      "path": "arms/local-917/test-evaluation.json",
+      "bytes": 9501,
+      "sha256": "e4c69cdd16f2e172dfdda6964cbc27bbe6afd3ff9103ea8305023fcdad651894"
+    },
+    {
+      "path": "arms/local-917/training.jsonl.gz",
+      "bytes": 99535,
+      "sha256": "f81d7a00b2082976ae779c1bb69badc51a27cd46168c583ec49e23de25f25fc0"
+    },
+    {
+      "path": "arms/local-918/baseline-public-context.json",
+      "bytes": 10113,
+      "sha256": "88a97b70e29bb44456f8add885fdc9ce648c4d60517b1788fe4ffa75a5d02009"
+    },
+    {
+      "path": "arms/local-918/configuration.json",
+      "bytes": 5367,
+      "sha256": "51489700d9be6fd5273096f6752ac98b6134adcc8a01ff7adea24fae7e81aae1"
+    },
+    {
+      "path": "arms/local-918/confirmation-paired-cases.jsonl.gz",
+      "bytes": 9016,
+      "sha256": "84dcb0bd20daa78361ea501b0191842c6722628e03c8b60fd439f920fb8cd771"
+    },
+    {
+      "path": "arms/local-918/confirmation.json",
+      "bytes": 114958,
+      "sha256": "f3b2c1baa1fa3464fda2c820c1e12172c82a1958c620a449f8032f048e7b3420"
+    },
+    {
+      "path": "arms/local-918/contractor-placements.json",
+      "bytes": 412,
+      "sha256": "b649a378d26ca4ad93d6c682381a705f20db4531af3a33ac40f42a64354f075a"
+    },
+    {
+      "path": "arms/local-918/evaluation-summary.json",
+      "bytes": 14628,
+      "sha256": "bd3c7f99447a47e2f3d744a7339010db248f4f1c7544f505ef4fa4647e0a9e69"
+    },
+    {
+      "path": "arms/local-918/evaluations.jsonl.gz",
+      "bytes": 3797,
+      "sha256": "5d4a3aac82f91b5fe54f4743dce6998ef5984e503ad42a9ff76ef7cc477aa1c4"
+    },
+    {
+      "path": "arms/local-918/final-layout.json",
+      "bytes": 413,
+      "sha256": "d15419e8f9c5a88e0df8670f51a39065474f617a158fc6be77da36270f0c05df"
+    },
+    {
+      "path": "arms/local-918/final-policy.json",
+      "bytes": 133566,
+      "sha256": "2da9ddd287fc9d88010ba1395bd91b4ba929dad983ebe25b7a1278c55c82ebd3"
+    },
+    {
+      "path": "arms/local-918/initial-policy.json",
+      "bytes": 132254,
+      "sha256": "6a2b47b9720510f4dbac84e659d9c96b2460dcde8d6cb1e0624472b44c9ed965"
+    },
+    {
+      "path": "arms/local-918/native-calls.jsonl.gz",
+      "bytes": 42006,
+      "sha256": "58f4ede86cac647756b35dae6bebd545adbac48823664a04924f6eb3e0220f4f"
+    },
+    {
+      "path": "arms/local-918/native-cost.json",
+      "bytes": 384,
+      "sha256": "ce6c3369a5a790e03bc87b29715d3285d7d11266d79bfd216180a8e752a7c2af"
+    },
+    {
+      "path": "arms/local-918/recording-manifest.json",
+      "bytes": 55695,
+      "sha256": "2d7c6eb53432fbe5d9a08c921b16ab5955061694678496ac877e603720934e0c"
+    },
+    {
+      "path": "arms/local-918/secondary-final-confirmation.json",
+      "bytes": 117434,
+      "sha256": "e5a9ef44c7cf7a37e5ab07c180a50e05c08a2593a531fd69a2149e0d4d4a64ef"
+    },
+    {
+      "path": "arms/local-918/secondary-final-paired-cases.jsonl.gz",
+      "bytes": 12094,
+      "sha256": "dbbf65d70ab61aab9218d414a1b2253f55543ff7a6ecfe56cf6f72eb5cfc05fc"
+    },
+    {
+      "path": "arms/local-918/selected-layout.json",
+      "bytes": 412,
+      "sha256": "b649a378d26ca4ad93d6c682381a705f20db4531af3a33ac40f42a64354f075a"
+    },
+    {
+      "path": "arms/local-918/selected-policy.json",
+      "bytes": 132254,
+      "sha256": "6a2b47b9720510f4dbac84e659d9c96b2460dcde8d6cb1e0624472b44c9ed965"
+    },
+    {
+      "path": "arms/local-918/summary.json",
+      "bytes": 21241,
+      "sha256": "c3d9afa55cc2cdae420bb9a3bc0997d4fb5d6f89ba43273215e9ccf9e6857536"
+    },
+    {
+      "path": "arms/local-918/test-evaluation.json",
+      "bytes": 9501,
+      "sha256": "e4c69cdd16f2e172dfdda6964cbc27bbe6afd3ff9103ea8305023fcdad651894"
+    },
+    {
+      "path": "arms/local-918/training.jsonl.gz",
+      "bytes": 99921,
+      "sha256": "4104e1871d49ebb97ed713a5a611d4cc2c2e11d6df5fe72afd4270fb60024e2f"
+    },
+    {
+      "path": "confirmation-completion.json",
+      "bytes": 383413,
+      "sha256": "05db51bb38b92f998d2f8b34a1322b4f127f10c9e8218b8b3e1b4cd760f522b8"
+    },
+    {
+      "path": "confirmation-protocol.json",
+      "bytes": 2705,
+      "sha256": "e805f1bc7989f167ea754fc2f3846de0e2407e05107b5930cede4922ab74ad59"
+    },
+    {
+      "path": "constraint-audit-pairs.jsonl.gz",
+      "bytes": 115183,
+      "sha256": "8f39f0089722905d34217856502dd276fee53261bdb42af645b3f4ce75f98185"
+    },
+    {
+      "path": "constraint-audit.json",
+      "bytes": 873,
+      "sha256": "fd6c35a68835031a06c8adf931d4bec88862e549b95694b708b5003fcbd13a98"
+    },
+    {
+      "path": "drivers/audit_constraints.py",
+      "bytes": 4733,
+      "sha256": "56c5d81ae7670b07b88cbd2df6f3453bd327c8569fc46e6a0e5f85b03550f94a"
+    },
+    {
+      "path": "drivers/confirm.py",
+      "bytes": 9401,
+      "sha256": "2f97d1c512afd3614050953d8bcae852149b6e4ca2501626042ee7981537f420"
+    },
+    {
+      "path": "drivers/export_bundle.py",
+      "bytes": 15324,
+      "sha256": "b8c00c532e9906b00777812b5b7ad2b9d62c2d23bca19608865aac55fbbaf898"
+    },
+    {
+      "path": "drivers/pilot.py",
+      "bytes": 15718,
+      "sha256": "237bc2d5cd22d724d2de0cbf90ea19a03c2a32382c3294bf143f6be3f5912d66"
+    },
+    {
+      "path": "drivers/secondary.py",
+      "bytes": 8410,
+      "sha256": "b17327c0f62923fc439bcd0b325bd6cbe9e046088dd1ff2796526ed3733fa3f8"
+    },
+    {
+      "path": "environment.json",
+      "bytes": 91,
+      "sha256": "dc482c47943f1e25758f5556f0c8779ab200081686478a0b5d62e9cd608f0ed8"
+    },
+    {
+      "path": "fair-start-verification.json",
+      "bytes": 5307,
+      "sha256": "824c4f36df96dc57438d3d6fa46a223eeb09b041454544db3f2a1f7b4e066418"
+    },
+    {
+      "path": "frozen-selection.json",
+      "bytes": 43152,
+      "sha256": "c3bddaa979cc615bd1294648b8804e7f45a1c74ae8636025de6b3abe68579247"
+    },
+    {
+      "path": "launch.json",
+      "bytes": 2705,
+      "sha256": "1d10b1385221188d418bb7feceb823dac040c4d7f4cf637e15089edee8e64067"
+    },
+    {
+      "path": "learning-diagnostics.json",
+      "bytes": 4113,
+      "sha256": "c64772725afef82d9b1cf9fcf6d0af18db4062312e50a0c14bc8e06322a37a4f"
+    },
+    {
+      "path": "pilot-completion.json",
+      "bytes": 21999,
+      "sha256": "791554729a44a3a2f960b94d86b7605cf87d5db25e03e00b347a2a393b7a3b94"
+    },
+    {
+      "path": "postlaunch-source-delta.patch",
+      "bytes": 1532,
+      "sha256": "ce890cbb2a59b54b2577b7ac85af06dd8d25de062b00742bda2f8b089dbfde28"
+    },
+    {
+      "path": "protocol.json",
+      "bytes": 3738,
+      "sha256": "e205d765fcde6f1de83bd9c5acee8eb981f1252c480fd698b6645d7bc73e023c"
+    },
+    {
+      "path": "README.md",
+      "bytes": 5014,
+      "sha256": "33e3991afe43fa7316e73cc17e030c30c028e62c40de268d942b996863be2b98"
+    },
+    {
+      "path": "results.json",
+      "bytes": 10639,
+      "sha256": "d73127a7b1505b6babbf192e8210c2bf2f984b9980152655278daa48b9fe27b3"
+    },
+    {
+      "path": "secondary-completion.json",
+      "bytes": 387901,
+      "sha256": "fe45339f93e438c25901c9d94b1a75bcdc01a72c301d958fc6cc962a2acac897"
+    },
+    {
+      "path": "secondary-protocol.json",
+      "bytes": 5095,
+      "sha256": "bd01a8c9eaa77871028fa59473fe069ab6c78c9b5da2ac7e8504652803e0ca83"
+    },
+    {
+      "path": "source-provenance.json",
+      "bytes": 12115,
+      "sha256": "ec8bb7bdc84f911029719815d169ed3e4f92a392cb190608734877b1d20f7f61"
+    },
+    {
+      "path": "source-snapshot/triad_rl/__init__.py",
+      "bytes": 1062,
+      "sha256": "600bb157966aa55c98f2ed3fa51b41e2c0d944515cf5e6088bdd1ca64bdd0645"
+    },
+    {
+      "path": "source-snapshot/triad_rl/adaptive_env.py",
+      "bytes": 21894,
+      "sha256": "afbf0bdedb62ffeb07e416dfa8745378d7057f549d8b5f771cbfd599ae428cc8"
+    },
+    {
+      "path": "source-snapshot/triad_rl/adaptive_evaluation.py",
+      "bytes": 29047,
+      "sha256": "01fd9293a699f25cfeaaff3ad6399b7ec1695a5e67ee6583efb3076ddb5e0910"
+    },
+    {
+      "path": "source-snapshot/triad_rl/adaptive_inputs.py",
+      "bytes": 26348,
+      "sha256": "fe011855192d1f5450f10955178f7ed6069cbed58bde090734b0407e474799b9"
+    },
+    {
+      "path": "source-snapshot/triad_rl/adaptive_policy.py",
+      "bytes": 17627,
+      "sha256": "bc3909894e3b4f418a0a2740fe5fd42c28023d9c1ed96e456c57e829fb06577d"
+    },
+    {
+      "path": "source-snapshot/triad_rl/anchored_credit.py",
+      "bytes": 13785,
+      "sha256": "38bf2926674310b4d675691b96d0093962fd2ca846d846ebc60eaa60aff7f0c2"
+    },
+    {
+      "path": "source-snapshot/triad_rl/anchored_lineage.py",
+      "bytes": 9194,
+      "sha256": "1b6e11e37c69292fd839d4db00db9d7b3ae5ab02d26191390b74d5fcdf213fa5"
+    },
+    {
+      "path": "source-snapshot/triad_rl/balanced_policy.py",
+      "bytes": 18678,
+      "sha256": "a9c8b72521d890dd6cfcd40e4fdffd5970f13d5e29aaf11451656274fe327704"
+    },
+    {
+      "path": "source-snapshot/triad_rl/common_sense.py",
+      "bytes": 8567,
+      "sha256": "9d04c60addbd03c2ec5267995de6f08c98e661ca2ce6d28862afa488c1b98c36"
+    },
+    {
+      "path": "source-snapshot/triad_rl/counterfactual_rollout.py",
+      "bytes": 8189,
+      "sha256": "6d659ec831b9ff906b295d7729d9613c4812c4577fe3220e184d1f741b1cd791"
+    },
+    {
+      "path": "source-snapshot/triad_rl/credit_lineage.py",
+      "bytes": 10703,
+      "sha256": "4c5596c333f5617fc3f1047b977066240b2d2dcf349d94ead6e1aa3b7ca96a02"
+    },
+    {
+      "path": "source-snapshot/triad_rl/directional_inputs.py",
+      "bytes": 25958,
+      "sha256": "43e650e4286ebcb8eb3d7cf556d378a34ead606452666957adbaee5d77219271"
+    },
+    {
+      "path": "source-snapshot/triad_rl/environment.py",
+      "bytes": 29971,
+      "sha256": "48079bff33088ff85c3d4c81db5255d59da439bc1d74fca810ba62bff39ec59d"
+    },
+    {
+      "path": "source-snapshot/triad_rl/evaluate_anchored_pilot.py",
+      "bytes": 19114,
+      "sha256": "01df53b7a36b24affc710311f9a76d688ca70f0d0528ebc5726908ac9d009dac"
+    },
+    {
+      "path": "source-snapshot/triad_rl/evaluate_credit_pilot.py",
+      "bytes": 32648,
+      "sha256": "044b1196f5b6ece6e99fcd13680095d796d33dc9d2e4cfd8fcb1e72e4e278517"
+    },
+    {
+      "path": "source-snapshot/triad_rl/istana_live.py",
+      "bytes": 22693,
+      "sha256": "93722ec7b2722103e5a3840b7e4896afa385c030455df78fdefce79bd78c8677"
+    },
+    {
+      "path": "source-snapshot/triad_rl/local_refinement_policy.py",
+      "bytes": 17418,
+      "sha256": "c1e2974027346dbc98bc489ab25feb05749c26715cc323b64dbb8d2c347cd614"
+    },
+    {
+      "path": "source-snapshot/triad_rl/placement_policy.py",
+      "bytes": 34537,
+      "sha256": "29fe2d3eb327ef25d0416b0c38324d7d31ebd7f7134727b3486afdf128d10607"
+    },
+    {
+      "path": "source-snapshot/triad_rl/policy.py",
+      "bytes": 765,
+      "sha256": "4bde1adf6c66665ebc601d608b06612871c71eae9dae8661f1d4073f6b163629"
+    },
+    {
+      "path": "source-snapshot/triad_rl/ranking_lineage.py",
+      "bytes": 8850,
+      "sha256": "e91a0f5833679ec29b4108d74215993e6f79696b1e9f607e3b4542203efc8b6d"
+    },
+    {
+      "path": "source-snapshot/triad_rl/ranking_policy.py",
+      "bytes": 23366,
+      "sha256": "b54405aefd8fff8717915226614b6692aded7b698d1e698e57e166fd9f5d8a6c"
+    },
+    {
+      "path": "source-snapshot/triad_rl/ranking_rollout.py",
+      "bytes": 14671,
+      "sha256": "14f1107fc302de8841655ae4b987567456e29482a6ac04fe785f78f7950a057b"
+    },
+    {
+      "path": "source-snapshot/triad_rl/red_policy.py",
+      "bytes": 23838,
+      "sha256": "8621943dfab4524952738ca2dfdca8810fc9fb1cd3b1e19966df6240097705e3"
+    },
+    {
+      "path": "source-snapshot/triad_rl/remote_control.py",
+      "bytes": 6367,
+      "sha256": "b55bd890f30f7cd8ec49853a3d447f96ca1cdee1ac412ea3beee1bbe04db32f9"
+    },
+    {
+      "path": "source-snapshot/triad_rl/robust_scenarios.py",
+      "bytes": 11428,
+      "sha256": "e07cbe525f5997a91561ef3c1c52e62e618b58b5efc915c57e68f82a9d86e6ba"
+    },
+    {
+      "path": "source-snapshot/triad_rl/rollout.py",
+      "bytes": 15103,
+      "sha256": "c632a74862f557f6e0766061d97c6eb12986968bf4e5856ad121a10b761a275a"
+    },
+    {
+      "path": "source-snapshot/triad_rl/self_play.py",
+      "bytes": 555,
+      "sha256": "77e201e7c735c3f5999d2f69b18af7c21ab8b06811002456cba5d4315aafd168"
+    },
+    {
+      "path": "source-snapshot/triad_rl/temporal_confirmation.py",
+      "bytes": 5531,
+      "sha256": "50647e7b1237ac55efc3556a3aca0e512abb1aac85f259fc086b1ee605764eea"
+    },
+    {
+      "path": "source-snapshot/triad_rl/temporal_env.py",
+      "bytes": 5014,
+      "sha256": "c69350413dafd10b936414e9a015af6fceb4ba0c2cec9d6ce4203e301b665d7d"
+    },
+    {
+      "path": "source-snapshot/triad_rl/temporal_inputs.py",
+      "bytes": 22467,
+      "sha256": "643ad89cd4060361d6a858a94ad61f7e26408bd55a46015e895eb331bf9c61d1"
+    },
+    {
+      "path": "source-snapshot/triad_rl/temporal_lineage.py",
+      "bytes": 9633,
+      "sha256": "b93dfe6fadb2d8303900659b143e4e0c8f60e26005adea7e056e4074bdcecaf9"
+    },
+    {
+      "path": "source-snapshot/triad_rl/temporal_policy.py",
+      "bytes": 28029,
+      "sha256": "55c48c66cc6c8f11efd02e65b42cbb6b37c4933fb5d1c2220dc1b734f908b140"
+    },
+    {
+      "path": "source-snapshot/triad_rl/train_adaptive.py",
+      "bytes": 11644,
+      "sha256": "e356a4e46782a2fe93d54f7da1095ae4e34fd0664ccecdbde3561756297c66c9"
+    },
+    {
+      "path": "source-snapshot/triad_rl/train_anchored_pilot.py",
+      "bytes": 33655,
+      "sha256": "d370cec786f992d150e61a3e45424edce86c2cea1acb509875d05f17630a94ba"
+    },
+    {
+      "path": "source-snapshot/triad_rl/train_balanced.py",
+      "bytes": 23278,
+      "sha256": "e9711cc093ba5bfc3c11b394c28b814ee1f4786f0debad02102f71e913fc1e7c"
+    },
+    {
+      "path": "source-snapshot/triad_rl/train_credit_pilot.py",
+      "bytes": 25062,
+      "sha256": "a4a4b90558223bd9b63561680542a08415a62e07c2ce74c4a739e85f8894cde5"
+    },
+    {
+      "path": "source-snapshot/triad_rl/train_ranking.py",
+      "bytes": 42314,
+      "sha256": "57f5cfcde18885c2c08340f4ae8e444731f86847360fb862bef5470fff4c834d"
+    },
+    {
+      "path": "source-snapshot/triad_rl/train_robust.py",
+      "bytes": 23502,
+      "sha256": "79b870b2a00d46f93e8cc0544d5b85818a2ce8d88fbb9a807df0ac90a1f95e87"
+    },
+    {
+      "path": "source-snapshot/triad_rl/trained_models.py",
+      "bytes": 6910,
+      "sha256": "fadecf9ff0b315681302d6a4da0eb3e02cef204b5fdc0f3043590e068c57abca"
+    },
+    {
+      "path": "source-snapshot/triad_rl/training_evidence.py",
+      "bytes": 7611,
+      "sha256": "6191afc18d117573edcfa526989555fd95571890e8de40da612e195eae530027"
+    },
+    {
+      "path": "source-snapshot/triad_rl/training_recording.py",
+      "bytes": 6624,
+      "sha256": "173d6bf601e3251a87e628b6a45a84582e34469024a40f16b23a51eb2a7deb04"
+    },
+    {
+      "path": "source-snapshot/triad_rl/training_workbench.py",
+      "bytes": 67764,
+      "sha256": "746e22e61c1ba6c642591c3d3fadcd15b6376f572dc05d951fc94206a79160cb"
+    },
+    {
+      "path": "source-snapshot/triad_rl/warning_algorithms.py",
+      "bytes": 15771,
+      "sha256": "1070de7adcf91fd61619b0e5c1402c23adc6bab14a3ecfb339ccfd9f0596b276"
+    },
+    {
+      "path": "source-snapshot/triad_rl/warning_policy.py",
+      "bytes": 20113,
+      "sha256": "cfc5413c33d3520e7a46bd8f3fc9da977f2d92d8e8ffa2331460e114d092ae14"
+    },
+    {
+      "path": "source-snapshot/triad_rl/warning_scenario.py",
+      "bytes": 4897,
+      "sha256": "0c68a756e403f16f52e8df51d7b1546b941849caa52cc7fb474f2cf98b43b517"
+    }
+  ]
+}

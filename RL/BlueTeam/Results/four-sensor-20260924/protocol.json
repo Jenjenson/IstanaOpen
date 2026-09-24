@@ -1,0 +1,64 @@
+{
+  "schema": "istana.four_sensor_experiment_plan.v1",
+  "study": "Four sensors against five drones",
+  "date": "2026-09-24",
+  "execution": "Three parallel trials on isolated native backends; 500 training episodes per seed, 1500 total. Schedule amended before any trial starts; scientific parameters unchanged.",
+  "selection": "Each trial independently selects its best policy on the same ten validation scenarios; report every trial and the separate ten-scenario test panel",
+  "validationSeeds": [
+    2700000,
+    2700001,
+    2700002,
+    2700003,
+    2700004,
+    2700005,
+    2700006,
+    2700007,
+    2700008,
+    2700009
+  ],
+  "testSeeds": [
+    3800000,
+    3800001,
+    3800002,
+    3800003,
+    3800004,
+    3800005,
+    3800006,
+    3800007,
+    3800008,
+    3800009
+  ],
+  "expectedTargetsPerScenario": 5,
+  "baseConfiguration": {
+    "algorithm": "ppo",
+    "episodes": 500,
+    "batchSize": 20,
+    "sensorCount": 4,
+    "sensorIds": [
+      "thermal"
+    ],
+    "initialization": "directional_balanced_8",
+    "explorationProbability": 0.2,
+    "entropyCoefficient": 0.01,
+    "validationCases": 10,
+    "checkpointInterval": 500,
+    "headroomProbes": 4
+  },
+  "trials": [
+    {
+      "trial": "A",
+      "seed": 917,
+      "name": "Four-sensor study 2026-09-24 Trial A"
+    },
+    {
+      "trial": "B",
+      "seed": 918,
+      "name": "Four-sensor study 2026-09-24 Trial B"
+    },
+    {
+      "trial": "C",
+      "seed": 919,
+      "name": "Four-sensor study 2026-09-24 Trial C"
+    }
+  ]
+}

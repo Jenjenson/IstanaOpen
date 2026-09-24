@@ -1,0 +1,8386 @@
+{
+  "schema": "istana.warning_directional_masked_ppo.v1",
+  "algorithm": "ppo",
+  "contract": {
+    "sites": [
+      [
+        30.0,
+        0.0
+      ],
+      [
+        27.71638584988142,
+        11.480503273833133
+      ],
+      [
+        21.213202971967117,
+        21.213203899225725
+      ],
+      [
+        11.480502888324049,
+        27.71638600956451
+      ],
+      [
+        -1.3113416982189022e-06,
+        29.999999999999968
+      ],
+      [
+        -11.48050531136752,
+        27.716385005906925
+      ],
+      [
+        -21.213203562078885,
+        21.21320330911397
+      ],
+      [
+        -27.71638787997547,
+        11.48049837275145
+      ],
+      [
+        -29.999999999999883,
+        -2.6226834001117425e-06
+      ],
+      [
+        -27.716385872660883,
+        -11.480503218838635
+      ],
+      [
+        -21.21319985304415,
+        -21.213207018148104
+      ],
+      [
+        -11.480493857178551,
+        -27.716389750385698
+      ],
+      [
+        3.5774641180721085e-07,
+        -29.999999999999996
+      ],
+      [
+        11.480507734410903,
+        -27.716384002249125
+      ],
+      [
+        21.213210474216755,
+        -21.213196396973764
+      ],
+      [
+        27.71638614646813,
+        -11.480502557809455
+      ],
+      [
+        45.0,
+        0.0
+      ],
+      [
+        41.57457877482213,
+        17.220754910749697
+      ],
+      [
+        31.819804457950678,
+        31.819805848838588
+      ],
+      [
+        17.22075433248607,
+        41.57457901434676
+      ],
+      [
+        -1.9670125473283534e-06,
+        44.99999999999995
+      ],
+      [
+        -17.220757967051277,
+        41.574577508860386
+      ],
+      [
+        -31.81980534311833,
+        31.819804963670954
+      ],
+      [
+        -41.57458181996321,
+        17.220747559127176
+      ],
+      [
+        -44.99999999999982,
+        -3.934025100167613e-06
+      ],
+      [
+        -41.574578808991326,
+        -17.220754828257952
+      ],
+      [
+        -31.819799779566225,
+        -31.819810527222153
+      ],
+      [
+        -17.220740785767827,
+        -41.574584625578545
+      ],
+      [
+        5.366196177108163e-07,
+        -44.99999999999999
+      ],
+      [
+        17.220761601616353,
+        -41.574576003373686
+      ],
+      [
+        31.81981571132513,
+        -31.819794595460642
+      ],
+      [
+        41.574579219702194,
+        -17.220753836714184
+      ]
+    ],
+    "catalogue": [
+      {
+        "id": "rf",
+        "label": "Passive RF",
+        "cost": 0.8,
+        "ranges": {
+          "rf": 130.0,
+          "radar": 0.0,
+          "eo": 0.0,
+          "thermal": 0.0
+        },
+        "strengths": {
+          "rf": 0.88,
+          "radar": 0.0,
+          "eo": 0.0,
+          "thermal": 0.0
+        },
+        "height_m": 4.0,
+        "directional": false
+      },
+      {
+        "id": "radar",
+        "label": "Search radar",
+        "cost": 1.2,
+        "ranges": {
+          "rf": 0.0,
+          "radar": 100.0,
+          "eo": 0.0,
+          "thermal": 0.0
+        },
+        "strengths": {
+          "rf": 0.0,
+          "radar": 0.86,
+          "eo": 0.0,
+          "thermal": 0.0
+        },
+        "height_m": 4.0,
+        "directional": false
+      },
+      {
+        "id": "eo",
+        "label": "Electro-optical",
+        "cost": 0.7,
+        "ranges": {
+          "rf": 0.0,
+          "radar": 0.0,
+          "eo": 100.0,
+          "thermal": 0.0
+        },
+        "strengths": {
+          "rf": 0.0,
+          "radar": 0.0,
+          "eo": 0.94,
+          "thermal": 0.0
+        },
+        "height_m": 4.0,
+        "directional": false
+      },
+      {
+        "id": "thermal",
+        "label": "Teledyne FLIR Boson+ 640 18 mm",
+        "cost": 1.0,
+        "ranges": {
+          "rf": 0.0,
+          "radar": 0.0,
+          "eo": 0.0,
+          "thermal": 500.0
+        },
+        "strengths": {
+          "rf": 0.0,
+          "radar": 0.0,
+          "eo": 0.0,
+          "thermal": 0.98
+        },
+        "height_m": 4.0,
+        "directional": true,
+        "manufacturer_specifications": {
+          "manufacturer": "Teledyne FLIR",
+          "model": "Boson+ 640, 24deg HFOV, 18 mm",
+          "modality": "uncooled LWIR thermal",
+          "source": "https://oem.flir.com/products/boson-plus/?model=22640A024",
+          "resolution": [
+            640,
+            512
+          ],
+          "pixel_pitch_um": 12.0,
+          "horizontal_fov_deg": 24.0,
+          "ifov_mrad": 0.667,
+          "frame_rate_hz": 60.0,
+          "selectable_frame_rate_hz": 30.0,
+          "industrial_nedt_mk_max": 20.0
+        },
+        "calculated_geometry": {
+          "vertical_fov_deg": 19.30113014350932,
+          "method": "rectilinear HFOV and 640:512 detector aspect ratio"
+        },
+        "simulation_assumptions": {
+          "detection_model": "pixels_on_target_v1",
+          "max_evaluation_distance_m": 500.0,
+          "nominal_thermal_contrast_k": 8.0,
+          "contrast_noise_multiplier": 8.0,
+          "pixels_for_63_percent": 3.0,
+          "atmospheric_attenuation_distance_m": 900.0,
+          "rain_loss_at_maximum": 0.45,
+          "humidity_loss_at_maximum": 0.35,
+          "edge_falloff_exponent": 1.5,
+          "requires_line_of_sight": true
+        },
+        "yaw_bins_deg": [
+          0.0,
+          45.0,
+          90.0,
+          135.0,
+          180.0,
+          225.0,
+          270.0,
+          315.0
+        ],
+        "pitch_bins_deg": [
+          0.0,
+          10.0,
+          20.0
+        ]
+      },
+      {
+        "id": "fused",
+        "label": "Radar + thermal",
+        "cost": 2.0,
+        "ranges": {
+          "rf": 0.0,
+          "radar": 100.0,
+          "eo": 0.0,
+          "thermal": 125.0
+        },
+        "strengths": {
+          "rf": 0.0,
+          "radar": 0.86,
+          "eo": 0.0,
+          "thermal": 0.86
+        },
+        "height_m": 4.0,
+        "directional": false
+      }
+    ],
+    "options": [
+      {
+        "sensor_id": "rf",
+        "site_index": 0,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "rf",
+        "site_index": 1,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "rf",
+        "site_index": 2,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "rf",
+        "site_index": 3,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "rf",
+        "site_index": 4,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "rf",
+        "site_index": 5,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "rf",
+        "site_index": 6,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "rf",
+        "site_index": 7,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "rf",
+        "site_index": 8,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "rf",
+        "site_index": 9,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "rf",
+        "site_index": 10,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "rf",
+        "site_index": 11,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "rf",
+        "site_index": 12,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "rf",
+        "site_index": 13,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "rf",
+        "site_index": 14,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "rf",
+        "site_index": 15,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "rf",
+        "site_index": 16,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "rf",
+        "site_index": 17,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "rf",
+        "site_index": 18,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "rf",
+        "site_index": 19,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "rf",
+        "site_index": 20,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "rf",
+        "site_index": 21,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "rf",
+        "site_index": 22,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "rf",
+        "site_index": 23,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "rf",
+        "site_index": 24,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "rf",
+        "site_index": 25,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "rf",
+        "site_index": 26,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "rf",
+        "site_index": 27,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "rf",
+        "site_index": 28,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "rf",
+        "site_index": 29,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "rf",
+        "site_index": 30,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "rf",
+        "site_index": 31,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "radar",
+        "site_index": 0,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "radar",
+        "site_index": 1,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "radar",
+        "site_index": 2,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "radar",
+        "site_index": 3,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "radar",
+        "site_index": 4,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "radar",
+        "site_index": 5,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "radar",
+        "site_index": 6,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "radar",
+        "site_index": 7,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "radar",
+        "site_index": 8,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "radar",
+        "site_index": 9,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "radar",
+        "site_index": 10,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "radar",
+        "site_index": 11,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "radar",
+        "site_index": 12,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "radar",
+        "site_index": 13,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "radar",
+        "site_index": 14,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "radar",
+        "site_index": 15,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "radar",
+        "site_index": 16,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "radar",
+        "site_index": 17,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "radar",
+        "site_index": 18,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "radar",
+        "site_index": 19,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "radar",
+        "site_index": 20,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "radar",
+        "site_index": 21,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "radar",
+        "site_index": 22,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "radar",
+        "site_index": 23,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "radar",
+        "site_index": 24,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "radar",
+        "site_index": 25,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "radar",
+        "site_index": 26,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "radar",
+        "site_index": 27,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "radar",
+        "site_index": 28,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "radar",
+        "site_index": 29,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "radar",
+        "site_index": 30,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "radar",
+        "site_index": 31,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "eo",
+        "site_index": 0,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "eo",
+        "site_index": 1,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "eo",
+        "site_index": 2,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "eo",
+        "site_index": 3,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "eo",
+        "site_index": 4,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "eo",
+        "site_index": 5,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "eo",
+        "site_index": 6,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "eo",
+        "site_index": 7,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "eo",
+        "site_index": 8,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "eo",
+        "site_index": 9,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "eo",
+        "site_index": 10,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "eo",
+        "site_index": 11,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "eo",
+        "site_index": 12,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "eo",
+        "site_index": 13,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "eo",
+        "site_index": 14,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "eo",
+        "site_index": 15,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "eo",
+        "site_index": 16,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "eo",
+        "site_index": 17,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "eo",
+        "site_index": 18,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "eo",
+        "site_index": 19,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "eo",
+        "site_index": 20,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "eo",
+        "site_index": 21,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "eo",
+        "site_index": 22,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "eo",
+        "site_index": 23,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "eo",
+        "site_index": 24,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "eo",
+        "site_index": 25,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "eo",
+        "site_index": 26,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "eo",
+        "site_index": 27,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "eo",
+        "site_index": 28,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "eo",
+        "site_index": 29,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "eo",
+        "site_index": 30,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "eo",
+        "site_index": 31,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 0,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 0,
+        "yaw_deg": 0.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 0,
+        "yaw_deg": 0.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 0,
+        "yaw_deg": 45.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 0,
+        "yaw_deg": 45.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 0,
+        "yaw_deg": 45.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 0,
+        "yaw_deg": 90.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 0,
+        "yaw_deg": 90.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 0,
+        "yaw_deg": 90.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 0,
+        "yaw_deg": 135.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 0,
+        "yaw_deg": 135.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 0,
+        "yaw_deg": 135.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 0,
+        "yaw_deg": 180.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 0,
+        "yaw_deg": 180.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 0,
+        "yaw_deg": 180.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 0,
+        "yaw_deg": 225.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 0,
+        "yaw_deg": 225.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 0,
+        "yaw_deg": 225.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 0,
+        "yaw_deg": 270.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 0,
+        "yaw_deg": 270.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 0,
+        "yaw_deg": 270.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 0,
+        "yaw_deg": 315.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 0,
+        "yaw_deg": 315.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 0,
+        "yaw_deg": 315.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 1,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 1,
+        "yaw_deg": 0.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 1,
+        "yaw_deg": 0.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 1,
+        "yaw_deg": 45.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 1,
+        "yaw_deg": 45.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 1,
+        "yaw_deg": 45.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 1,
+        "yaw_deg": 90.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 1,
+        "yaw_deg": 90.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 1,
+        "yaw_deg": 90.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 1,
+        "yaw_deg": 135.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 1,
+        "yaw_deg": 135.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 1,
+        "yaw_deg": 135.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 1,
+        "yaw_deg": 180.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 1,
+        "yaw_deg": 180.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 1,
+        "yaw_deg": 180.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 1,
+        "yaw_deg": 225.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 1,
+        "yaw_deg": 225.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 1,
+        "yaw_deg": 225.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 1,
+        "yaw_deg": 270.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 1,
+        "yaw_deg": 270.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 1,
+        "yaw_deg": 270.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 1,
+        "yaw_deg": 315.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 1,
+        "yaw_deg": 315.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 1,
+        "yaw_deg": 315.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 2,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 2,
+        "yaw_deg": 0.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 2,
+        "yaw_deg": 0.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 2,
+        "yaw_deg": 45.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 2,
+        "yaw_deg": 45.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 2,
+        "yaw_deg": 45.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 2,
+        "yaw_deg": 90.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 2,
+        "yaw_deg": 90.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 2,
+        "yaw_deg": 90.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 2,
+        "yaw_deg": 135.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 2,
+        "yaw_deg": 135.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 2,
+        "yaw_deg": 135.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 2,
+        "yaw_deg": 180.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 2,
+        "yaw_deg": 180.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 2,
+        "yaw_deg": 180.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 2,
+        "yaw_deg": 225.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 2,
+        "yaw_deg": 225.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 2,
+        "yaw_deg": 225.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 2,
+        "yaw_deg": 270.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 2,
+        "yaw_deg": 270.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 2,
+        "yaw_deg": 270.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 2,
+        "yaw_deg": 315.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 2,
+        "yaw_deg": 315.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 2,
+        "yaw_deg": 315.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 3,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 3,
+        "yaw_deg": 0.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 3,
+        "yaw_deg": 0.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 3,
+        "yaw_deg": 45.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 3,
+        "yaw_deg": 45.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 3,
+        "yaw_deg": 45.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 3,
+        "yaw_deg": 90.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 3,
+        "yaw_deg": 90.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 3,
+        "yaw_deg": 90.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 3,
+        "yaw_deg": 135.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 3,
+        "yaw_deg": 135.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 3,
+        "yaw_deg": 135.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 3,
+        "yaw_deg": 180.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 3,
+        "yaw_deg": 180.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 3,
+        "yaw_deg": 180.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 3,
+        "yaw_deg": 225.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 3,
+        "yaw_deg": 225.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 3,
+        "yaw_deg": 225.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 3,
+        "yaw_deg": 270.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 3,
+        "yaw_deg": 270.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 3,
+        "yaw_deg": 270.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 3,
+        "yaw_deg": 315.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 3,
+        "yaw_deg": 315.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 3,
+        "yaw_deg": 315.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 4,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 4,
+        "yaw_deg": 0.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 4,
+        "yaw_deg": 0.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 4,
+        "yaw_deg": 45.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 4,
+        "yaw_deg": 45.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 4,
+        "yaw_deg": 45.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 4,
+        "yaw_deg": 90.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 4,
+        "yaw_deg": 90.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 4,
+        "yaw_deg": 90.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 4,
+        "yaw_deg": 135.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 4,
+        "yaw_deg": 135.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 4,
+        "yaw_deg": 135.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 4,
+        "yaw_deg": 180.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 4,
+        "yaw_deg": 180.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 4,
+        "yaw_deg": 180.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 4,
+        "yaw_deg": 225.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 4,
+        "yaw_deg": 225.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 4,
+        "yaw_deg": 225.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 4,
+        "yaw_deg": 270.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 4,
+        "yaw_deg": 270.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 4,
+        "yaw_deg": 270.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 4,
+        "yaw_deg": 315.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 4,
+        "yaw_deg": 315.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 4,
+        "yaw_deg": 315.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 5,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 5,
+        "yaw_deg": 0.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 5,
+        "yaw_deg": 0.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 5,
+        "yaw_deg": 45.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 5,
+        "yaw_deg": 45.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 5,
+        "yaw_deg": 45.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 5,
+        "yaw_deg": 90.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 5,
+        "yaw_deg": 90.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 5,
+        "yaw_deg": 90.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 5,
+        "yaw_deg": 135.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 5,
+        "yaw_deg": 135.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 5,
+        "yaw_deg": 135.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 5,
+        "yaw_deg": 180.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 5,
+        "yaw_deg": 180.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 5,
+        "yaw_deg": 180.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 5,
+        "yaw_deg": 225.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 5,
+        "yaw_deg": 225.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 5,
+        "yaw_deg": 225.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 5,
+        "yaw_deg": 270.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 5,
+        "yaw_deg": 270.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 5,
+        "yaw_deg": 270.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 5,
+        "yaw_deg": 315.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 5,
+        "yaw_deg": 315.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 5,
+        "yaw_deg": 315.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 6,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 6,
+        "yaw_deg": 0.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 6,
+        "yaw_deg": 0.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 6,
+        "yaw_deg": 45.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 6,
+        "yaw_deg": 45.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 6,
+        "yaw_deg": 45.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 6,
+        "yaw_deg": 90.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 6,
+        "yaw_deg": 90.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 6,
+        "yaw_deg": 90.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 6,
+        "yaw_deg": 135.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 6,
+        "yaw_deg": 135.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 6,
+        "yaw_deg": 135.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 6,
+        "yaw_deg": 180.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 6,
+        "yaw_deg": 180.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 6,
+        "yaw_deg": 180.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 6,
+        "yaw_deg": 225.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 6,
+        "yaw_deg": 225.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 6,
+        "yaw_deg": 225.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 6,
+        "yaw_deg": 270.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 6,
+        "yaw_deg": 270.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 6,
+        "yaw_deg": 270.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 6,
+        "yaw_deg": 315.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 6,
+        "yaw_deg": 315.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 6,
+        "yaw_deg": 315.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 7,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 7,
+        "yaw_deg": 0.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 7,
+        "yaw_deg": 0.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 7,
+        "yaw_deg": 45.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 7,
+        "yaw_deg": 45.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 7,
+        "yaw_deg": 45.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 7,
+        "yaw_deg": 90.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 7,
+        "yaw_deg": 90.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 7,
+        "yaw_deg": 90.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 7,
+        "yaw_deg": 135.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 7,
+        "yaw_deg": 135.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 7,
+        "yaw_deg": 135.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 7,
+        "yaw_deg": 180.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 7,
+        "yaw_deg": 180.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 7,
+        "yaw_deg": 180.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 7,
+        "yaw_deg": 225.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 7,
+        "yaw_deg": 225.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 7,
+        "yaw_deg": 225.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 7,
+        "yaw_deg": 270.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 7,
+        "yaw_deg": 270.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 7,
+        "yaw_deg": 270.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 7,
+        "yaw_deg": 315.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 7,
+        "yaw_deg": 315.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 7,
+        "yaw_deg": 315.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 8,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 8,
+        "yaw_deg": 0.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 8,
+        "yaw_deg": 0.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 8,
+        "yaw_deg": 45.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 8,
+        "yaw_deg": 45.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 8,
+        "yaw_deg": 45.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 8,
+        "yaw_deg": 90.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 8,
+        "yaw_deg": 90.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 8,
+        "yaw_deg": 90.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 8,
+        "yaw_deg": 135.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 8,
+        "yaw_deg": 135.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 8,
+        "yaw_deg": 135.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 8,
+        "yaw_deg": 180.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 8,
+        "yaw_deg": 180.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 8,
+        "yaw_deg": 180.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 8,
+        "yaw_deg": 225.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 8,
+        "yaw_deg": 225.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 8,
+        "yaw_deg": 225.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 8,
+        "yaw_deg": 270.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 8,
+        "yaw_deg": 270.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 8,
+        "yaw_deg": 270.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 8,
+        "yaw_deg": 315.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 8,
+        "yaw_deg": 315.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 8,
+        "yaw_deg": 315.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 9,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 9,
+        "yaw_deg": 0.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 9,
+        "yaw_deg": 0.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 9,
+        "yaw_deg": 45.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 9,
+        "yaw_deg": 45.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 9,
+        "yaw_deg": 45.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 9,
+        "yaw_deg": 90.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 9,
+        "yaw_deg": 90.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 9,
+        "yaw_deg": 90.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 9,
+        "yaw_deg": 135.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 9,
+        "yaw_deg": 135.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 9,
+        "yaw_deg": 135.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 9,
+        "yaw_deg": 180.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 9,
+        "yaw_deg": 180.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 9,
+        "yaw_deg": 180.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 9,
+        "yaw_deg": 225.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 9,
+        "yaw_deg": 225.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 9,
+        "yaw_deg": 225.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 9,
+        "yaw_deg": 270.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 9,
+        "yaw_deg": 270.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 9,
+        "yaw_deg": 270.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 9,
+        "yaw_deg": 315.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 9,
+        "yaw_deg": 315.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 9,
+        "yaw_deg": 315.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 10,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 10,
+        "yaw_deg": 0.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 10,
+        "yaw_deg": 0.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 10,
+        "yaw_deg": 45.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 10,
+        "yaw_deg": 45.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 10,
+        "yaw_deg": 45.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 10,
+        "yaw_deg": 90.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 10,
+        "yaw_deg": 90.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 10,
+        "yaw_deg": 90.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 10,
+        "yaw_deg": 135.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 10,
+        "yaw_deg": 135.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 10,
+        "yaw_deg": 135.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 10,
+        "yaw_deg": 180.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 10,
+        "yaw_deg": 180.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 10,
+        "yaw_deg": 180.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 10,
+        "yaw_deg": 225.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 10,
+        "yaw_deg": 225.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 10,
+        "yaw_deg": 225.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 10,
+        "yaw_deg": 270.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 10,
+        "yaw_deg": 270.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 10,
+        "yaw_deg": 270.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 10,
+        "yaw_deg": 315.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 10,
+        "yaw_deg": 315.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 10,
+        "yaw_deg": 315.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 11,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 11,
+        "yaw_deg": 0.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 11,
+        "yaw_deg": 0.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 11,
+        "yaw_deg": 45.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 11,
+        "yaw_deg": 45.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 11,
+        "yaw_deg": 45.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 11,
+        "yaw_deg": 90.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 11,
+        "yaw_deg": 90.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 11,
+        "yaw_deg": 90.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 11,
+        "yaw_deg": 135.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 11,
+        "yaw_deg": 135.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 11,
+        "yaw_deg": 135.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 11,
+        "yaw_deg": 180.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 11,
+        "yaw_deg": 180.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 11,
+        "yaw_deg": 180.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 11,
+        "yaw_deg": 225.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 11,
+        "yaw_deg": 225.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 11,
+        "yaw_deg": 225.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 11,
+        "yaw_deg": 270.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 11,
+        "yaw_deg": 270.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 11,
+        "yaw_deg": 270.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 11,
+        "yaw_deg": 315.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 11,
+        "yaw_deg": 315.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 11,
+        "yaw_deg": 315.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 12,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 12,
+        "yaw_deg": 0.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 12,
+        "yaw_deg": 0.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 12,
+        "yaw_deg": 45.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 12,
+        "yaw_deg": 45.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 12,
+        "yaw_deg": 45.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 12,
+        "yaw_deg": 90.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 12,
+        "yaw_deg": 90.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 12,
+        "yaw_deg": 90.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 12,
+        "yaw_deg": 135.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 12,
+        "yaw_deg": 135.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 12,
+        "yaw_deg": 135.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 12,
+        "yaw_deg": 180.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 12,
+        "yaw_deg": 180.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 12,
+        "yaw_deg": 180.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 12,
+        "yaw_deg": 225.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 12,
+        "yaw_deg": 225.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 12,
+        "yaw_deg": 225.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 12,
+        "yaw_deg": 270.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 12,
+        "yaw_deg": 270.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 12,
+        "yaw_deg": 270.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 12,
+        "yaw_deg": 315.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 12,
+        "yaw_deg": 315.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 12,
+        "yaw_deg": 315.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 13,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 13,
+        "yaw_deg": 0.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 13,
+        "yaw_deg": 0.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 13,
+        "yaw_deg": 45.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 13,
+        "yaw_deg": 45.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 13,
+        "yaw_deg": 45.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 13,
+        "yaw_deg": 90.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 13,
+        "yaw_deg": 90.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 13,
+        "yaw_deg": 90.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 13,
+        "yaw_deg": 135.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 13,
+        "yaw_deg": 135.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 13,
+        "yaw_deg": 135.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 13,
+        "yaw_deg": 180.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 13,
+        "yaw_deg": 180.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 13,
+        "yaw_deg": 180.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 13,
+        "yaw_deg": 225.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 13,
+        "yaw_deg": 225.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 13,
+        "yaw_deg": 225.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 13,
+        "yaw_deg": 270.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 13,
+        "yaw_deg": 270.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 13,
+        "yaw_deg": 270.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 13,
+        "yaw_deg": 315.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 13,
+        "yaw_deg": 315.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 13,
+        "yaw_deg": 315.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 14,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 14,
+        "yaw_deg": 0.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 14,
+        "yaw_deg": 0.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 14,
+        "yaw_deg": 45.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 14,
+        "yaw_deg": 45.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 14,
+        "yaw_deg": 45.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 14,
+        "yaw_deg": 90.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 14,
+        "yaw_deg": 90.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 14,
+        "yaw_deg": 90.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 14,
+        "yaw_deg": 135.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 14,
+        "yaw_deg": 135.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 14,
+        "yaw_deg": 135.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 14,
+        "yaw_deg": 180.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 14,
+        "yaw_deg": 180.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 14,
+        "yaw_deg": 180.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 14,
+        "yaw_deg": 225.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 14,
+        "yaw_deg": 225.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 14,
+        "yaw_deg": 225.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 14,
+        "yaw_deg": 270.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 14,
+        "yaw_deg": 270.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 14,
+        "yaw_deg": 270.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 14,
+        "yaw_deg": 315.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 14,
+        "yaw_deg": 315.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 14,
+        "yaw_deg": 315.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 15,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 15,
+        "yaw_deg": 0.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 15,
+        "yaw_deg": 0.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 15,
+        "yaw_deg": 45.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 15,
+        "yaw_deg": 45.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 15,
+        "yaw_deg": 45.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 15,
+        "yaw_deg": 90.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 15,
+        "yaw_deg": 90.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 15,
+        "yaw_deg": 90.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 15,
+        "yaw_deg": 135.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 15,
+        "yaw_deg": 135.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 15,
+        "yaw_deg": 135.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 15,
+        "yaw_deg": 180.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 15,
+        "yaw_deg": 180.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 15,
+        "yaw_deg": 180.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 15,
+        "yaw_deg": 225.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 15,
+        "yaw_deg": 225.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 15,
+        "yaw_deg": 225.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 15,
+        "yaw_deg": 270.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 15,
+        "yaw_deg": 270.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 15,
+        "yaw_deg": 270.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 15,
+        "yaw_deg": 315.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 15,
+        "yaw_deg": 315.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 15,
+        "yaw_deg": 315.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 16,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 16,
+        "yaw_deg": 0.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 16,
+        "yaw_deg": 0.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 16,
+        "yaw_deg": 45.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 16,
+        "yaw_deg": 45.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 16,
+        "yaw_deg": 45.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 16,
+        "yaw_deg": 90.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 16,
+        "yaw_deg": 90.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 16,
+        "yaw_deg": 90.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 16,
+        "yaw_deg": 135.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 16,
+        "yaw_deg": 135.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 16,
+        "yaw_deg": 135.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 16,
+        "yaw_deg": 180.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 16,
+        "yaw_deg": 180.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 16,
+        "yaw_deg": 180.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 16,
+        "yaw_deg": 225.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 16,
+        "yaw_deg": 225.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 16,
+        "yaw_deg": 225.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 16,
+        "yaw_deg": 270.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 16,
+        "yaw_deg": 270.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 16,
+        "yaw_deg": 270.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 16,
+        "yaw_deg": 315.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 16,
+        "yaw_deg": 315.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 16,
+        "yaw_deg": 315.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 17,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 17,
+        "yaw_deg": 0.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 17,
+        "yaw_deg": 0.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 17,
+        "yaw_deg": 45.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 17,
+        "yaw_deg": 45.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 17,
+        "yaw_deg": 45.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 17,
+        "yaw_deg": 90.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 17,
+        "yaw_deg": 90.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 17,
+        "yaw_deg": 90.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 17,
+        "yaw_deg": 135.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 17,
+        "yaw_deg": 135.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 17,
+        "yaw_deg": 135.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 17,
+        "yaw_deg": 180.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 17,
+        "yaw_deg": 180.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 17,
+        "yaw_deg": 180.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 17,
+        "yaw_deg": 225.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 17,
+        "yaw_deg": 225.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 17,
+        "yaw_deg": 225.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 17,
+        "yaw_deg": 270.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 17,
+        "yaw_deg": 270.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 17,
+        "yaw_deg": 270.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 17,
+        "yaw_deg": 315.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 17,
+        "yaw_deg": 315.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 17,
+        "yaw_deg": 315.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 18,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 18,
+        "yaw_deg": 0.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 18,
+        "yaw_deg": 0.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 18,
+        "yaw_deg": 45.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 18,
+        "yaw_deg": 45.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 18,
+        "yaw_deg": 45.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 18,
+        "yaw_deg": 90.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 18,
+        "yaw_deg": 90.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 18,
+        "yaw_deg": 90.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 18,
+        "yaw_deg": 135.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 18,
+        "yaw_deg": 135.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 18,
+        "yaw_deg": 135.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 18,
+        "yaw_deg": 180.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 18,
+        "yaw_deg": 180.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 18,
+        "yaw_deg": 180.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 18,
+        "yaw_deg": 225.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 18,
+        "yaw_deg": 225.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 18,
+        "yaw_deg": 225.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 18,
+        "yaw_deg": 270.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 18,
+        "yaw_deg": 270.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 18,
+        "yaw_deg": 270.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 18,
+        "yaw_deg": 315.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 18,
+        "yaw_deg": 315.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 18,
+        "yaw_deg": 315.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 19,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 19,
+        "yaw_deg": 0.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 19,
+        "yaw_deg": 0.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 19,
+        "yaw_deg": 45.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 19,
+        "yaw_deg": 45.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 19,
+        "yaw_deg": 45.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 19,
+        "yaw_deg": 90.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 19,
+        "yaw_deg": 90.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 19,
+        "yaw_deg": 90.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 19,
+        "yaw_deg": 135.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 19,
+        "yaw_deg": 135.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 19,
+        "yaw_deg": 135.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 19,
+        "yaw_deg": 180.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 19,
+        "yaw_deg": 180.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 19,
+        "yaw_deg": 180.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 19,
+        "yaw_deg": 225.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 19,
+        "yaw_deg": 225.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 19,
+        "yaw_deg": 225.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 19,
+        "yaw_deg": 270.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 19,
+        "yaw_deg": 270.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 19,
+        "yaw_deg": 270.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 19,
+        "yaw_deg": 315.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 19,
+        "yaw_deg": 315.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 19,
+        "yaw_deg": 315.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 20,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 20,
+        "yaw_deg": 0.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 20,
+        "yaw_deg": 0.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 20,
+        "yaw_deg": 45.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 20,
+        "yaw_deg": 45.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 20,
+        "yaw_deg": 45.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 20,
+        "yaw_deg": 90.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 20,
+        "yaw_deg": 90.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 20,
+        "yaw_deg": 90.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 20,
+        "yaw_deg": 135.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 20,
+        "yaw_deg": 135.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 20,
+        "yaw_deg": 135.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 20,
+        "yaw_deg": 180.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 20,
+        "yaw_deg": 180.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 20,
+        "yaw_deg": 180.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 20,
+        "yaw_deg": 225.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 20,
+        "yaw_deg": 225.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 20,
+        "yaw_deg": 225.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 20,
+        "yaw_deg": 270.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 20,
+        "yaw_deg": 270.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 20,
+        "yaw_deg": 270.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 20,
+        "yaw_deg": 315.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 20,
+        "yaw_deg": 315.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 20,
+        "yaw_deg": 315.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 21,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 21,
+        "yaw_deg": 0.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 21,
+        "yaw_deg": 0.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 21,
+        "yaw_deg": 45.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 21,
+        "yaw_deg": 45.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 21,
+        "yaw_deg": 45.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 21,
+        "yaw_deg": 90.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 21,
+        "yaw_deg": 90.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 21,
+        "yaw_deg": 90.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 21,
+        "yaw_deg": 135.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 21,
+        "yaw_deg": 135.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 21,
+        "yaw_deg": 135.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 21,
+        "yaw_deg": 180.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 21,
+        "yaw_deg": 180.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 21,
+        "yaw_deg": 180.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 21,
+        "yaw_deg": 225.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 21,
+        "yaw_deg": 225.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 21,
+        "yaw_deg": 225.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 21,
+        "yaw_deg": 270.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 21,
+        "yaw_deg": 270.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 21,
+        "yaw_deg": 270.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 21,
+        "yaw_deg": 315.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 21,
+        "yaw_deg": 315.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 21,
+        "yaw_deg": 315.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 22,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 22,
+        "yaw_deg": 0.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 22,
+        "yaw_deg": 0.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 22,
+        "yaw_deg": 45.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 22,
+        "yaw_deg": 45.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 22,
+        "yaw_deg": 45.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 22,
+        "yaw_deg": 90.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 22,
+        "yaw_deg": 90.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 22,
+        "yaw_deg": 90.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 22,
+        "yaw_deg": 135.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 22,
+        "yaw_deg": 135.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 22,
+        "yaw_deg": 135.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 22,
+        "yaw_deg": 180.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 22,
+        "yaw_deg": 180.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 22,
+        "yaw_deg": 180.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 22,
+        "yaw_deg": 225.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 22,
+        "yaw_deg": 225.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 22,
+        "yaw_deg": 225.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 22,
+        "yaw_deg": 270.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 22,
+        "yaw_deg": 270.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 22,
+        "yaw_deg": 270.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 22,
+        "yaw_deg": 315.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 22,
+        "yaw_deg": 315.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 22,
+        "yaw_deg": 315.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 23,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 23,
+        "yaw_deg": 0.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 23,
+        "yaw_deg": 0.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 23,
+        "yaw_deg": 45.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 23,
+        "yaw_deg": 45.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 23,
+        "yaw_deg": 45.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 23,
+        "yaw_deg": 90.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 23,
+        "yaw_deg": 90.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 23,
+        "yaw_deg": 90.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 23,
+        "yaw_deg": 135.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 23,
+        "yaw_deg": 135.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 23,
+        "yaw_deg": 135.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 23,
+        "yaw_deg": 180.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 23,
+        "yaw_deg": 180.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 23,
+        "yaw_deg": 180.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 23,
+        "yaw_deg": 225.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 23,
+        "yaw_deg": 225.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 23,
+        "yaw_deg": 225.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 23,
+        "yaw_deg": 270.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 23,
+        "yaw_deg": 270.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 23,
+        "yaw_deg": 270.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 23,
+        "yaw_deg": 315.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 23,
+        "yaw_deg": 315.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 23,
+        "yaw_deg": 315.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 24,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 24,
+        "yaw_deg": 0.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 24,
+        "yaw_deg": 0.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 24,
+        "yaw_deg": 45.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 24,
+        "yaw_deg": 45.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 24,
+        "yaw_deg": 45.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 24,
+        "yaw_deg": 90.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 24,
+        "yaw_deg": 90.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 24,
+        "yaw_deg": 90.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 24,
+        "yaw_deg": 135.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 24,
+        "yaw_deg": 135.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 24,
+        "yaw_deg": 135.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 24,
+        "yaw_deg": 180.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 24,
+        "yaw_deg": 180.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 24,
+        "yaw_deg": 180.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 24,
+        "yaw_deg": 225.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 24,
+        "yaw_deg": 225.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 24,
+        "yaw_deg": 225.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 24,
+        "yaw_deg": 270.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 24,
+        "yaw_deg": 270.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 24,
+        "yaw_deg": 270.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 24,
+        "yaw_deg": 315.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 24,
+        "yaw_deg": 315.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 24,
+        "yaw_deg": 315.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 25,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 25,
+        "yaw_deg": 0.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 25,
+        "yaw_deg": 0.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 25,
+        "yaw_deg": 45.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 25,
+        "yaw_deg": 45.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 25,
+        "yaw_deg": 45.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 25,
+        "yaw_deg": 90.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 25,
+        "yaw_deg": 90.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 25,
+        "yaw_deg": 90.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 25,
+        "yaw_deg": 135.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 25,
+        "yaw_deg": 135.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 25,
+        "yaw_deg": 135.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 25,
+        "yaw_deg": 180.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 25,
+        "yaw_deg": 180.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 25,
+        "yaw_deg": 180.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 25,
+        "yaw_deg": 225.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 25,
+        "yaw_deg": 225.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 25,
+        "yaw_deg": 225.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 25,
+        "yaw_deg": 270.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 25,
+        "yaw_deg": 270.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 25,
+        "yaw_deg": 270.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 25,
+        "yaw_deg": 315.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 25,
+        "yaw_deg": 315.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 25,
+        "yaw_deg": 315.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 26,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 26,
+        "yaw_deg": 0.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 26,
+        "yaw_deg": 0.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 26,
+        "yaw_deg": 45.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 26,
+        "yaw_deg": 45.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 26,
+        "yaw_deg": 45.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 26,
+        "yaw_deg": 90.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 26,
+        "yaw_deg": 90.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 26,
+        "yaw_deg": 90.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 26,
+        "yaw_deg": 135.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 26,
+        "yaw_deg": 135.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 26,
+        "yaw_deg": 135.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 26,
+        "yaw_deg": 180.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 26,
+        "yaw_deg": 180.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 26,
+        "yaw_deg": 180.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 26,
+        "yaw_deg": 225.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 26,
+        "yaw_deg": 225.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 26,
+        "yaw_deg": 225.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 26,
+        "yaw_deg": 270.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 26,
+        "yaw_deg": 270.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 26,
+        "yaw_deg": 270.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 26,
+        "yaw_deg": 315.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 26,
+        "yaw_deg": 315.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 26,
+        "yaw_deg": 315.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 27,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 27,
+        "yaw_deg": 0.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 27,
+        "yaw_deg": 0.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 27,
+        "yaw_deg": 45.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 27,
+        "yaw_deg": 45.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 27,
+        "yaw_deg": 45.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 27,
+        "yaw_deg": 90.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 27,
+        "yaw_deg": 90.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 27,
+        "yaw_deg": 90.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 27,
+        "yaw_deg": 135.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 27,
+        "yaw_deg": 135.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 27,
+        "yaw_deg": 135.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 27,
+        "yaw_deg": 180.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 27,
+        "yaw_deg": 180.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 27,
+        "yaw_deg": 180.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 27,
+        "yaw_deg": 225.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 27,
+        "yaw_deg": 225.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 27,
+        "yaw_deg": 225.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 27,
+        "yaw_deg": 270.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 27,
+        "yaw_deg": 270.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 27,
+        "yaw_deg": 270.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 27,
+        "yaw_deg": 315.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 27,
+        "yaw_deg": 315.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 27,
+        "yaw_deg": 315.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 28,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 28,
+        "yaw_deg": 0.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 28,
+        "yaw_deg": 0.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 28,
+        "yaw_deg": 45.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 28,
+        "yaw_deg": 45.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 28,
+        "yaw_deg": 45.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 28,
+        "yaw_deg": 90.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 28,
+        "yaw_deg": 90.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 28,
+        "yaw_deg": 90.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 28,
+        "yaw_deg": 135.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 28,
+        "yaw_deg": 135.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 28,
+        "yaw_deg": 135.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 28,
+        "yaw_deg": 180.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 28,
+        "yaw_deg": 180.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 28,
+        "yaw_deg": 180.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 28,
+        "yaw_deg": 225.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 28,
+        "yaw_deg": 225.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 28,
+        "yaw_deg": 225.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 28,
+        "yaw_deg": 270.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 28,
+        "yaw_deg": 270.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 28,
+        "yaw_deg": 270.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 28,
+        "yaw_deg": 315.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 28,
+        "yaw_deg": 315.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 28,
+        "yaw_deg": 315.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 29,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 29,
+        "yaw_deg": 0.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 29,
+        "yaw_deg": 0.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 29,
+        "yaw_deg": 45.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 29,
+        "yaw_deg": 45.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 29,
+        "yaw_deg": 45.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 29,
+        "yaw_deg": 90.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 29,
+        "yaw_deg": 90.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 29,
+        "yaw_deg": 90.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 29,
+        "yaw_deg": 135.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 29,
+        "yaw_deg": 135.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 29,
+        "yaw_deg": 135.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 29,
+        "yaw_deg": 180.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 29,
+        "yaw_deg": 180.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 29,
+        "yaw_deg": 180.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 29,
+        "yaw_deg": 225.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 29,
+        "yaw_deg": 225.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 29,
+        "yaw_deg": 225.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 29,
+        "yaw_deg": 270.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 29,
+        "yaw_deg": 270.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 29,
+        "yaw_deg": 270.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 29,
+        "yaw_deg": 315.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 29,
+        "yaw_deg": 315.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 29,
+        "yaw_deg": 315.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 30,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 30,
+        "yaw_deg": 0.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 30,
+        "yaw_deg": 0.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 30,
+        "yaw_deg": 45.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 30,
+        "yaw_deg": 45.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 30,
+        "yaw_deg": 45.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 30,
+        "yaw_deg": 90.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 30,
+        "yaw_deg": 90.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 30,
+        "yaw_deg": 90.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 30,
+        "yaw_deg": 135.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 30,
+        "yaw_deg": 135.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 30,
+        "yaw_deg": 135.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 30,
+        "yaw_deg": 180.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 30,
+        "yaw_deg": 180.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 30,
+        "yaw_deg": 180.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 30,
+        "yaw_deg": 225.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 30,
+        "yaw_deg": 225.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 30,
+        "yaw_deg": 225.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 30,
+        "yaw_deg": 270.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 30,
+        "yaw_deg": 270.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 30,
+        "yaw_deg": 270.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 30,
+        "yaw_deg": 315.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 30,
+        "yaw_deg": 315.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 30,
+        "yaw_deg": 315.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 31,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 31,
+        "yaw_deg": 0.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 31,
+        "yaw_deg": 0.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 31,
+        "yaw_deg": 45.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 31,
+        "yaw_deg": 45.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 31,
+        "yaw_deg": 45.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 31,
+        "yaw_deg": 90.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 31,
+        "yaw_deg": 90.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 31,
+        "yaw_deg": 90.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 31,
+        "yaw_deg": 135.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 31,
+        "yaw_deg": 135.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 31,
+        "yaw_deg": 135.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 31,
+        "yaw_deg": 180.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 31,
+        "yaw_deg": 180.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 31,
+        "yaw_deg": 180.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 31,
+        "yaw_deg": 225.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 31,
+        "yaw_deg": 225.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 31,
+        "yaw_deg": 225.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 31,
+        "yaw_deg": 270.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 31,
+        "yaw_deg": 270.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 31,
+        "yaw_deg": 270.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 31,
+        "yaw_deg": 315.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 31,
+        "yaw_deg": 315.0,
+        "pitch_deg": 10.0
+      },
+      {
+        "sensor_id": "thermal",
+        "site_index": 31,
+        "yaw_deg": 315.0,
+        "pitch_deg": 20.0
+      },
+      {
+        "sensor_id": "fused",
+        "site_index": 0,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "fused",
+        "site_index": 1,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "fused",
+        "site_index": 2,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "fused",
+        "site_index": 3,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "fused",
+        "site_index": 4,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "fused",
+        "site_index": 5,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "fused",
+        "site_index": 6,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "fused",
+        "site_index": 7,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "fused",
+        "site_index": 8,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "fused",
+        "site_index": 9,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "fused",
+        "site_index": 10,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "fused",
+        "site_index": 11,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "fused",
+        "site_index": 12,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "fused",
+        "site_index": 13,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "fused",
+        "site_index": 14,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "fused",
+        "site_index": 15,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "fused",
+        "site_index": 16,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "fused",
+        "site_index": 17,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "fused",
+        "site_index": 18,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "fused",
+        "site_index": 19,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "fused",
+        "site_index": 20,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "fused",
+        "site_index": 21,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "fused",
+        "site_index": 22,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "fused",
+        "site_index": 23,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "fused",
+        "site_index": 24,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "fused",
+        "site_index": 25,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "fused",
+        "site_index": 26,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "fused",
+        "site_index": 27,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "fused",
+        "site_index": 28,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "fused",
+        "site_index": 29,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "fused",
+        "site_index": 30,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      },
+      {
+        "sensor_id": "fused",
+        "site_index": 31,
+        "yaw_deg": 0.0,
+        "pitch_deg": 0.0
+      }
+    ]
+  },
+  "option_logits": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    -0.583483696377425,
+    1.7330946196618333,
+    1.7330946196618333,
+    1.7330946196618333,
+    1.7330946196618333,
+    0.4586937410030762,
+    1.5735051681526755,
+    1.7330946196618333,
+    1.7330946196618333,
+    1.7330946196618333,
+    1.7330946196618333,
+    1.1687541351150448,
+    1.7330946196618333,
+    1.7330946196618333,
+    1.7330946196618333,
+    -0.09001417154334117,
+    -0.27417414448924987,
+    1.7330946196618333,
+    1.7330946196618333,
+    1.7330946196618333,
+    -0.26510139832950336,
+    1.7330946196618333,
+    1.7330946196618333,
+    0.7837774732370737,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    -0.6010171943940368,
+    -0.8112679899644448,
+    -1.166978933327869,
+    -0.9425483208675055,
+    -0.6010171943940368,
+    -0.6010171943940368,
+    -0.6010171943940368,
+    -0.6010171943940368,
+    -0.20850131262069377,
+    -0.6010171943940368,
+    -0.8089158533925392,
+    -0.6010171943940368,
+    0.6032325941419652,
+    -0.6010171943940368,
+    -0.852063219824887,
+    -0.6010171943940368,
+    -1.2045133636680196,
+    -1.1784182501833866,
+    -0.6010171943940368,
+    -0.6010171943940368,
+    -1.3548163838638645,
+    0.3391648080113655,
+    -0.6010171943940368,
+    -0.6010171943940368,
+    -0.8968204745466823,
+    -0.8968204745466823,
+    -0.8968204745466823,
+    -0.7690433228111088,
+    -0.45110041152791736,
+    -0.8968204745466823,
+    -0.8968204745466823,
+    -0.9909802086981703,
+    -0.8968204745466823,
+    -0.4786334676019269,
+    -0.4715399610992385,
+    -0.8968204745466823,
+    -0.5987532545441495,
+    -0.8968204745466823,
+    -0.8968204745466823,
+    -0.7241545768365015,
+    -0.8968204745466823,
+    -0.8968204745466823,
+    -0.8968204745466823,
+    -0.8968204745466823,
+    -0.8968204745466823,
+    -0.8876600884937983,
+    -0.8968204745466823,
+    -0.8968204745466823,
+    -0.9864775240940611,
+    -0.23245916504452271,
+    -1.7308180057861546,
+    -1.3933935792937349,
+    -0.9864775240940611,
+    -0.9864775240940611,
+    -0.9864775240940611,
+    -0.9864775240940611,
+    -0.9864775240940611,
+    -0.7133902397806158,
+    -0.9864775240940611,
+    -0.9864775240940611,
+    -0.9864775240940611,
+    -0.9864775240940611,
+    -0.9864775240940611,
+    -0.8667996061113643,
+    -0.9864775240940611,
+    -1.7563982742092623,
+    -0.9864775240940611,
+    0.8314647023757423,
+    -0.9864775240940611,
+    -0.9864775240940611,
+    -0.9864775240940611,
+    -0.9864775240940611,
+    -0.9889155325735374,
+    -0.9889155325735374,
+    -1.896587425539218,
+    -0.9889155325735374,
+    -0.4631437159283364,
+    -0.9889155325735374,
+    -1.1250175949933572,
+    -0.9889155325735374,
+    -0.9889155325735374,
+    -0.17263366580835332,
+    -0.9889155325735374,
+    -0.9889155325735374,
+    -0.1279079768748372,
+    -0.9889155325735374,
+    -0.9889155325735374,
+    -0.9889155325735374,
+    -0.06259890997244766,
+    -0.9889155325735374,
+    -1.2332694241860382,
+    0.10017669547556723,
+    -1.3006377707191632,
+    -0.9889155325735374,
+    -0.9889155325735374,
+    -0.9889155325735374,
+    -0.8931055396610708,
+    0.17608853471959895,
+    -0.8931055396610708,
+    -0.5423271936473744,
+    -0.0035455834618543652,
+    -0.8931055396610708,
+    -0.8931055396610708,
+    -0.8931055396610708,
+    -0.3956360738557167,
+    -0.8931055396610708,
+    -1.146410825128947,
+    -0.8931055396610708,
+    -0.8931055396610708,
+    -0.8931055396610708,
+    -0.8931055396610708,
+    -0.8931055396610708,
+    -0.8931055396610708,
+    -0.8931055396610708,
+    -1.1502072394141092,
+    -0.8931055396610708,
+    -0.09301407482500554,
+    -0.8931055396610708,
+    -0.8931055396610708,
+    -0.8931055396610708,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    2.0903261513515528,
+    1.5573779249988862,
+    1.024335832561928,
+    1.0218561412564189,
+    3.00976012002024,
+    1.6320015144412474,
+    2.5080937015960956,
+    0.7449587294865625,
+    0.9610319532394124,
+    1.637908363993241,
+    3.00976012002024,
+    3.00976012002024,
+    1.1177435567605392,
+    0.40642890793013065,
+    3.0467902491391325,
+    3.00976012002024,
+    3.00976012002024,
+    1.239834458609258,
+    2.367957184597016,
+    1.5313843829907077,
+    1.3588960998136332,
+    0.23571790823961306,
+    1.485857591760873,
+    0.7602379802506797,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    -0.8101247635455829,
+    -0.8101247635455829,
+    -0.7964353784566355,
+    -0.6104908978219796,
+    -0.28440053528443604,
+    -0.8101247635455829,
+    -0.8101247635455829,
+    -0.8101247635455829,
+    -0.8101247635455829,
+    -0.8101247635455829,
+    -1.2693270967888848,
+    -0.4763112935309825,
+    -0.8101247635455829,
+    -0.8101247635455829,
+    -0.4135016868952599,
+    -1.6386236829605856,
+    -0.09266844301388903,
+    -0.8101247635455829,
+    -0.8101247635455829,
+    -0.8101247635455829,
+    -0.8101247635455829,
+    -0.8101247635455829,
+    -1.4407088687149452,
+    -0.1226689174530424,
+    -1.4132467326743265,
+    -1.3071175641557762,
+    -0.5480829201970229,
+    -1.2970761170071496,
+    -1.2970761170071496,
+    -1.2970761170071496,
+    -1.2970761170071496,
+    -1.3798421635762141,
+    -0.2687118330952026,
+    -1.2970761170071496,
+    -1.2970761170071496,
+    -1.2970761170071496,
+    -1.2970761170071496,
+    -1.2970761170071496,
+    -1.2970761170071496,
+    -1.2970761170071496,
+    -1.2970761170071496,
+    -1.2970761170071496,
+    -1.2970761170071496,
+    -1.2306945351991438,
+    -1.2970761170071496,
+    -1.3081199422169791,
+    -0.6669886008898418,
+    -1.2970761170071496,
+    -0.1476203386857312,
+    3.885904812533861,
+    4.123798938199237,
+    0.3932906036869191,
+    1.4211669188363596,
+    2.6973921606673645,
+    -0.2707546362680575,
+    1.1131548063662071,
+    0.13180740997475018,
+    2.9270289862543146,
+    3.885904812533861,
+    1.5086426283671772,
+    4.0799720790533875,
+    3.5638921292383583,
+    3.4250016429961403,
+    -0.37601449777317825,
+    1.4798255936182805,
+    4.092022980603794,
+    3.885904812533861,
+    2.1056879775642443,
+    3.885904812533861,
+    3.885904812533861,
+    3.430747538781084,
+    2.3531169692775595,
+    -1.2357763650870328,
+    -1.3149120594732169,
+    -1.3149120594732169,
+    -1.3149120594732169,
+    -1.2827004537639708,
+    -1.3149120594732169,
+    -1.3149120594732169,
+    -1.3149120594732169,
+    -0.844687706131131,
+    -0.34883257968830983,
+    -0.48273639731525037,
+    -1.3149120594732169,
+    -2.0192755108343285,
+    -1.3149120594732169,
+    -1.3149120594732169,
+    -1.3149120594732169,
+    -1.3149120594732169,
+    -1.2250342363356095,
+    -0.5962555381869954,
+    -0.5193220299986017,
+    -1.3149120594732169,
+    -1.3149120594732169,
+    -1.3149120594732169,
+    -0.6870819147767796,
+    -0.7000874326583469,
+    -0.7000874326583469,
+    -1.40104101002685,
+    -1.346460058794684,
+    -1.0951477372085605,
+    0.029313989349735916,
+    -0.7000874326583469,
+    -0.7000874326583469,
+    -0.7000874326583469,
+    -0.7000874326583469,
+    -0.7000874326583469,
+    -0.9470075247556363,
+    -0.5230852009392398,
+    -0.7000874326583469,
+    -1.2933663829717483,
+    -0.7000874326583469,
+    -0.21986423340521996,
+    0.6816080772392286,
+    -0.7000874326583469,
+    0.11198589956409195,
+    0.030361362137048844,
+    0.08641357839141807,
+    -0.7000874326583469,
+    -0.7000874326583469,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.8646145580487008,
+    -0.23341181443156772,
+    8.071522724665876,
+    0.8646145580487008,
+    0.8646145580487008,
+    0.8646145580487008,
+    -0.1599125011207529,
+    0.8646145580487008,
+    0.6242904655643198,
+    0.8646145580487008,
+    0.8646145580487008,
+    0.500920631123185,
+    0.8646145580487008,
+    0.023593606263072033,
+    -0.2139610781800242,
+    0.8646145580487008,
+    0.8646145580487008,
+    -0.45031278089778626,
+    0.8646145580487008,
+    0.8646145580487008,
+    0.07893656743943325,
+    -0.4364707875746065,
+    0.8646145580487008,
+    0.652146615256878,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    -1.0146200237180822,
+    -0.7495569158999222,
+    -0.8066845464936832,
+    -0.8066845464936832,
+    -1.6519630553522648,
+    -0.8066845464936832,
+    -0.8066845464936832,
+    0.07758361827467589,
+    0.8926751503102136,
+    -0.2584253416973193,
+    -0.8066845464936832,
+    -0.8066845464936832,
+    0.043580637719728706,
+    -0.8066845464936832,
+    0.08017254063392895,
+    -0.8066845464936832,
+    -0.8066845464936832,
+    -0.8066845464936832,
+    -0.8066845464936832,
+    -0.8066845464936832,
+    -0.8066845464936832,
+    -1.5650759966942822,
+    -1.5046648136496965,
+    -0.9428170050881907,
+    -1.3309306814518023,
+    -1.879187263153467,
+    -1.1239075559520382,
+    -1.1239075559520382,
+    -1.2357673202979453,
+    -1.1239075559520382,
+    -1.322855630867773,
+    -1.1239075559520382,
+    0.06370391006519306,
+    -1.1239075559520382,
+    -0.7384836442144583,
+    -1.039581092776713,
+    -0.7420495863186876,
+    0.09287760835536824,
+    -1.1239075559520382,
+    -1.1239075559520382,
+    -1.1239075559520382,
+    -0.7647555807753618,
+    -1.1239075559520382,
+    -1.1239075559520382,
+    -1.1239075559520382,
+    -1.1239075559520382,
+    -1.1239075559520382,
+    -1.1239075559520382,
+    -1.1477466130478708,
+    -1.1477466130478708,
+    -1.1477466130478708,
+    -1.7689165904807438,
+    -1.1477466130478708,
+    -1.1477466130478708,
+    -1.1477466130478708,
+    -1.1477466130478708,
+    6.9542917435630685,
+    -1.1477466130478708,
+    -1.1477466130478708,
+    -1.1477466130478708,
+    -1.1477466130478708,
+    -1.5605828542228353,
+    -0.5996926766545599,
+    -0.7287473071316989,
+    -1.1477466130478708,
+    -0.4947358610484621,
+    -1.6818708899643342,
+    -1.1477466130478708,
+    -1.1477466130478708,
+    -1.1477466130478708,
+    -1.1477466130478708,
+    -1.1477466130478708,
+    -1.0993862968578911,
+    -1.0993862968578911,
+    -1.0993862968578911,
+    -1.0993862968578911,
+    -1.2352944851024044,
+    -1.465715491136926,
+    -1.0993862968578911,
+    -1.0993862968578911,
+    -1.0993862968578911,
+    -1.0993862968578911,
+    -0.3450939299577387,
+    -1.0993862968578911,
+    -0.19456451813137332,
+    -1.0993862968578911,
+    -1.0993862968578911,
+    -1.814476274562451,
+    -1.0993862968578911,
+    -0.8235989261109113,
+    -0.3318191303642882,
+    -1.0993862968578911,
+    -1.0993862968578911,
+    -1.0993862968578911,
+    -0.38534926981413203,
+    -0.9724906230502394,
+    -1.0003085203468454,
+    -1.0003085203468454,
+    -1.010903101957404,
+    -1.0003085203468454,
+    -1.0003085203468454,
+    -1.0003085203468454,
+    -1.0003085203468454,
+    -1.0003085203468454,
+    -1.0003085203468454,
+    -1.0003085203468454,
+    -1.207851069116044,
+    -1.0003085203468454,
+    -1.0003085203468454,
+    -1.503688873382102,
+    -0.04188136924335747,
+    -1.0003085203468454,
+    -1.0003085203468454,
+    -1.0003085203468454,
+    -1.0003085203468454,
+    -0.8683007297079083,
+    -1.0003085203468454,
+    -1.0003085203468454,
+    -0.23414181063061595,
+    -1.0501979319706363,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.8552286849354258,
+    0.03723055451745815,
+    -0.26497146439750524,
+    1.8552286849354258,
+    1.8552286849354258,
+    1.8552286849354258,
+    1.8552286849354258,
+    1.8552286849354258,
+    0.5378970236970082,
+    1.8552286849354258,
+    1.8552286849354258,
+    1.6508497658519903,
+    1.8552286849354258,
+    1.8552286849354258,
+    8.399481256375088,
+    1.8552286849354258,
+    1.8552286849354258,
+    0.06995522642025158,
+    1.8552286849354258,
+    2.078545792952099,
+    1.8552286849354258,
+    0.8238275557869996,
+    0.5378293168603616,
+    1.8552286849354258,
+    0.5484246029532278,
+    -0.3064413815278756,
+    1.1669458607043945,
+    0.5458004412554659,
+    -0.4619080257697974,
+    1.2015544155359956,
+    0.33605479551484146,
+    -0.3916063154195954,
+    3.1359463326778054,
+    0.47802674968841763,
+    1.9160332128044781,
+    3.1359463326778054,
+    3.1359463326778054,
+    2.1218004465672533,
+    1.1184958466957162,
+    2.7618585372699993,
+    0.581289214709943,
+    3.42681678989647,
+    0.8848758669317682,
+    0.3807170292921266,
+    0.6919049829997348,
+    1.289544478846915,
+    2.9301528310462097,
+    3.1648011087154275,
+    -1.2529572815542298,
+    -1.2529572815542298,
+    -0.5252626776296526,
+    -1.2529572815542298,
+    -1.2529572815542298,
+    -1.2529572815542298,
+    -1.2529572815542298,
+    -1.2529572815542298,
+    -0.2373807799218293,
+    -1.2529572815542298,
+    -1.2529572815542298,
+    -1.2529572815542298,
+    -1.2529572815542298,
+    -0.10167547035100724,
+    -1.2529572815542298,
+    -1.2529572815542298,
+    -1.2009705590978512,
+    -1.2529572815542298,
+    -0.7212800511415207,
+    -1.2529572815542298,
+    -0.8524319137090757,
+    -1.2529572815542298,
+    -1.2529572815542298,
+    -1.2529572815542298,
+    1.8983505614627951,
+    3.271511991565885,
+    3.10466963060844,
+    3.10466963060844,
+    3.10466963060844,
+    1.2810859155696717,
+    0.2972132525450808,
+    3.10466963060844,
+    -1.09164733120228,
+    0.6425524767175812,
+    3.10466963060844,
+    2.693630258671005,
+    3.10466963060844,
+    0.10401557418842944,
+    3.10466963060844,
+    3.10466963060844,
+    1.829804431043562,
+    3.10466963060844,
+    0.6961312510092671,
+    -0.2277888444911793,
+    3.10466963060844,
+    0.8640590614274454,
+    1.8283633253896365,
+    3.10466963060844,
+    2.102607612755158,
+    2.0758925485692457,
+    1.0307799093390704,
+    0.7044156526505346,
+    2.3675470323020456,
+    0.7883635318117225,
+    1.636907993542578,
+    2.3675470323020456,
+    2.3675470323020456,
+    2.3675470323020456,
+    2.3675470323020456,
+    2.3675470323020456,
+    2.3675470323020456,
+    2.3675470323020456,
+    2.3675470323020456,
+    2.3675470323020456,
+    2.1028478808441955,
+    0.571180040764237,
+    2.3675470323020456,
+    2.3675470323020456,
+    8.816632888474066,
+    2.549961755311944,
+    1.1128289418912383,
+    2.3675470323020456,
+    1.8977364318937626,
+    -0.14298463339642653,
+    2.3154134213392332,
+    -0.08149771524248799,
+    1.6730232723214211,
+    2.19981026057173,
+    2.2927777055615204,
+    3.3538544300259234,
+    1.0512741906291538,
+    2.683263085813091,
+    2.010609843480008,
+    2.683263085813091,
+    1.9367221687261706,
+    2.683263085813091,
+    -0.15537415184646974,
+    2.3110413461982087,
+    -0.7716483064804605,
+    2.0449176018917825,
+    1.0034691431607112,
+    0.7987393522203933,
+    0.7437786346892968,
+    2.683263085813091,
+    1.2614124265874664,
+    2.683263085813091,
+    -0.9482793477434123,
+    0.23850655783617306,
+    -0.400193616222085,
+    -1.1590195151086857,
+    -1.1590195151086857,
+    -1.1590195151086857,
+    -0.2880459646080245,
+    -1.1590195151086857,
+    -0.9898327234172528,
+    -0.5697571611926681,
+    -1.1590195151086857,
+    -1.1590195151086857,
+    -0.23504894880179816,
+    -1.3165667139584065,
+    -1.1590195151086857,
+    -1.1590195151086857,
+    -1.1590195151086857,
+    -1.3226158971264117,
+    -1.1590195151086857,
+    -1.1590195151086857,
+    -0.573338183865939,
+    -1.1590195151086857,
+    -1.1590195151086857,
+    -1.1590195151086857,
+    -0.23303839009796093,
+    1.3434998568733896,
+    1.3434998568733896,
+    1.3434998568733896,
+    0.39278650292989425,
+    -0.3410407711237994,
+    0.5303876947055068,
+    -0.6863116588615606,
+    1.3434998568733896,
+    0.1589401138804244,
+    1.3434998568733896,
+    -0.1316838611629911,
+    0.08656767028007577,
+    -0.19323251173195594,
+    1.3434998568733896,
+    1.3434998568733896,
+    1.3434998568733896,
+    1.3434998568733896,
+    1.3434998568733896,
+    -0.3781006557980673,
+    -0.3546641109136894,
+    1.3434998568733896,
+    1.3434998568733896,
+    0.4861162181917962,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "sensor_count": 4,
+  "entropy_coefficient": 0.01,
+  "allowed_sensor_ids": [
+    "thermal"
+  ],
+  "updates": 25,
+  "baseline": 22.964438494548297,
+  "adam_m": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    2.025487836887117e-06,
+    3.2920742112316765e-05,
+    3.2920742112316765e-05,
+    3.2920742112316765e-05,
+    3.2920742112316765e-05,
+    1.2604764109106183e-05,
+    2.8715119074938422e-05,
+    3.2920742112316765e-05,
+    3.2920742112316765e-05,
+    3.2920742112316765e-05,
+    3.2920742112316765e-05,
+    2.1569910275694837e-05,
+    3.2920742112316765e-05,
+    3.2920742112316765e-05,
+    3.2920742112316765e-05,
+    -3.177563935612932e-05,
+    5.976695744171109e-06,
+    3.2920742112316765e-05,
+    3.2920742112316765e-05,
+    3.2920742112316765e-05,
+    6.2640798884543415e-06,
+    3.2920742112316765e-05,
+    3.2920742112316765e-05,
+    -0.0007465153776760292,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    5.785354953481997e-06,
+    4.045876888240926e-06,
+    -0.00042305483885302374,
+    -2.1481624891395583e-05,
+    5.785354953481997e-06,
+    5.785354953481997e-06,
+    5.785354953481997e-06,
+    5.785354953481997e-06,
+    -2.4411235015777557e-05,
+    5.785354953481997e-06,
+    3.844437066704406e-06,
+    5.785354953481997e-06,
+    6.780057604112667e-05,
+    5.785354953481997e-06,
+    -5.677268987595429e-06,
+    5.785354953481997e-06,
+    -0.00046921881665073025,
+    2.0228493229245334e-06,
+    5.785354953481997e-06,
+    5.785354953481997e-06,
+    -8.855402803439759e-05,
+    2.1791440116912108e-05,
+    5.785354953481997e-06,
+    5.785354953481997e-06,
+    4.765448144816855e-06,
+    4.765448144816855e-06,
+    4.765448144816855e-06,
+    5.473822858475326e-06,
+    8.444621666310538e-07,
+    4.765448144816855e-06,
+    4.765448144816855e-06,
+    3.5141900737796668e-06,
+    4.765448144816855e-06,
+    7.050405018122088e-06,
+    7.1428219219844e-06,
+    4.765448144816855e-06,
+    6.1934937154856915e-06,
+    4.765448144816855e-06,
+    4.765448144816855e-06,
+    0.00214995824396972,
+    4.765448144816855e-06,
+    4.765448144816855e-06,
+    4.765448144816855e-06,
+    4.765448144816855e-06,
+    4.765448144816855e-06,
+    4.4997405628580756e-06,
+    4.765448144816855e-06,
+    4.765448144816855e-06,
+    6.218161231837194e-06,
+    2.898716069129025e-05,
+    -3.809947152900593e-05,
+    -2.9777783007383245e-06,
+    6.218161231837194e-06,
+    6.218161231837194e-06,
+    6.218161231837194e-06,
+    6.218161231837194e-06,
+    6.218161231837194e-06,
+    -0.00015719835933293656,
+    6.218161231837194e-06,
+    6.218161231837194e-06,
+    6.218161231837194e-06,
+    6.218161231837194e-06,
+    6.218161231837194e-06,
+    7.213206242305909e-06,
+    6.218161231837194e-06,
+    -0.000460764039109878,
+    6.218161231837194e-06,
+    -0.0019781971329052295,
+    6.218161231837194e-06,
+    6.218161231837194e-06,
+    6.218161231837194e-06,
+    6.218161231837194e-06,
+    4.346920903060057e-06,
+    4.346920903060057e-06,
+    -0.0001502346494956317,
+    4.346920903060057e-06,
+    6.65535156939595e-05,
+    4.346920903060057e-06,
+    -0.0001944799875465782,
+    4.346920903060057e-06,
+    4.346920903060057e-06,
+    1.4077763762641992e-05,
+    4.346920903060057e-06,
+    4.346920903060057e-06,
+    1.224659065741305e-05,
+    4.346920903060057e-06,
+    4.346920903060057e-06,
+    4.346920903060057e-06,
+    1.0618103713336715e-05,
+    4.346920903060057e-06,
+    4.571030378107926e-07,
+    2.478712354673308e-05,
+    -1.0050064433555516e-07,
+    4.346920903060057e-06,
+    4.346920903060057e-06,
+    4.346920903060057e-06,
+    4.783356775273477e-06,
+    0.00030222487791738026,
+    4.783356775273477e-06,
+    6.821088666108194e-06,
+    1.176565600849928e-05,
+    4.783356775273477e-06,
+    4.783356775273477e-06,
+    4.783356775273477e-06,
+    0.0005088581038540986,
+    4.783356775273477e-06,
+    3.980936206977116e-06,
+    4.783356775273477e-06,
+    4.783356775273477e-06,
+    4.783356775273477e-06,
+    4.783356775273477e-06,
+    4.783356775273477e-06,
+    4.783356775273477e-06,
+    4.783356775273477e-06,
+    1.2135166988824662e-06,
+    4.783356775273477e-06,
+    1.098161689789153e-05,
+    4.783356775273477e-06,
+    4.783356775273477e-06,
+    4.783356775273477e-06,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    -0.010835784735803083,
+    7.084296250396495e-07,
+    -2.7043089352029277e-05,
+    -3.206562949971282e-05,
+    4.5909024863666e-05,
+    0.0019592362465795984,
+    -0.0004960041919596873,
+    9.727905134626329e-08,
+    1.1669509234577442e-05,
+    -0.0005403364920493865,
+    4.5909024863666e-05,
+    4.5909024863666e-05,
+    0.0018000289606550516,
+    6.713624319315382e-06,
+    0.00035205140295936513,
+    4.5909024863666e-05,
+    4.5909024863666e-05,
+    -9.409854400097451e-06,
+    6.497624300914076e-05,
+    -0.0004597998303008735,
+    -0.00015659864219591595,
+    6.136891303067451e-06,
+    1.383325831570695e-05,
+    9.412387707832728e-06,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    5.068103988214223e-06,
+    5.068103988214223e-06,
+    4.712764406985709e-06,
+    6.342760733254544e-06,
+    7.948788769483448e-05,
+    5.068103988214223e-06,
+    5.068103988214223e-06,
+    5.068103988214223e-06,
+    5.068103988214223e-06,
+    5.068103988214223e-06,
+    2.576429372347544e-06,
+    6.992128436166052e-06,
+    5.068103988214223e-06,
+    5.068103988214223e-06,
+    7.288520745368513e-06,
+    -0.00011331145152391908,
+    2.1594966518556026e-05,
+    5.068103988214223e-06,
+    5.068103988214223e-06,
+    5.068103988214223e-06,
+    5.068103988214223e-06,
+    5.068103988214223e-06,
+    -6.12295327320613e-05,
+    -0.0023749106665609597,
+    -6.351902314933997e-06,
+    -4.6101170154785394e-06,
+    8.675123432710116e-05,
+    2.50293194557989e-06,
+    2.50293194557989e-06,
+    2.50293194557989e-06,
+    2.50293194557989e-06,
+    -0.0003641142128767912,
+    -0.000464130028878664,
+    2.50293194557989e-06,
+    2.50293194557989e-06,
+    2.50293194557989e-06,
+    2.50293194557989e-06,
+    2.50293194557989e-06,
+    2.50293194557989e-06,
+    2.50293194557989e-06,
+    2.50293194557989e-06,
+    2.50293194557989e-06,
+    2.50293194557989e-06,
+    2.339353581203755e-06,
+    2.50293194557989e-06,
+    -4.628303723933644e-07,
+    0.0001439941248211365,
+    2.50293194557989e-06,
+    4.687689630805932e-06,
+    0.00015851681363969572,
+    0.00029968566602289943,
+    -0.001790621025453639,
+    1.9716200556405615e-05,
+    -0.0010162929640145613,
+    4.482605303979131e-06,
+    -0.0005577754084673816,
+    4.8926338436271945e-06,
+    -0.0007602232531270938,
+    0.00015851681363969572,
+    2.4780389959796312e-06,
+    0.001899156319935562,
+    0.0001744876123193741,
+    0.00010457676601364474,
+    4.150910529299206e-06,
+    -1.61168997372827e-05,
+    0.0012950710024912842,
+    0.00015851681363969572,
+    0.00024753344732394614,
+    0.00015851681363969572,
+    0.00015851681363969572,
+    -0.0023851557490667872,
+    6.34334465986065e-05,
+    1.5378312476551794e-06,
+    1.614217646842087e-06,
+    1.614217646842087e-06,
+    1.614217646842087e-06,
+    2.940473434091142e-07,
+    1.614217646842087e-06,
+    1.614217646842087e-06,
+    1.614217646842087e-06,
+    2.2591339341477007e-06,
+    7.23689564486575e-05,
+    2.7694091192583855e-06,
+    1.614217646842087e-06,
+    -0.00019260988124275417,
+    1.614217646842087e-06,
+    1.614217646842087e-06,
+    1.614217646842087e-06,
+    1.614217646842087e-06,
+    1.2233384555441059e-06,
+    2.526585192850912e-06,
+    -0.0016311292203864095,
+    1.614217646842087e-06,
+    1.614217646842087e-06,
+    1.614217646842087e-06,
+    -6.110349145995333e-05,
+    5.4821352891079755e-06,
+    5.4821352891079755e-06,
+    -0.00037108585259146575,
+    -6.071406643862727e-06,
+    3.99125545684915e-06,
+    1.3554739619753935e-05,
+    5.4821352891079755e-06,
+    5.4821352891079755e-06,
+    5.4821352891079755e-06,
+    5.4821352891079755e-06,
+    5.4821352891079755e-06,
+    -0.00010486411420374185,
+    2.210972764944051e-05,
+    5.4821352891079755e-06,
+    -4.940999114918262e-05,
+    5.4821352891079755e-06,
+    0.00010115351715509056,
+    0.00024494111706718113,
+    5.4821352891079755e-06,
+    1.1617062891151435e-05,
+    1.0904779973596006e-05,
+    2.8021804258837647e-05,
+    5.4821352891079755e-06,
+    5.4821352891079755e-06,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.256682397115873e-05,
+    -4.0009382667301745e-05,
+    0.017953208439867634,
+    1.256682397115873e-05,
+    1.256682397115873e-05,
+    1.256682397115873e-05,
+    -5.059530083485269e-05,
+    1.256682397115873e-05,
+    1.2303122931954517e-05,
+    1.256682397115873e-05,
+    1.256682397115873e-05,
+    9.602368719783042e-06,
+    1.256682397115873e-05,
+    -0.00045851790836446424,
+    4.486347890250575e-06,
+    1.256682397115873e-05,
+    1.256682397115873e-05,
+    6.073264488415079e-07,
+    1.256682397115873e-05,
+    1.256682397115873e-05,
+    -0.0005144742998951942,
+    3.816838986712291e-06,
+    1.256682397115873e-05,
+    1.1416210686109421e-05,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    -1.3548048471544035e-07,
+    4.724100289018246e-06,
+    4.822251660865082e-06,
+    4.822251660865082e-06,
+    -0.0001788701881170872,
+    4.822251660865082e-06,
+    4.822251660865082e-06,
+    1.1469299917144522e-05,
+    -2.693528429970245e-05,
+    -0.00893206121491966,
+    4.822251660865082e-06,
+    4.822251660865082e-06,
+    1.2023806419700327e-05,
+    4.822251660865082e-06,
+    1.1935668266769116e-05,
+    4.822251660865082e-06,
+    4.822251660865082e-06,
+    4.822251660865082e-06,
+    4.822251660865082e-06,
+    4.822251660865082e-06,
+    4.822251660865082e-06,
+    -7.105400366293835e-05,
+    -0.0017457616084677178,
+    4.351678617696095e-06,
+    4.404903501775798e-06,
+    -0.00016412266121536488,
+    5.377322756809004e-06,
+    5.377322756809004e-06,
+    2.755760518968001e-06,
+    5.377322756809004e-06,
+    1.0677365804490893e-06,
+    5.377322756809004e-06,
+    0.00045614569654150555,
+    5.377322756809004e-06,
+    7.701079838112542e-06,
+    5.5714492212660084e-06,
+    7.754525151784872e-06,
+    0.00021081964406024527,
+    5.377322756809004e-06,
+    5.377322756809004e-06,
+    5.377322756809004e-06,
+    7.6977543803081e-06,
+    5.377322756809004e-06,
+    5.377322756809004e-06,
+    5.377322756809004e-06,
+    5.377322756809004e-06,
+    5.377322756809004e-06,
+    5.377322756809004e-06,
+    5.256963332990203e-06,
+    5.256963332990203e-06,
+    5.256963332990203e-06,
+    -0.0012613751627990224,
+    5.256963332990203e-06,
+    5.256963332990203e-06,
+    5.256963332990203e-06,
+    5.256963332990203e-06,
+    0.033397928934574994,
+    5.256963332990203e-06,
+    5.256963332990203e-06,
+    5.256963332990203e-06,
+    5.256963332990203e-06,
+    -1.4974571953697296e-06,
+    8.752668304441426e-06,
+    7.462453843840493e-06,
+    5.256963332990203e-06,
+    9.759479922905723e-06,
+    -0.0002814348700355299,
+    5.256963332990203e-06,
+    5.256963332990203e-06,
+    5.256963332990203e-06,
+    5.256963332990203e-06,
+    5.256963332990203e-06,
+    5.467999634133984e-06,
+    5.467999634133984e-06,
+    5.467999634133984e-06,
+    5.467999634133984e-06,
+    4.82158677133828e-06,
+    -5.491938437957466e-06,
+    5.467999634133984e-06,
+    5.467999634133984e-06,
+    5.467999634133984e-06,
+    5.467999634133984e-06,
+    1.9294608158979833e-05,
+    5.467999634133984e-06,
+    1.2179772469592484e-05,
+    5.467999634133984e-06,
+    5.467999634133984e-06,
+    -0.0017452195597724611,
+    5.467999634133984e-06,
+    7.192710722285556e-06,
+    1.1573061501865266e-05,
+    5.467999634133984e-06,
+    5.467999634133984e-06,
+    5.467999634133984e-06,
+    1.0735060231308339e-05,
+    5.163856352455445e-06,
+    4.306504914841553e-06,
+    4.306504914841553e-06,
+    3.885124800869473e-06,
+    4.306504914841553e-06,
+    4.306504914841553e-06,
+    4.306504914841553e-06,
+    4.306504914841553e-06,
+    4.306504914841553e-06,
+    4.306504914841553e-06,
+    4.306504914841553e-06,
+    1.9211376629341013e-06,
+    4.306504914841553e-06,
+    4.306504914841553e-06,
+    -4.612219521117727e-05,
+    7.365197638824821e-06,
+    4.306504914841553e-06,
+    4.306504914841553e-06,
+    4.306504914841553e-06,
+    4.306504914841553e-06,
+    5.0416912612815435e-06,
+    4.306504914841553e-06,
+    4.306504914841553e-06,
+    3.49442261555092e-05,
+    1.500020657845521e-06,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    -1.2196080287495608e-05,
+    -1.2867235526990933e-06,
+    -5.553598011552411e-07,
+    -1.2196080287495608e-05,
+    -1.2196080287495608e-05,
+    -1.2196080287495608e-05,
+    -1.2196080287495608e-05,
+    -1.2196080287495608e-05,
+    -5.469342292459572e-06,
+    -1.2196080287495608e-05,
+    -1.2196080287495608e-05,
+    -3.6840382399782046e-06,
+    -1.2196080287495608e-05,
+    -1.2196080287495608e-05,
+    -0.0031770285159983206,
+    -1.2196080287495608e-05,
+    -1.2196080287495608e-05,
+    -8.599431653712255e-07,
+    -1.2196080287495608e-05,
+    5.47093313446473e-05,
+    -1.2196080287495608e-05,
+    -0.00015827572625345588,
+    -5.3167072812038816e-06,
+    -1.2196080287495608e-05,
+    1.756317225878127e-06,
+    -0.00010487869410682983,
+    -1.800903737818979e-05,
+    1.3798279850491365e-06,
+    1.952979810644114e-06,
+    2.672215830646448e-06,
+    2.898235012429587e-06,
+    1.0142503317867751e-06,
+    -1.753876278705918e-05,
+    1.8196498032082653e-06,
+    -0.0010933454835257582,
+    -1.753876278705918e-05,
+    -1.753876278705918e-05,
+    -0.0013396983685811006,
+    8.97452568615265e-06,
+    -0.0005512641067713859,
+    -2.297809163072226e-06,
+    0.000954854197231073,
+    -0.005190190966185169,
+    -5.827478992385492e-06,
+    -3.648789281904379e-05,
+    -0.00035192591219021497,
+    -0.00864797474858599,
+    -1.8553501823537907e-05,
+    1.3649351967884598e-06,
+    1.3649351967884598e-06,
+    0.0001100638791237777,
+    1.3649351967884598e-06,
+    1.3649351967884598e-06,
+    1.3649351967884598e-06,
+    1.3649351967884598e-06,
+    1.3649351967884598e-06,
+    -4.53710114356198e-06,
+    1.3649351967884598e-06,
+    1.3649351967884598e-06,
+    1.3649351967884598e-06,
+    1.3649351967884598e-06,
+    3.266408664880318e-06,
+    1.3649351967884598e-06,
+    1.3649351967884598e-06,
+    -2.3241679047763355e-06,
+    1.3649351967884598e-06,
+    1.8741378267325613e-06,
+    1.3649351967884598e-06,
+    2.192973179454991e-06,
+    1.3649351967884598e-06,
+    1.3649351967884598e-06,
+    1.3649351967884598e-06,
+    -0.0008207096572210019,
+    0.0016855948408243168,
+    0.00010568147279400198,
+    0.00010568147279400198,
+    0.00010568147279400198,
+    -0.00019222963829656654,
+    -0.0005627742262851811,
+    0.00010568147279400198,
+    -0.0001191409717889608,
+    1.4273719646332699e-05,
+    0.00010568147279400198,
+    0.00023707081244540135,
+    0.00010568147279400198,
+    7.853073555268714e-06,
+    0.00010568147279400198,
+    0.00010568147279400198,
+    -0.00041785542393726275,
+    0.00010568147279400198,
+    -7.93603363286654e-06,
+    8.846426114941794e-07,
+    0.00010568147279400198,
+    -3.219330459526508e-06,
+    -0.0004481011638640489,
+    0.00010568147279400198,
+    -0.0051392342381434575,
+    -0.0009567974351722899,
+    4.172826782528306e-06,
+    3.2424587615227363e-06,
+    9.044844512377876e-06,
+    3.104715753384091e-06,
+    -0.0005227018676953451,
+    9.044844512377876e-06,
+    9.044844512377876e-06,
+    9.044844512377876e-06,
+    9.044844512377876e-06,
+    9.044844512377876e-06,
+    9.044844512377876e-06,
+    9.044844512377876e-06,
+    9.044844512377876e-06,
+    9.044844512377876e-06,
+    9.493589763770616e-06,
+    2.8661019463304958e-06,
+    9.044844512377876e-06,
+    9.044844512377876e-06,
+    0.011689691721219888,
+    1.0875507656130805e-05,
+    -4.9085101728661826e-05,
+    9.044844512377876e-06,
+    -9.899099373419503e-05,
+    3.8228768641588265e-06,
+    -0.0026432714801676947,
+    4.267888138937899e-06,
+    1.911848199406414e-05,
+    2.0406259287332393e-05,
+    -3.554468599085918e-05,
+    0.00014739592808999725,
+    -0.00272487944437544,
+    4.2516119049174955e-05,
+    2.333325619818986e-05,
+    4.2516119049174955e-05,
+    -0.00020404700985918498,
+    4.2516119049174955e-05,
+    3.999330258646459e-06,
+    3.402105099326448e-05,
+    -0.0002201690282858843,
+    -0.0005285372438667622,
+    -9.848395632635896e-05,
+    9.105311563214283e-08,
+    9.511440603207864e-06,
+    4.2516119049174955e-05,
+    -1.162421578688933e-05,
+    4.2516119049174955e-05,
+    -2.8705755410044657e-07,
+    4.905349463639362e-06,
+    3.1460767442841666e-06,
+    1.7362274911799177e-06,
+    1.7362274911799177e-06,
+    1.7362274911799177e-06,
+    -2.7091958846445665e-05,
+    1.7362274911799177e-06,
+    2.0090288338163496e-06,
+    -0.00110604552961157,
+    1.7362274911799177e-06,
+    1.7362274911799177e-06,
+    3.323215943276311e-06,
+    -0.00010765609232559918,
+    1.7362274911799177e-06,
+    1.7362274911799177e-06,
+    1.7362274911799177e-06,
+    -5.398656164446e-05,
+    1.7362274911799177e-06,
+    1.7362274911799177e-06,
+    2.791286710199862e-06,
+    1.7362274911799177e-06,
+    1.7362274911799177e-06,
+    1.7362274911799177e-06,
+    3.0346410790248394e-06,
+    2.2350593986948e-05,
+    2.2350593986948e-05,
+    2.2350593986948e-05,
+    -0.0004713150058576352,
+    -6.248443463813128e-06,
+    -0.0005138526941476954,
+    -7.806040868959209e-05,
+    2.2350593986948e-05,
+    -0.00011771041949902781,
+    2.2350593986948e-05,
+    5.692530040421438e-06,
+    -5.294072954630436e-05,
+    -2.3894886780910112e-05,
+    2.2350593986948e-05,
+    2.2350593986948e-05,
+    2.2350593986948e-05,
+    2.2350593986948e-05,
+    2.2350593986948e-05,
+    -2.803523238627416e-06,
+    2.8688137338491515e-06,
+    2.2350593986948e-05,
+    2.2350593986948e-05,
+    1.163079371613753e-05,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "adam_v": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.4896487647425772e-08,
+    1.770328315123528e-10,
+    1.770328315123528e-10,
+    1.770328315123528e-10,
+    1.770328315123528e-10,
+    2.5572633458772786e-08,
+    1.505272061596974e-10,
+    1.770328315123528e-10,
+    1.770328315123528e-10,
+    1.770328315123528e-10,
+    1.770328315123528e-10,
+    3.73410850359646e-10,
+    1.770328315123528e-10,
+    1.770328315123528e-10,
+    1.770328315123528e-10,
+    3.500239884258594e-07,
+    1.4744710002542025e-06,
+    1.770328315123528e-10,
+    1.770328315123528e-10,
+    1.770328315123528e-10,
+    2.7852670685993284e-07,
+    1.770328315123528e-10,
+    1.770328315123528e-10,
+    2.4986182670673967e-07,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    3.870658076537074e-11,
+    1.3712004662966863e-08,
+    6.520156234497675e-07,
+    1.915411186997405e-06,
+    3.870658076537074e-11,
+    3.870658076537074e-11,
+    3.870658076537074e-11,
+    3.870658076537074e-11,
+    8.225534432055259e-07,
+    3.870658076537074e-11,
+    1.9241771845722588e-08,
+    3.870658076537074e-11,
+    5.877898909278959e-07,
+    3.870658076537074e-11,
+    2.1395024519519548e-07,
+    3.870658076537074e-11,
+    4.1511136936470306e-08,
+    7.212111184413413e-11,
+    3.870658076537074e-11,
+    3.870658076537074e-11,
+    2.85937383711757e-08,
+    3.3953592658946947e-07,
+    3.870658076537074e-11,
+    3.870658076537074e-11,
+    2.385604378540818e-11,
+    2.385604378540818e-11,
+    2.385604378540818e-11,
+    6.310638560626345e-08,
+    1.8457887889912432e-06,
+    2.385604378540818e-11,
+    2.385604378540818e-11,
+    4.316425625307844e-07,
+    2.385604378540818e-11,
+    2.8877882047311473e-07,
+    2.1923953250144182e-08,
+    2.385604378540818e-11,
+    3.701205879286509e-07,
+    2.385604378540818e-11,
+    2.385604378540818e-11,
+    1.5431814933483792e-07,
+    2.385604378540818e-11,
+    2.385604378540818e-11,
+    2.385604378540818e-11,
+    2.385604378540818e-11,
+    2.385604378540818e-11,
+    2.918626633260565e-07,
+    2.385604378540818e-11,
+    2.385604378540818e-11,
+    4.9829427489379195e-11,
+    8.901842211014073e-08,
+    1.1280747772175461e-07,
+    1.449709420291635e-06,
+    4.9829427489379195e-11,
+    4.9829427489379195e-11,
+    4.9829427489379195e-11,
+    4.9829427489379195e-11,
+    4.9829427489379195e-11,
+    8.903324514959615e-08,
+    4.9829427489379195e-11,
+    4.9829427489379195e-11,
+    4.9829427489379195e-11,
+    4.9829427489379195e-11,
+    4.9829427489379195e-11,
+    2.3457079466054086e-08,
+    4.9829427489379195e-11,
+    7.296777479934853e-07,
+    4.9829427489379195e-11,
+    1.3872653083136393e-06,
+    4.9829427489379195e-11,
+    4.9829427489379195e-11,
+    4.9829427489379195e-11,
+    4.9829427489379195e-11,
+    1.630698542073071e-11,
+    1.630698542073071e-11,
+    2.841283985214889e-07,
+    1.630698542073071e-11,
+    3.4916479000632133e-09,
+    1.630698542073071e-11,
+    2.264913954420296e-06,
+    1.630698542073071e-11,
+    1.630698542073071e-11,
+    1.3275851212906508e-06,
+    1.630698542073071e-11,
+    1.630698542073071e-11,
+    1.8766707761513242e-07,
+    1.630698542073071e-11,
+    1.630698542073071e-11,
+    1.630698542073071e-11,
+    3.902805676375602e-07,
+    1.630698542073071e-11,
+    6.177964321505022e-07,
+    7.92883607242373e-08,
+    2.5911676163951892e-08,
+    1.630698542073071e-11,
+    1.630698542073071e-11,
+    1.630698542073071e-11,
+    1.6745533812129955e-11,
+    1.4349569464918967e-06,
+    1.6745533812129955e-11,
+    1.5290174442610194e-08,
+    3.9548345325800176e-07,
+    1.6745533812129955e-11,
+    1.6745533812129955e-11,
+    1.6745533812129955e-11,
+    1.0474489764535533e-07,
+    1.6745533812129955e-11,
+    2.767049309957059e-09,
+    1.6745533812129955e-11,
+    1.6745533812129955e-11,
+    1.6745533812129955e-11,
+    1.6745533812129955e-11,
+    1.6745533812129955e-11,
+    1.6745533812129955e-11,
+    1.6745533812129955e-11,
+    4.835747466069371e-07,
+    1.6745533812129955e-11,
+    6.648108777800855e-08,
+    1.6745533812129955e-11,
+    1.6745533812129955e-11,
+    1.6745533812129955e-11,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    3.5474574522862105e-06,
+    4.599266584249581e-09,
+    5.691162548018151e-07,
+    7.193158259103652e-07,
+    1.0266031144794698e-09,
+    5.544294437517791e-07,
+    2.436919572705428e-08,
+    4.306660102697826e-07,
+    9.984768608420003e-09,
+    7.24436700203692e-07,
+    1.0266031144794698e-09,
+    1.0266031144794698e-09,
+    7.313559472481728e-07,
+    4.836417947454328e-08,
+    2.1164313033998958e-07,
+    1.0266031144794698e-09,
+    1.0266031144794698e-09,
+    4.2056746064866765e-08,
+    7.791768969873668e-08,
+    1.2495194614452476e-06,
+    3.700180539172561e-07,
+    4.4930354497312695e-09,
+    3.969795878134229e-09,
+    2.959898759531868e-09,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    2.2049739919273353e-11,
+    2.2049739919273353e-11,
+    9.881338877350445e-07,
+    3.759184908038288e-09,
+    5.024689337720049e-09,
+    2.2049739919273353e-11,
+    2.2049739919273353e-11,
+    2.2049739919273353e-11,
+    2.2049739919273353e-11,
+    2.2049739919273353e-11,
+    5.713113157348376e-09,
+    3.5320895059663034e-07,
+    2.2049739919273353e-11,
+    2.2049739919273353e-11,
+    1.1908868510347872e-06,
+    3.805758215370756e-07,
+    2.129855169047667e-08,
+    2.2049739919273353e-11,
+    2.2049739919273353e-11,
+    2.2049739919273353e-11,
+    2.2049739919273353e-11,
+    2.2049739919273353e-11,
+    6.222411410688337e-07,
+    1.8557160025045186e-06,
+    8.778185224127531e-07,
+    1.2184407923101424e-06,
+    4.2672545694830907e-07,
+    2.0996694362373334e-11,
+    2.0996694362373334e-11,
+    2.0996694362373334e-11,
+    2.0996694362373334e-11,
+    1.6233849440335842e-06,
+    1.920103242365824e-06,
+    2.0996694362373334e-11,
+    2.0996694362373334e-11,
+    2.0996694362373334e-11,
+    2.0996694362373334e-11,
+    2.0996694362373334e-11,
+    2.0996694362373334e-11,
+    2.0996694362373334e-11,
+    2.0996694362373334e-11,
+    2.0996694362373334e-11,
+    2.0996694362373334e-11,
+    2.4487759785919424e-08,
+    2.0996694362373334e-11,
+    2.223990619590092e-07,
+    1.8826072619633396e-08,
+    2.0996694362373334e-11,
+    1.086572697967886e-06,
+    7.071109286153626e-09,
+    1.095360398430957e-08,
+    2.3181590656313857e-06,
+    3.46805017699751e-07,
+    1.1481327145991595e-06,
+    2.482806465377004e-07,
+    9.674659238329286e-07,
+    5.021135431811682e-07,
+    3.3900172134562105e-07,
+    7.071109286153626e-09,
+    1.819780334439423e-07,
+    2.7688536777364513e-07,
+    6.323121188694853e-08,
+    5.721346014482588e-09,
+    8.179847396991346e-09,
+    5.894303122605268e-07,
+    6.440451021816816e-07,
+    7.071109286153626e-09,
+    1.0053418403659118e-06,
+    7.071109286153626e-09,
+    7.071109286153626e-09,
+    5.813517531109941e-07,
+    7.579958015172301e-07,
+    1.2229372733029055e-08,
+    2.6169416741556744e-11,
+    2.6169416741556744e-11,
+    2.6169416741556744e-11,
+    2.2482143130692917e-08,
+    2.6169416741556744e-11,
+    2.6169416741556744e-11,
+    2.6169416741556744e-11,
+    1.809028446970721e-10,
+    3.0092936197326684e-07,
+    5.113837963300658e-07,
+    2.6169416741556744e-11,
+    1.9807765231143786e-07,
+    2.6169416741556744e-11,
+    2.6169416741556744e-11,
+    2.6169416741556744e-11,
+    2.6169416741556744e-11,
+    5.1237068053563054e-08,
+    4.330527787295687e-07,
+    1.3819809241855368e-07,
+    2.6169416741556744e-11,
+    2.6169416741556744e-11,
+    2.6169416741556744e-11,
+    2.453242813042186e-07,
+    3.2177974998893155e-11,
+    3.2177974998893155e-11,
+    2.0533320566698575e-07,
+    1.778580222719874e-07,
+    8.287003241275991e-09,
+    4.2416638301545965e-08,
+    3.2177974998893155e-11,
+    3.2177974998893155e-11,
+    3.2177974998893155e-11,
+    3.2177974998893155e-11,
+    3.2177974998893155e-11,
+    6.896331601008477e-07,
+    6.272845631519363e-07,
+    3.2177974998893155e-11,
+    4.272811560471373e-07,
+    3.2177974998893155e-11,
+    4.556205580632898e-08,
+    1.8124420694318217e-06,
+    3.2177974998893155e-11,
+    1.0477305874119911e-06,
+    3.841287459184815e-07,
+    5.31825276603965e-07,
+    3.2177974998893155e-11,
+    3.2177974998893155e-11,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    8.390851606021812e-11,
+    7.157773998956718e-07,
+    9.907660819058475e-05,
+    8.390851606021812e-11,
+    8.390851606021812e-11,
+    8.390851606021812e-11,
+    4.759092583789655e-07,
+    8.390851606021812e-11,
+    3.059652761842094e-08,
+    8.390851606021812e-11,
+    8.390851606021812e-11,
+    8.20906429401974e-08,
+    8.390851606021812e-11,
+    1.1415696561426584e-06,
+    1.1213943461761176e-06,
+    8.390851606021812e-11,
+    8.390851606021812e-11,
+    2.257616757864275e-08,
+    8.390851606021812e-11,
+    8.390851606021812e-11,
+    6.226639404392132e-07,
+    1.2485223513961792e-08,
+    8.390851606021812e-11,
+    3.836777516367758e-07,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    4.6955690685275347e-07,
+    2.9113895405436037e-07,
+    3.304654706510433e-11,
+    3.304654706510433e-11,
+    4.024485131911607e-07,
+    3.304654706510433e-11,
+    3.304654706510433e-11,
+    8.297498110931798e-08,
+    6.582959889292597e-08,
+    4.1513620879619524e-06,
+    3.304654706510433e-11,
+    3.304654706510433e-11,
+    5.199816484066919e-07,
+    3.304654706510433e-11,
+    1.5091104542984577e-07,
+    3.304654706510433e-11,
+    3.304654706510433e-11,
+    3.304654706510433e-11,
+    3.304654706510433e-11,
+    3.304654706510433e-11,
+    3.304654706510433e-11,
+    1.5311111073164213e-07,
+    1.3090211247891165e-06,
+    3.3793467016914065e-11,
+    2.3373353342850026e-09,
+    7.072674430311542e-07,
+    4.6842355719878445e-11,
+    4.6842355719878445e-11,
+    7.087666761866461e-07,
+    4.6842355719878445e-11,
+    3.1782664901050956e-07,
+    4.6842355719878445e-11,
+    2.1891439195738886e-06,
+    4.6842355719878445e-11,
+    2.5631317190796687e-07,
+    9.531906691367519e-08,
+    1.2366434325209248e-07,
+    1.9400499306994255e-07,
+    4.6842355719878445e-11,
+    4.6842355719878445e-11,
+    4.6842355719878445e-11,
+    1.4548908076058647e-08,
+    4.6842355719878445e-11,
+    4.6842355719878445e-11,
+    4.6842355719878445e-11,
+    4.6842355719878445e-11,
+    4.6842355719878445e-11,
+    4.6842355719878445e-11,
+    4.750030237744366e-11,
+    4.750030237744366e-11,
+    4.750030237744366e-11,
+    1.0122823628807624e-06,
+    4.750030237744366e-11,
+    4.750030237744366e-11,
+    4.750030237744366e-11,
+    4.750030237744366e-11,
+    8.749396063965293e-05,
+    4.750030237744366e-11,
+    4.750030237744366e-11,
+    4.750030237744366e-11,
+    4.750030237744366e-11,
+    7.465824834368005e-08,
+    4.3960762148826124e-07,
+    1.1689317070556728e-06,
+    4.750030237744366e-11,
+    7.508910055067131e-08,
+    2.23243993220786e-08,
+    4.750030237744366e-11,
+    4.750030237744366e-11,
+    4.750030237744366e-11,
+    4.750030237744366e-11,
+    4.750030237744366e-11,
+    4.2014652189988926e-11,
+    4.2014652189988926e-11,
+    4.2014652189988926e-11,
+    4.2014652189988926e-11,
+    1.27447241198055e-08,
+    4.067462453733973e-07,
+    4.2014652189988926e-11,
+    4.2014652189988926e-11,
+    4.2014652189988926e-11,
+    4.2014652189988926e-11,
+    2.218980563906189e-08,
+    4.2014652189988926e-11,
+    5.273020784768571e-09,
+    4.2014652189988926e-11,
+    4.2014652189988926e-11,
+    1.30860195141733e-06,
+    4.2014652189988926e-11,
+    3.534086550893611e-10,
+    3.4256902462054075e-10,
+    4.2014652189988926e-11,
+    4.2014652189988926e-11,
+    4.2014652189988926e-11,
+    1.741605990036516e-10,
+    1.1860633804633727e-06,
+    1.5642513191453758e-11,
+    1.5642513191453758e-11,
+    6.589633111138227e-08,
+    1.5642513191453758e-11,
+    1.5642513191453758e-11,
+    1.5642513191453758e-11,
+    1.5642513191453758e-11,
+    1.5642513191453758e-11,
+    1.5642513191453758e-11,
+    1.5642513191453758e-11,
+    3.9818318143113365e-08,
+    1.5642513191453758e-11,
+    1.5642513191453758e-11,
+    6.499240444181018e-07,
+    9.636585048563503e-07,
+    1.5642513191453758e-11,
+    1.5642513191453758e-11,
+    1.5642513191453758e-11,
+    1.5642513191453758e-11,
+    4.530464898624827e-09,
+    1.5642513191453758e-11,
+    1.5642513191453758e-11,
+    1.0265188014662111e-07,
+    4.7604785523493934e-07,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    2.383647980235386e-10,
+    5.892992466563091e-07,
+    2.5224475578130095e-07,
+    2.383647980235386e-10,
+    2.383647980235386e-10,
+    2.383647980235386e-10,
+    2.383647980235386e-10,
+    2.383647980235386e-10,
+    3.595332577665789e-07,
+    2.383647980235386e-10,
+    2.383647980235386e-10,
+    3.6098641797634214e-07,
+    2.383647980235386e-10,
+    2.383647980235386e-10,
+    0.00012673048510142767,
+    2.383647980235386e-10,
+    2.383647980235386e-10,
+    3.222218771674041e-08,
+    2.383647980235386e-10,
+    3.0930492805911986e-07,
+    2.383647980235386e-10,
+    1.3252434163325707e-07,
+    3.316574457727743e-07,
+    2.383647980235386e-10,
+    4.865787838087404e-07,
+    1.1859781278003298e-06,
+    4.5196619056085207e-08,
+    6.144271797431014e-07,
+    5.044528295673922e-07,
+    1.7713610402287335e-10,
+    3.570553773891446e-07,
+    5.560589180973676e-07,
+    2.6568828586152227e-09,
+    9.10026899419427e-07,
+    1.2291986906095759e-06,
+    2.6568828586152227e-09,
+    2.6568828586152227e-09,
+    7.824331428477213e-07,
+    1.8798696691827507e-06,
+    3.3641632041640715e-08,
+    1.215556307475262e-06,
+    1.9514779918296156e-07,
+    9.340374568333322e-07,
+    4.479865564663822e-07,
+    1.4436056541411178e-06,
+    9.441294758955279e-07,
+    2.581097388759413e-06,
+    2.7882051358160953e-09,
+    2.6682159739192274e-11,
+    2.6682159739192274e-11,
+    3.203014046468822e-07,
+    2.6682159739192274e-11,
+    2.6682159739192274e-11,
+    2.6682159739192274e-11,
+    2.6682159739192274e-11,
+    2.6682159739192274e-11,
+    3.8430186811492413e-07,
+    2.6682159739192274e-11,
+    2.6682159739192274e-11,
+    2.6682159739192274e-11,
+    2.6682159739192274e-11,
+    4.0287425267400746e-08,
+    2.6682159739192274e-11,
+    2.6682159739192274e-11,
+    3.448947751631858e-07,
+    2.6682159739192274e-11,
+    3.4202815680440166e-10,
+    2.6682159739192274e-11,
+    3.3181406374279636e-07,
+    2.6682159739192274e-11,
+    2.6682159739192274e-11,
+    2.6682159739192274e-11,
+    1.234311889595226e-06,
+    4.4316482649779236e-07,
+    1.9163061863864356e-09,
+    1.9163061863864356e-09,
+    1.9163061863864356e-09,
+    1.3526456871302675e-06,
+    5.576012538000357e-07,
+    1.9163061863864356e-09,
+    4.325252999675101e-07,
+    1.6868696584026205e-09,
+    1.9163061863864356e-09,
+    6.033232798235521e-07,
+    1.9163061863864356e-09,
+    1.1585606796552797e-06,
+    1.9163061863864356e-09,
+    1.9163061863864356e-09,
+    2.15031393475091e-07,
+    1.9163061863864356e-09,
+    1.1107528218028382e-06,
+    8.396119812265197e-07,
+    1.9163061863864356e-09,
+    1.72646423421803e-07,
+    2.4408787947918824e-07,
+    1.9163061863864356e-09,
+    9.145945122184167e-07,
+    2.0177538824138812e-06,
+    1.3349544680616167e-07,
+    4.902542945059267e-07,
+    1.4340410878336404e-10,
+    9.29917932691861e-09,
+    1.215988286444146e-07,
+    1.4340410878336404e-10,
+    1.4340410878336404e-10,
+    1.4340410878336404e-10,
+    1.4340410878336404e-10,
+    1.4340410878336404e-10,
+    1.4340410878336404e-10,
+    1.4340410878336404e-10,
+    1.4340410878336404e-10,
+    1.4340410878336404e-10,
+    6.757725969540474e-09,
+    7.311197745701675e-07,
+    1.4340410878336404e-10,
+    1.4340410878336404e-10,
+    0.00010027556295339886,
+    3.376746182290924e-10,
+    4.2693503896684934e-07,
+    1.4340410878336404e-10,
+    4.55271043379636e-07,
+    3.050084295971116e-07,
+    7.058374736462605e-07,
+    1.3675157013740446e-08,
+    1.2319920910055751e-09,
+    3.6322759232389376e-09,
+    2.462609602903159e-09,
+    2.3925465296243176e-08,
+    8.467698027064721e-07,
+    1.3955747548068425e-09,
+    1.9619249018701537e-09,
+    1.3955747548068425e-09,
+    6.742496275168941e-07,
+    1.3955747548068425e-09,
+    3.4938163882422467e-09,
+    2.808237946464146e-09,
+    1.6500410451301597e-06,
+    8.813195705342517e-07,
+    4.771056107640792e-07,
+    9.38484232611778e-07,
+    2.5384048137986987e-07,
+    1.3955747548068425e-09,
+    5.8015170075558e-07,
+    1.3955747548068425e-09,
+    4.457971640778278e-07,
+    3.5526198960509295e-07,
+    6.312464505241469e-08,
+    5.593659756514912e-11,
+    5.593659756514912e-11,
+    5.593659756514912e-11,
+    1.0060441404428422e-06,
+    5.593659756514912e-11,
+    4.789036544294052e-10,
+    1.216480251351825e-06,
+    5.593659756514912e-11,
+    5.593659756514912e-11,
+    1.5347814054756904e-06,
+    7.833705308583222e-07,
+    5.593659756514912e-11,
+    5.593659756514912e-11,
+    5.593659756514912e-11,
+    2.011910619076794e-07,
+    5.593659756514912e-11,
+    5.593659756514912e-11,
+    1.5108170263917222e-08,
+    5.593659756514912e-11,
+    5.593659756514912e-11,
+    5.593659756514912e-11,
+    1.4841883716990949e-08,
+    1.4914303701297374e-10,
+    1.4914303701297374e-10,
+    1.4914303701297374e-10,
+    1.2235652594011708e-06,
+    5.827428006706405e-07,
+    2.761951559059928e-07,
+    4.138488459563747e-07,
+    1.4914303701297374e-10,
+    1.0410205837086749e-06,
+    1.4914303701297374e-10,
+    8.221072367248925e-07,
+    5.598083543490409e-07,
+    4.863742885366862e-07,
+    1.4914303701297374e-10,
+    1.4914303701297374e-10,
+    1.4914303701297374e-10,
+    1.4914303701297374e-10,
+    1.4914303701297374e-10,
+    6.347413102783042e-07,
+    3.0585338334818824e-07,
+    1.4914303701297374e-10,
+    1.4914303701297374e-10,
+    2.6918756335541756e-06,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "optimizer_steps": 100,
+  "values": [
+    17.2291432644329,
+    17.2291432644329,
+    17.2291432644329,
+    17.2291432644329,
+    17.2291432644329
+  ],
+  "value_updates": [
+    25.0,
+    25.0,
+    25.0,
+    25.0,
+    25.0
+  ],
+  "rng_state": {
+    "bit_generator": "PCG64",
+    "state": {
+      "state": 11585788714133444793198498535909031363,
+      "inc": 39962998759615239744976078027433411125
+    },
+    "has_uint32": 0,
+    "uinteger": 0
+  }
+}

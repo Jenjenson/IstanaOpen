@@ -1,0 +1,15 @@
+{
+  "started": 441,
+  "completed": 441,
+  "failed": 0,
+  "roles": {
+    "validation_contractor": 8,
+    "validation_policy": 216,
+    "sampled_training": 200,
+    "final_test_contractor": 8,
+    "final_test_policy": 8,
+    "training_scenario_replay": 1
+  },
+  "nativeSteps": 593329,
+  "nativeCallWallSeconds": 2241.2800000000498
+}
