@@ -44,14 +44,15 @@ def test_paired_training_rejects_unmatched_evidence(mismatch):
         paired_training_reward(actual, baseline)
 
 
-def test_scenario_panels_are_reproducible_disjoint_and_persisted():
-    validated = TrainingManager.validate(config(episodes=10000, batchSize=20))
+@pytest.mark.parametrize("algorithm", ["local_ppo", "paired_bandit"])
+def test_scenario_panels_are_reproducible_disjoint_and_persisted(algorithm):
+    validated = TrainingManager.validate(config(algorithm=algorithm, episodes=10000, batchSize=20))
     start, validation, test = scenario_panels(validated)
     assert start == 51000000
     assert validation == [51010000, 51010001] and test == [51020000, 51020001]
     assert start + validated["episodes"] - 1 < min(validation) < min(test)
     assert scenario_panels(TrainingManager.validate(validated)) == (start, validation, test)
-    unspecified = config()
+    unspecified = config(algorithm=algorithm)
     del unspecified["scenarioSeed"]
     fresh = TrainingManager.validate(unspecified)
     assert fresh["scenarioSeed"] >= 10000000
@@ -64,12 +65,14 @@ def test_scenario_seed_rejects_overlap_or_overflow(seed):
         TrainingManager.validate(config(scenarioSeed=seed))
 
 
-def test_local_policy_requires_a_base_layout():
+@pytest.mark.parametrize("algorithm", ["local_ppo", "paired_bandit"])
+def test_local_policy_requires_a_base_layout(algorithm):
     with pytest.raises(ValueError, match="starting layout"):
-        TrainingManager.validate(config(initialization="untrained"))
+        TrainingManager.validate(config(algorithm=algorithm, initialization="untrained"))
 
 
-def test_manager_updates_on_paired_deltas_and_retains_both_native_records(tmp_path):
+@pytest.mark.parametrize("algorithm", ["local_ppo", "paired_bandit"])
+def test_manager_updates_on_paired_deltas_and_retains_both_native_records(tmp_path, algorithm):
     ctx = native_context()
     batches, calls = [], []
 
@@ -79,6 +82,9 @@ def test_manager_updates_on_paired_deltas_and_retains_both_native_records(tmp_pa
         def update(self, episodes):
             batches.append([reward for _, reward in episodes])
             return super().update(episodes)
+
+        def episode_diagnostics(self, records):
+            return {"arm": 1, "estimatedGainSeconds": float(self.updates)}
 
     class Client:
         def __init__(self, **_): pass
@@ -95,8 +101,8 @@ def test_manager_updates_on_paired_deltas_and_retains_both_native_records(tmp_pa
         return run, []
 
     manager = TrainingManager(output_root=tmp_path, client_factory=Client,
-                              policy_factories={"local_ppo": Local}, episode_runner=runner)
-    manager.start(config())
+                              policy_factories={algorithm: Local}, episode_runner=runner)
+    manager.start(config(algorithm=algorithm))
     manager.thread.join(timeout=10)
     status = manager.status()
     assert status["phase"] == "complete", status
@@ -110,6 +116,8 @@ def test_manager_updates_on_paired_deltas_and_retains_both_native_records(tmp_pa
     assert saved["rewardMode"] == "paired_contractor_delta"
     assert len(list((output / "contractor-episodes").glob("*.json"))) == 4
     for row in status["history"]:
+        assert row["learningDecision"]["arm"] == 1
+        assert row["learningDecision"]["estimatedGainSeconds"] == (row["episode"] - 1) // 2
         assert row["trainingReward"] == row["pairedTraining"]["rewardSeconds"]
         assert row["meanWarningSeconds"] - row["pairedTraining"]["contractorWarningSeconds"] == row["trainingReward"]
     # Each sampled training scenario has an independent contractor control.
@@ -120,3 +128,73 @@ def test_manager_updates_on_paired_deltas_and_retains_both_native_records(tmp_pa
     first_test = next(i for i, row in enumerate(calls) if row[0] == 51020000)
     assert all(row[0] < 51020000 for row in calls[:first_test])
     assert all(generation in (None, 2) for seed, generation, _ in calls if seed >= 51020000)
+
+
+@pytest.mark.parametrize("interval, selected_episode", [(4, 4), (8, 8)])
+def test_real_bandit_is_trained_saved_and_selected_through_manager(tmp_path, interval, selected_episode):
+    import numpy as np
+    from triad_rl.paired_layout_bandit import PairedLayoutBanditPolicy
+    from triad_rl.training_evidence import layout_key
+    from triad_rl.training_workbench import common_sense_start
+
+    ctx = native_context()
+    contractor = common_sense_start(ctx, "directional_balanced_8", count=1,
+                                   allowed_sensor_ids=["thermal"])["placements"]
+    calls = []
+
+    class Client:
+        def __init__(self, **_): pass
+        def reset(self, _): return {}
+        def get_blue_context(self): return deepcopy(ctx)
+        def close(self): pass
+
+    def runner(_client, policy, seed, **kwargs):
+        placements, records = policy.plan(deepcopy(ctx),
+            deterministic=kwargs.get("deterministic", False),
+            rng=np.random.default_rng(kwargs.get("action_seed")))
+        gain = 2. if layout_key(placements) != layout_key(contractor) else 0.
+        run = evidence(seed, 20. + seed % 7 + gain, context=ctx, placements=placements)
+        run["action_seed"] = kwargs.get("action_seed")
+        calls.append((seed, isinstance(policy, PairedLayoutBanditPolicy)))
+        return run, records
+
+    manager = TrainingManager(output_root=tmp_path, client_factory=Client,
+                              episode_runner=runner)
+    manager.start(config(algorithm="paired_bandit", episodes=8, batchSize=4,
+                         checkpointInterval=8, validationInterval=interval, sensorIds=["thermal"]))
+    manager.thread.join(timeout=30)
+    status = manager.status()
+    assert not manager.thread.is_alive()
+    assert status["phase"] == "complete", status
+    assert status["bestEpisode"] == selected_episode
+    assert status["testEvaluation"]["deltaSeconds"] == 2.
+    assert status["exploration"]["actionValueBandit"]
+    assert not status["exploration"]["localEdits"]
+    assert all(row["trainingReward"] == 2. for row in status["history"])
+    assert all(row["learningDecision"] for row in status["history"])
+    evaluated = [row["episode"] for row in status["history"] if "validationWarningSeconds" in row]
+    assert evaluated == list(range(interval, 9, interval))
+    output = Path(status["outputDirectory"])
+    restored = PairedLayoutBanditPolicy.load(output / "final-policy.json", ctx)
+    placements, _ = restored.plan(ctx, deterministic=True)
+    assert layout_key(placements) != layout_key(contractor)
+    assert len(placements) == 1 and placements[0]["profileId"] == "thermal"
+    first_test = next(index for index, (seed, _) in enumerate(calls) if seed >= 51020000)
+    assert all(seed < 51020000 for seed, _ in calls[:first_test])
+    # Publishing can replay a fixed best-observed layout for illustration,
+    # but the learned model is never evaluated on training/validation again.
+    assert all(seed >= 51020000 or not learned for seed, learned in calls[first_test:])
+
+
+@pytest.mark.parametrize("field, value", [("validationCases", 201), ("validationCases", True),
+    ("validationInterval", 0), ("validationInterval", True), ("validationInterval", 10001)])
+def test_validation_schedule_rejects_invalid_limits(field, value):
+    with pytest.raises(ValueError, match=field):
+        TrainingManager.validate(config(**{field: value}))
+
+
+def test_validation_schedule_keeps_legacy_default_and_supports_larger_panels():
+    configured = TrainingManager.validate(config(validationCases=64, validationInterval=80))
+    assert configured["validationCases"] == 64 and configured["validationInterval"] == 80
+    assert len(scenario_panels(configured)[1]) == 64
+    assert TrainingManager.validate(config())["validationInterval"] == 2

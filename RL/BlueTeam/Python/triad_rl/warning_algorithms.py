@@ -3,7 +3,9 @@
 The global REINFORCE, PPO and A2C algorithms share a map-specific actor and
 public action contract. The separately versioned local refinement actor reuses
 PPO's exact update over per-sensor edits and paired contractor-relative returns.
-All actors obey the selected sensor, budget and native deployment limits.
+The paired layout bandit learns arm values with balanced/UCB exploration and
+does not use policy gradients. All choices obey the selected sensor, budget
+and native deployment limits.
 """
 from __future__ import annotations
 
@@ -284,10 +286,26 @@ class _LocalRefinementPPOFactory:
         return LocalRefinementPPOPolicy.load(path, context)
 
 
+class _PairedLayoutBanditFactory:
+    """Keep public-neighborhood imports lazy for the separate action-value learner."""
+
+    def __new__(cls, *args, **kwargs):
+        from .paired_layout_bandit import PairedLayoutBanditPolicy
+        return PairedLayoutBanditPolicy(*args, **kwargs)
+
+    @classmethod
+    def load(cls, path, context):
+        from .paired_layout_bandit import PairedLayoutBanditPolicy
+        return PairedLayoutBanditPolicy.load(path, context)
+
+
 TRAINING_ALGORITHMS = {
     "local_ppo": {"label": "Local refinement PPO", "description":
         "PPO refines each starting sensor through legal nearby sites and orientations, using paired contractor-relative returns.",
         "factory": _LocalRefinementPPOFactory},
+    "paired_bandit": {"label": "Paired action-value RL", "description":
+        "Learns warning-time values for legal single-sensor edits, using matched contractor controls and balanced/UCB exploration.",
+        "factory": _PairedLayoutBanditFactory},
     "reinforce": {"label": "REINFORCE", "description":
         "Current masked policy-gradient baseline with a batch reward baseline.",
         "factory": WarningPolicy},

@@ -416,7 +416,7 @@ class TrainingManager:
         required = {"name", "algorithm", "episodes", "batchSize", "seed", "initialization",
                     "sensorCount"}
         optional = {"explorationProbability", "entropyCoefficient", "validationCases",
-                    "checkpointInterval", "headroomProbes", "sensorIds", "scenarioSeed"}
+                    "checkpointInterval", "headroomProbes", "sensorIds", "scenarioSeed", "validationInterval"}
         if (not isinstance(config, dict) or not required <= set(config)
                 or set(config) - required - optional):
             raise ValueError(
@@ -444,9 +444,9 @@ class TrainingManager:
         if config["algorithm"] not in TRAINING_ALGORITHMS:
             raise ValueError("Select an available training algorithm")
         result = deepcopy(config)
-        if config["algorithm"] == "local_ppo":
+        if config["algorithm"] in ("local_ppo", "paired_bandit"):
             if initialization == "untrained":
-                raise ValueError("Local refinement requires a common-sense starting layout")
+                raise ValueError("Layout refinement requires a common-sense starting layout")
             # Freeze fresh scenario panels before the first native outcome.
             # The action seed remains separately controlled by the user.
             result.setdefault("scenarioSeed", 10000000 + secrets.randbelow(2**31 - 10030000))
@@ -454,7 +454,8 @@ class TrainingManager:
                 or not 0 <= result["scenarioSeed"] <= 2**31 - 30001):
             raise ValueError("scenarioSeed must leave room for disjoint signed-32-bit scenario panels")
         defaults = {"explorationProbability": .2, "entropyCoefficient": .01,
-                    "validationCases": 5, "checkpointInterval": 500, "headroomProbes": 4}
+                    "validationCases": 5, "checkpointInterval": 500, "headroomProbes": 4,
+                    "validationInterval": config["batchSize"]}
         for key, default in defaults.items():
             result.setdefault(key, default)
         for key, lower, upper in (("explorationProbability", .05, .8),
@@ -463,7 +464,8 @@ class TrainingManager:
             if (type(value) not in (int, float) or not math.isfinite(value)
                     or not lower <= value <= upper):
                 raise ValueError(f"{key} must be a finite number from {lower} to {upper}")
-        for key, lower, upper in (("validationCases", 2, 20), ("checkpointInterval", 1, 10000),
+        for key, lower, upper in (("validationCases", 2, 200), ("checkpointInterval", 1, 10000),
+                                  ("validationInterval", 1, 10000),
                                   ("headroomProbes", 0, 8)):
             if type(result[key]) is not int or not lower <= result[key] <= upper:
                 raise ValueError(f"{key} must be an integer from {lower} to {upper}")
@@ -780,7 +782,7 @@ class TrainingManager:
         config_document = json.loads((output / "configuration.json").read_text(encoding="utf-8"))
         fields = {"name", "algorithm", "episodes", "batchSize", "seed", "initialization",
                   "sensorCount", "explorationProbability", "entropyCoefficient", "validationCases",
-                  "checkpointInterval", "headroomProbes", "sensorIds", "scenarioSeed"}
+                  "checkpointInterval", "headroomProbes", "sensorIds", "scenarioSeed", "validationInterval"}
         config = self.validate({key: value for key, value in config_document.items() if key in fields})
         self.registry.ensure_available(config["name"])
         rows = [json.loads(line) for line in
@@ -1019,13 +1021,16 @@ class TrainingManager:
                         "missedCount": sum(row["firstDetectionSeconds"] is None for row in run["warning_evidence"]),
                         "nativeMetrics": run["native_metrics"],
                         "sensorsChangedFromInitial": changed, "uniqueLayouts": len(unique_layouts), **entropy}
+                    diagnostics = getattr(policy, "episode_diagnostics", None)
+                    if callable(diagnostics):
+                        entry["learningDecision"] = diagnostics(records)
                     batch.append((records, training_reward))
                     milestone = number % config["checkpointInterval"] == 0 or number == config["episodes"]
                     try:
                         if number % config["batchSize"] == 0:
                             entry["update"] = policy.update(batch)
                             batch = []
-                        if number % config["batchSize"] == 0 or milestone:
+                        if number % config["validationInterval"] == 0 or milestone:
                             validation, validation_runs = self._evaluate(client, policy, validation_seeds,
                                 baseline=baseline_summary, should_stop=self.stop_event.is_set)
                             score = validation["meanWarningSeconds"]
@@ -1065,7 +1070,8 @@ class TrainingManager:
                             exploration={"uniqueLayouts": len(unique_layouts), "changedFromInitial": changed,
                                 "sensorsChangedFromInitial": changed, "meanNormalizedEntropy": entropy["normalizedEntropy"],
                                 "explorationProbability": None if paired_reward else config["explorationProbability"],
-                                "localEdits": paired_reward})
+                                "localEdits": config["algorithm"] == "local_ppo",
+                                "actionValueBandit": config["algorithm"] == "paired_bandit"})
             policy.save(output / "final-policy.json")
             self._publish(client=client, context=context, config=config, output=output,
                 best_policy=best_policy, best_path=best_path, best_episode=best_episode,

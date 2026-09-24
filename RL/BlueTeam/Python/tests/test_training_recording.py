@@ -42,7 +42,7 @@ def write_manifest(folder, algorithm="ppo"):
     return manifest
 
 
-@pytest.mark.parametrize("algorithm", ["reinforce", "ppo", "a2c", "local_ppo"])
+@pytest.mark.parametrize("algorithm", ["reinforce", "ppo", "a2c", "local_ppo", "paired_bandit"])
 def test_console_recording_reads_exact_actions_without_policy_files(tmp_path, algorithm):
     write_manifest(tmp_path, algorithm)
     metadata, entries = load_recordings(tmp_path)

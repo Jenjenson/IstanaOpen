@@ -335,7 +335,7 @@ def test_masked_actor_critic_trains_saves_and_reloads(policy_type, algorithm, tm
     assert len(restored.plan(context, deterministic=True)[0]) == 3
 
 
-def test_training_algorithm_catalogue_has_the_four_supported_choices():
-    assert list(TRAINING_ALGORITHMS) == ["local_ppo", "reinforce", "ppo", "a2c"]
+def test_training_algorithm_catalogue_has_the_supported_choices():
+    assert set(TRAINING_ALGORITHMS) == {"local_ppo", "paired_bandit", "reinforce", "ppo", "a2c"}
     assert {row["label"] for row in TRAINING_ALGORITHMS.values()} == {
-        "Local refinement PPO", "REINFORCE", "Masked PPO", "Masked A2C"}
+        "Local refinement PPO", "Paired action-value RL", "REINFORCE", "Masked PPO", "Masked A2C"}
