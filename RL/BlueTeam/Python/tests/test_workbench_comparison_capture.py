@@ -11,7 +11,6 @@ from build_native_comparison import trajectory_digest
 
 
 RESULTS = Path(__file__).resolve().parents[2] / "Results/workbench-placement-comparison"
-ROOT = Path(__file__).resolve().parents[4]
 
 
 @pytest.fixture(scope="module")
@@ -40,8 +39,32 @@ def test_all_archived_layouts_and_predeclared_cases_are_retained(bundle):
     assert {(row["policy"], row["case"]) for row in bundle["episodes"]} == {
         (policy, case) for policy in ("406", "407", "408") for case in (1, 2, 3)}
     assert {row["seed"] for row in bundle["episodes"]} == {1700000, 1700001, 1700002}
+
+
+def test_archive_sources_match_the_original_capture_not_current_training_code(bundle):
+    # The capture is immutable historical evidence. Training code can evolve;
+    # changing its live files must not relabel old outcomes as a new capture.
+    snapshot = json.loads((RESULTS / "source-snapshot.json").read_text(encoding="utf-8"))
+    assert snapshot["schema"] == "istana.archived_capture_sources.v1"
+    assert snapshot["restoredFromCommit"] == "2aaf7b698087646a084afc435879df97a80a6ea6"
+    assert snapshot["publishedManifestSha256"] == hashlib.sha256(
+        (RESULTS / "manifest.json").read_bytes()).hexdigest()
+    assert snapshot["publishedBundleSha256"] == hashlib.sha256(
+        (RESULTS / "bundle.json.gz").read_bytes()).hexdigest()
+    inventory = {entry["originalPath"]: entry for entry in snapshot["sources"]}
+    assert len(inventory) == len(snapshot["sources"])
+    assert set(inventory) == set(bundle["protocol"]["sourceSha256"])
     for relative, expected in bundle["protocol"]["sourceSha256"].items():
-        assert hashlib.sha256((ROOT / relative).read_bytes()).hexdigest() == expected
+        entry = inventory[relative]
+        assert entry["snapshotPath"] == f"source-snapshot/{relative}"
+        path = (RESULTS / entry["snapshotPath"]).resolve()
+        assert path.is_relative_to((RESULTS / "source-snapshot").resolve())
+        raw = path.read_bytes()
+        assert len(raw) == entry["bytes"]
+        assert hashlib.sha256(raw).hexdigest() == entry["sha256"] == expected
+        # Verify the recorded Git blob identity without requiring git history
+        # in a release archive or a shallow CI checkout.
+        assert hashlib.sha1(f"blob {len(raw)}\0".encode() + raw).hexdigest() == entry["gitBlob"]
 
 
 def test_workbench_pairs_have_identical_truth_and_real_warning_evidence(bundle):
