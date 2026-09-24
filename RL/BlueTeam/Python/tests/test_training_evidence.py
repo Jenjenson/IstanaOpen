@@ -222,6 +222,26 @@ def test_stopped_run_can_explicitly_publish_its_retained_episode_zero_policy(tmp
     assert all(client.closed for client in harness.clients)
 
 
+def test_legacy_recovery_selects_latest_best_checkpoint_numerically(tmp_path, monkeypatch):
+    harness = Harness(tmp_path, stop_during_validation=True)
+    output = harness.start()
+    configuration = json.loads((output / "configuration.json").read_text())
+    configuration["episodes"] = 10000
+    (output / "configuration.json").write_text(json.dumps(configuration))
+    (output / "evaluation-summary.json").unlink()
+    row = json.loads((output / "training.jsonl").read_text().splitlines()[-1])
+    rows = [{**row, "episode": episode, "validationWarningSeconds": float(episode)}
+            for episode in (9996, 10000)]
+    (output / "training.jsonl").write_text("\n".join(json.dumps(item) for item in rows))
+    for episode in (9996, 10000):
+        (output / f"best-policy-{episode:04d}.json").write_bytes(
+            (output / "stopped-policy.json").read_bytes())
+    monkeypatch.setattr(harness.manager, "_publish", lambda **kwargs: {
+        "episode": kwargs["best_episode"], "path": kwargs["best_path"].name})
+    selected = harness.manager.publish_saved_run(output)
+    assert selected == {"episode": 10000, "path": "best-policy-10000.json"}
+
+
 def test_stop_during_final_test_retains_training_without_finishing_publication(tmp_path):
     harness = Harness(tmp_path, stop_during_test=True)
     output = harness.start()

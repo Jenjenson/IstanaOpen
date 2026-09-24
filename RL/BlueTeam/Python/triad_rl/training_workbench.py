@@ -771,7 +771,11 @@ class TrainingManager:
                                   else f"best-policy-{best_episode:04d}.json")
             best_warning = selection["best"]["meanWarningSeconds"]
         else:
-            checkpoints = sorted(output.glob("best-policy-*.json"))
+            try:
+                checkpoints = sorted(output.glob("best-policy-*.json"),
+                    key=lambda path: int(path.stem.rsplit("-", 1)[1]))
+            except (IndexError, ValueError) as error:
+                raise ValueError("Saved held-out checkpoint name is invalid") from error
             if not checkpoints:
                 raise ValueError("Saved training run has no held-out best checkpoint")
             best_path = checkpoints[-1]

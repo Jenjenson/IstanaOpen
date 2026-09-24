@@ -258,12 +258,13 @@ def draw_training_frame(metadata, entries, stage, progress):
 
 
 def render_console_run(folder, metadata, entries, *, preview_only=False, seconds_per_stage=3., fps=15):
+    movie = folder / "warning-timelapse.mp4"
+    if not preview_only and movie.exists():
+        raise FileExistsError(movie)
     final = draw_training_frame(metadata, entries, len(entries)-1, 1.)
     final.save(folder / "timelapse-poster.png")
     if preview_only:
         return
-    movie = folder / "warning-timelapse.mp4"
-    if movie.exists(): raise FileExistsError(movie)
     writer = imageio_ffmpeg.write_frames(str(movie), (W,H), fps=fps, codec="libx264", quality=8,
                                         macro_block_size=2, output_params=["-movflags", "+faststart"])
     writer.send(None)

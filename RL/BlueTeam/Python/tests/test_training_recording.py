@@ -169,3 +169,19 @@ def test_new_gallery_excludes_omnidirectional_and_unselected_profiles():
     for selected in (["rf"], ["thermal", "rf"], ["unavailable"], []):
         with pytest.raises(ValueError, match="limited-FOV"):
             gallery_profiles(context, selected)
+
+
+def test_refused_console_render_preserves_existing_movie_and_poster(tmp_path):
+    pytest.importorskip("PIL")
+    pytest.importorskip("imageio_ffmpeg")
+    from render_warning_timelapse import render_console_run
+    write_manifest(tmp_path)
+    metadata, entries = load_recordings(tmp_path, best_only=True)
+    movie = tmp_path / "warning-timelapse.mp4"
+    poster = tmp_path / "timelapse-poster.png"
+    movie.write_bytes(b"existing movie")
+    poster.write_bytes(b"existing poster from original selection")
+    with pytest.raises(FileExistsError):
+        render_console_run(tmp_path, metadata, entries)
+    assert movie.read_bytes() == b"existing movie"
+    assert poster.read_bytes() == b"existing poster from original selection"

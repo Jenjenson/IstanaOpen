@@ -9,6 +9,9 @@ class Element {
   append(...children) { this.children.push(...children); }
   replaceChildren(...children) { this.children = children; }
   setAttribute(name, value) { this[name] = value; }
+  get options() { return this.children.flatMap(child => child.children?.length ? child.options : [child]); }
+  set options(rows) { this.children = rows; }
+  remove() {}
 }
 
 async function main() {
@@ -112,6 +115,38 @@ async function main() {
   context.comparison.episodes = [];
   context.syncComparisonPolicyOptions();
   assert.equal(policySelect.value, '', 'no eligible comparison must not fall back to an old omni layout');
+  context.document = { createElement: () => new Element() };
+  vm.runInContext(source.slice(source.indexOf('function fillEpisodeOptions('), source.indexOf('function isSavedLayout(')), context);
+  vm.runInContext(source.slice(source.indexOf('function syncModelCatalog('), source.indexOf('function comparisonControls(')), context);
+  context.mode = 'training';
+  context.comparison.layouts = [];
+  context.syncModelCatalog({ comparisonEpisodes: [], comparisonLayouts: [] });
+  const layoutSelect = context.$('comparison-layout');
+  assert.equal(layoutSelect.options.length, 0);
+  const directionalLayout = { id: 'directional_balanced_8', label: 'Directional workbench' };
+  const matchedLayout = { id: 'matched_common_sense', label: 'Matched directional comparison' };
+  const newEpisode = { id: 'trained-new', policy: 'trained-new', case: 1, label: 'New trained policy', trainedModel: true,
+    defaultLayout: directionalLayout.id, availableLayouts: [directionalLayout.id] };
+  const newSession = { comparisonEpisodes: [newEpisode], comparisonLayouts: [directionalLayout],
+    trainedModels: [{ id: 'trained-new', label: 'New trained policy', bestEpisode: 8 }] };
+  context.syncModelCatalog(newSession);
+  assert.equal(layoutSelect.options.length, 1, 'completion of the first eligible model refreshes an empty layout selector');
+  assert.equal(layoutSelect.value, directionalLayout.id);
+  assert.equal(context.comparison.layouts[0].id, directionalLayout.id);
+  context.syncModelCatalog({ ...newSession, comparisonLayouts: [matchedLayout, directionalLayout] });
+  assert.equal(layoutSelect.value, directionalLayout.id, 'refresh preserves an eligible existing layout selection');
+  layoutSelect.value = matchedLayout.id;
+  context.syncModelCatalog(newSession);
+  assert.equal(layoutSelect.value, directionalLayout.id, 'a removed stale layout is replaced after a completed run');
+  context.mode = 'comparison';
+  context.comparison.selectedPolicy = 'trained-new';
+  context.$('case').value = 'trained-new';
+  layoutSelect.value = matchedLayout.id;
+  context.syncModelCatalog({ ...newSession, comparisonLayouts: [matchedLayout, directionalLayout] });
+  assert.equal(layoutSelect.value, directionalLayout.id, 'a globally available layout must still be eligible for the current model');
+  assert.equal(layoutSelect.options.find(option => option.value === matchedLayout.id).hidden, true);
+  context.syncModelCatalog({ comparisonEpisodes: [], comparisonLayouts: [] });
+  assert.equal(layoutSelect.options.length, 0, 'removed comparison layouts do not linger in the selector');
   process.stdout.write('Training evidence and replay behavior checks passed.\n');
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });
