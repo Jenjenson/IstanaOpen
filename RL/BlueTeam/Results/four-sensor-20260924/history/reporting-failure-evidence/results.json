@@ -1,0 +1,177 @@
+{
+  "schema": "istana.four_sensor_experiment_results.v1",
+  "updatedUtc": "2026-09-24T07:40:28.586640+00:00",
+  "phase": "failed",
+  "protocol": "protocol.json",
+  "protocolSha256": "6fc5622cfabaec956d6676c369d134a16512e585339bb2b6ebe88d8b85696319",
+  "trials": [
+    {
+      "trial": "A",
+      "seed": 917,
+      "name": "Four-sensor study 2026-09-24 Trial A",
+      "status": "failed",
+      "startedUtc": "2026-09-24T06:33:09.202825+00:00",
+      "outputDirectory": "Saved\\WarningTraining\\console-20260924-063309-225823",
+      "nativeContractVerified": true,
+      "error": "'validation'",
+      "stopRequest": "No matching owned active run; no stop command sent"
+    },
+    {
+      "trial": "B",
+      "seed": 918,
+      "name": "Four-sensor study 2026-09-24 Trial B",
+      "status": "complete",
+      "startedUtc": "2026-09-24T06:33:11.999589+00:00",
+      "outputDirectory": "Saved\\WarningTraining\\console-20260924-063312-011590",
+      "nativeContractVerified": true,
+      "completedUtc": "2026-09-24T07:39:57.953865+00:00",
+      "modelId": "trained-four-sensor-study-2026-09-24-trial-b-26860f6235",
+      "bestEpisode": 0,
+      "validation": {
+        "seeds": [
+          2700000,
+          2700001,
+          2700002,
+          2700003,
+          2700004,
+          2700005,
+          2700006,
+          2700007,
+          2700008,
+          2700009
+        ],
+        "meanWarningSeconds": 21.19235664241244,
+        "baselineMeanWarningSeconds": 21.19235664241244,
+        "deltaSeconds": 0.0,
+        "detected_fraction": 0.4600000000000001,
+        "pairedDeltasSeconds": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "improvedCases": 0,
+        "tiedCases": 10,
+        "worseCases": 0
+      },
+      "test": {
+        "seeds": [
+          3800000,
+          3800001,
+          3800002,
+          3800003,
+          3800004,
+          3800005,
+          3800006,
+          3800007,
+          3800008,
+          3800009
+        ],
+        "meanWarningSeconds": 27.199090763049657,
+        "baselineMeanWarningSeconds": 27.199090763049657,
+        "deltaSeconds": 0.0,
+        "detected_fraction": 0.58,
+        "pairedDeltasSeconds": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "improvedCases": 0,
+        "tiedCases": 10,
+        "worseCases": 0
+      }
+    },
+    {
+      "trial": "C",
+      "seed": 919,
+      "name": "Four-sensor study 2026-09-24 Trial C",
+      "status": "complete",
+      "startedUtc": "2026-09-24T06:33:14.522942+00:00",
+      "outputDirectory": "Saved\\WarningTraining\\console-20260924-063314-533939",
+      "nativeContractVerified": true,
+      "completedUtc": "2026-09-24T07:39:45.838305+00:00",
+      "modelId": "trained-four-sensor-study-2026-09-24-trial-c-f6564a4a6c",
+      "bestEpisode": 0,
+      "validation": {
+        "seeds": [
+          2700000,
+          2700001,
+          2700002,
+          2700003,
+          2700004,
+          2700005,
+          2700006,
+          2700007,
+          2700008,
+          2700009
+        ],
+        "meanWarningSeconds": 21.19235664241244,
+        "baselineMeanWarningSeconds": 21.19235664241244,
+        "deltaSeconds": 0.0,
+        "detected_fraction": 0.4600000000000001,
+        "pairedDeltasSeconds": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "improvedCases": 0,
+        "tiedCases": 10,
+        "worseCases": 0
+      },
+      "test": {
+        "seeds": [
+          3800000,
+          3800001,
+          3800002,
+          3800003,
+          3800004,
+          3800005,
+          3800006,
+          3800007,
+          3800008,
+          3800009
+        ],
+        "meanWarningSeconds": 27.199090763049657,
+        "baselineMeanWarningSeconds": 27.199090763049657,
+        "deltaSeconds": 0.0,
+        "detected_fraction": 0.58,
+        "pairedDeltasSeconds": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "improvedCases": 0,
+        "tiedCases": 10,
+        "worseCases": 0
+      }
+    }
+  ],
+  "error": "Trial A: 'validation'"
+}

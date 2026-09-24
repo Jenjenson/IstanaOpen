@@ -1,0 +1,274 @@
+{
+  "schema": "istana.four_sensor_experiment_results.v1",
+  "updatedUtc": "2026-09-24T07:54:13.670943+00:00",
+  "phase": "complete",
+  "protocol": "protocol.json",
+  "protocolSha256": "6fc5622cfabaec956d6676c369d134a16512e585339bb2b6ebe88d8b85696319",
+  "trials": [
+    {
+      "trial": "A",
+      "seed": 917,
+      "name": "Four-sensor study 2026-09-24 Trial A",
+      "status": "complete",
+      "outputDirectory": "Saved\\WarningTraining\\console-20260924-063309-225823",
+      "nativeContractVerified": true,
+      "completedEpisodes": 500,
+      "modelId": "trained-four-sensor-study-2026-09-24-trial-a-4ebcf74784",
+      "bestEpisode": 0,
+      "validation": {
+        "seeds": [
+          2700000,
+          2700001,
+          2700002,
+          2700003,
+          2700004,
+          2700005,
+          2700006,
+          2700007,
+          2700008,
+          2700009
+        ],
+        "meanWarningSeconds": 21.19235664241244,
+        "baselineMeanWarningSeconds": 21.19235664241244,
+        "deltaSeconds": 0.0,
+        "detected_fraction": 0.4600000000000001,
+        "pairedDeltasSeconds": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "improvedCases": 0,
+        "tiedCases": 10,
+        "worseCases": 0
+      },
+      "test": {
+        "seeds": [
+          3800000,
+          3800001,
+          3800002,
+          3800003,
+          3800004,
+          3800005,
+          3800006,
+          3800007,
+          3800008,
+          3800009
+        ],
+        "meanWarningSeconds": 27.199090763049657,
+        "baselineMeanWarningSeconds": 27.199090763049657,
+        "deltaSeconds": 0.0,
+        "detected_fraction": 0.58,
+        "pairedDeltasSeconds": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "improvedCases": 0,
+        "tiedCases": 10,
+        "worseCases": 0
+      }
+    },
+    {
+      "trial": "B",
+      "seed": 918,
+      "name": "Four-sensor study 2026-09-24 Trial B",
+      "status": "complete",
+      "outputDirectory": "Saved\\WarningTraining\\console-20260924-063312-011590",
+      "nativeContractVerified": true,
+      "completedEpisodes": 500,
+      "modelId": "trained-four-sensor-study-2026-09-24-trial-b-26860f6235",
+      "bestEpisode": 0,
+      "validation": {
+        "seeds": [
+          2700000,
+          2700001,
+          2700002,
+          2700003,
+          2700004,
+          2700005,
+          2700006,
+          2700007,
+          2700008,
+          2700009
+        ],
+        "meanWarningSeconds": 21.19235664241244,
+        "baselineMeanWarningSeconds": 21.19235664241244,
+        "deltaSeconds": 0.0,
+        "detected_fraction": 0.4600000000000001,
+        "pairedDeltasSeconds": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "improvedCases": 0,
+        "tiedCases": 10,
+        "worseCases": 0
+      },
+      "test": {
+        "seeds": [
+          3800000,
+          3800001,
+          3800002,
+          3800003,
+          3800004,
+          3800005,
+          3800006,
+          3800007,
+          3800008,
+          3800009
+        ],
+        "meanWarningSeconds": 27.199090763049657,
+        "baselineMeanWarningSeconds": 27.199090763049657,
+        "deltaSeconds": 0.0,
+        "detected_fraction": 0.58,
+        "pairedDeltasSeconds": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "improvedCases": 0,
+        "tiedCases": 10,
+        "worseCases": 0
+      }
+    },
+    {
+      "trial": "C",
+      "seed": 919,
+      "name": "Four-sensor study 2026-09-24 Trial C",
+      "status": "complete",
+      "outputDirectory": "Saved\\WarningTraining\\console-20260924-063314-533939",
+      "nativeContractVerified": true,
+      "completedEpisodes": 500,
+      "modelId": "trained-four-sensor-study-2026-09-24-trial-c-f6564a4a6c",
+      "bestEpisode": 0,
+      "validation": {
+        "seeds": [
+          2700000,
+          2700001,
+          2700002,
+          2700003,
+          2700004,
+          2700005,
+          2700006,
+          2700007,
+          2700008,
+          2700009
+        ],
+        "meanWarningSeconds": 21.19235664241244,
+        "baselineMeanWarningSeconds": 21.19235664241244,
+        "deltaSeconds": 0.0,
+        "detected_fraction": 0.4600000000000001,
+        "pairedDeltasSeconds": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "improvedCases": 0,
+        "tiedCases": 10,
+        "worseCases": 0
+      },
+      "test": {
+        "seeds": [
+          3800000,
+          3800001,
+          3800002,
+          3800003,
+          3800004,
+          3800005,
+          3800006,
+          3800007,
+          3800008,
+          3800009
+        ],
+        "meanWarningSeconds": 27.199090763049657,
+        "baselineMeanWarningSeconds": 27.199090763049657,
+        "deltaSeconds": 0.0,
+        "detected_fraction": 0.58,
+        "pairedDeltasSeconds": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "improvedCases": 0,
+        "tiedCases": 10,
+        "worseCases": 0
+      }
+    }
+  ],
+  "error": null,
+  "recovery": {
+    "recoveredUtc": "2026-09-24T07:54:13.670943+00:00",
+    "evidenceDirectory": "reporting-failure-evidence",
+    "note": "All three native runs completed 500 episodes and published models. The experiment driver's report aggregation accessed Trial A's validation field before finalization, causing a reporting-only failure. This report was reconstructed offline from the unchanged native summaries and predeclared protocol.",
+    "nativeTrainingRerun": false,
+    "sourceSha256": {
+      "Saved\\WarningTraining\\console-20260924-063309-225823\\summary.json": "53b345eeb6047348d18cca796aec58b494cc32b62b57b2220bc8260d7d73d994",
+      "Saved\\WarningTraining\\console-20260924-063309-225823\\configuration.json": "8f6783a87e6763198dc41cf8c3ac5478b58703f6004c2904bd46f5f75cb0362d",
+      "Saved\\WarningTraining\\models\\trained-four-sensor-study-2026-09-24-trial-a-4ebcf74784\\model.json": "9eeb3e083e0e37fd5d5967428c69ace4ce890dd1f46d39474e7ce1de6bdf1ccc",
+      "Saved\\WarningTraining\\console-20260924-063312-011590\\summary.json": "42ed757e4e2f023e5328c600df13eca3cd257d32ebd78d348c70ca3d8b2cc679",
+      "Saved\\WarningTraining\\console-20260924-063312-011590\\configuration.json": "579de3dc1e9a5f299ffd7849b5f07872157ae810165c240b0451219eb8a0914f",
+      "Saved\\WarningTraining\\models\\trained-four-sensor-study-2026-09-24-trial-b-26860f6235\\model.json": "50d77e3cdd56f1ad3fb53c00773d2e94e1be1b716a2e113729a307e45f0e871e",
+      "Saved\\WarningTraining\\console-20260924-063314-533939\\summary.json": "30704b2a03bf0f95a21b71b99378c817fcf162c135704af26a18b448c7033d06",
+      "Saved\\WarningTraining\\console-20260924-063314-533939\\configuration.json": "14321ac094b2c90ec14b70f39ad2c27f6a3f4592139c63ad3554f3af059830ff",
+      "Saved\\WarningTraining\\models\\trained-four-sensor-study-2026-09-24-trial-c-f6564a4a6c\\model.json": "731307ef790f41b69260e70de0b5087b01865d0e847e13ae0936a95d7e370f31"
+    },
+    "unchangedExistingTrialSummarySha256": {
+      "Saved\\Experiments\\four-sensor-20260924\\trial-b-summary.json": "35f464d11ad2d9ef86beed05163b2b8b3631795f2ecf27dd6b9b9bf27ea3bd4d",
+      "Saved\\Experiments\\four-sensor-20260924\\trial-c-summary.json": "e46a5cceb2d3988b2068a07bf4bbf2f71a8b7fad8f26f94289167f9760d5fc5e"
+    }
+  },
+  "allTrialMeans": {
+    "validation": {
+      "meanWarningSeconds": 21.19235664241244,
+      "deltaSeconds": 0.0,
+      "detected_fraction": 0.4600000000000001
+    },
+    "test": {
+      "meanWarningSeconds": 27.199090763049657,
+      "deltaSeconds": 0.0,
+      "detected_fraction": 0.58
+    }
+  }
+}

@@ -35,6 +35,7 @@ function controls(){
  $('connect').disabled=busy||playing||training.status.running;$('plan').disabled=!connected||busy||playing||training.status.running;
  $('training-start').disabled=busy||training.status.running;$('training-stop').disabled=!training.status.running;
  for(const id of ['training-name','training-algorithm','training-initialization','training-episodes','training-batch','training-sensors','training-seed','training-exploration','training-validation','training-checkpoint'])$(id).disabled=training.status.running;
+ $('training-exploration').disabled=training.status.running||$('training-algorithm').value==='local_ppo';
  $('training-replay-load').disabled=training.replayLoading||!training.status.outputDirectory;
  $('training-episode-open').disabled=training.replayLoading||!training.status.episode;
  $('training-export').disabled=!training.status.outputDirectory;
@@ -367,7 +368,7 @@ function drawTrainingRewardLog(history){
  const log=$('training-reward-log');log.replaceChildren();const rows=(history||[]).slice(-3).reverse();
  if(!rows.length){log.append(element('p','Reward details appear after episode 1.','helper'));return;}
  for(const entry of rows){
-  const section=element('div','','reward-episode');section.append(element('strong',`Episode ${entry.episode} · Blue warning objective ${fmt(entry.trainingReward??entry.reward,2)} s`));
+  const section=element('div','','reward-episode');section.append(element('strong',`Episode ${entry.episode} · ${entry.rewardMode==='paired_contractor_delta'?'Warning gain vs matched contractor':'Blue warning objective'} ${fmt(entry.trainingReward??entry.reward,2)} s`));
   for(const component of entry.rewardBreakdown?.components||[]){const line=element('div','',`reward-line${component.value<0?' negative':''}`);line.append(element('b',`${component.value>=0?'+':''}${fmt(component.value,2)}`),element('span',`Blue · ${component.label}`));section.append(line);}
   const red=element('div','','reward-line red');red.append(element('b',`${entry.redNativeReward>=0?'+':''}${fmt(entry.redNativeReward,2)}`),element('span','Red · terminal sensing return (logged only; opponent is not trained)'));section.append(red);
   if(entry.redScenario){const scenario=element('div','','reward-line scenario');scenario.append(element('b',`${fmt(entry.redScenario.spawnRadiusM,0)} m`),element('span',`Red spawn · five distinct seeded sectors · bearings ${entry.redScenario.spawnBearingsDeg.map(value=>`${fmt(value,0)}°`).join(', ')}`));section.append(scenario);}
@@ -387,15 +388,15 @@ function renderTrainingEvidence(status){
  $('training-baseline-warning').textContent=Number.isFinite(baseline)?`${fmt(baseline,2)} s`:'Awaiting evaluation';
  $('training-initial-warning').textContent=Number.isFinite(initial)?`Initial policy: ${fmt(initial,2)} s on the same scenarios`:'Initial policy: awaiting evaluation';
  $('training-sample-warning').textContent=latest?`${fmt(latest.meanWarningSeconds??latest.reward,2)} s`:'—';
- $('training-sample-note').textContent=latest?`Episode ${latest.episode} · one sampled scenario`:'No completed episode';
+ $('training-sample-note').textContent=latest?`Episode ${latest.episode} · one sampled scenario${latest.pairedTraining?` · contractor ${fmt(latest.pairedTraining.contractorWarningSeconds,2)} s · gain ${trainingDelta(latest.trainingReward)}`:''}`:'No completed episode';
  $('training-best-warning').textContent=Number.isFinite(best)?`${fmt(best,2)} s`:'Awaiting evaluation';
  $('training-validation-delta').textContent=Number.isFinite(best)&&Number.isFinite(baseline)?`${trainingDelta(best-baseline)} vs contractor · episode ${status.bestEpisode??0}`:'Awaiting fixed-scenario evaluation';
  const test=status.testEvaluation,testMean=trainingMean(test);
  $('training-test-warning').textContent=Number.isFinite(testMean)?`${fmt(testMean,2)} s`:'Not tested yet';
  $('training-test-delta').textContent=Number.isFinite(testMean)?`${trainingDelta(test.deltaSeconds)} vs contractor · ${test.cases?.length??test.cases??'separate'} scenarios`:'Runs after policy selection';
- $('training-evaluation-note').textContent=`Policy selection uses the mean of ${status.validationCases||$('training-validation').value} fixed validation scenarios. A sampled episode can score better or worse just because its scenario differs. Higher warning is better; missed detections count as zero.`;
+ $('training-evaluation-note').textContent=`Policy selection uses the mean of ${status.outputDirectory?status.validationCases:(Number($('training-validation').value)||8)} fixed validation scenarios. A sampled episode can score better or worse just because its scenario differs. Higher warning is better; missed detections count as zero.`;
  const exploration=status.exploration;
- $('training-exploration-summary').textContent=exploration&&Object.keys(exploration).length?`${exploration.uniqueLayouts??0} distinct layouts sampled (placement order ignored). Latest: ${exploration.sensorsChangedFromInitial??latest?.sensorsChangedFromInitial??'—'} sensors changed from the initial layout. Initial exploration target ${pct(exploration.explorationProbability)} · action diversity ${pct(exploration.meanNormalizedEntropy)} (0% = certain, 100% = uniform).`:'Layout diversity and exploration measurements appear during training.';
+ $('training-exploration-summary').textContent=exploration&&Object.keys(exploration).length?`${exploration.uniqueLayouts??0} distinct layouts sampled (placement order ignored). Latest: ${exploration.sensorsChangedFromInitial??latest?.sensorsChangedFromInitial??'—'} sensors changed from the initial layout. ${exploration.localEdits?'Local edits start with equal probabilities':`Initial exploration target ${pct(exploration.explorationProbability)}`} · action diversity ${pct(exploration.meanNormalizedEntropy)} (0% = certain, 100% = uniform).`:'Layout diversity and exploration measurements appear during training.';
  const probe=status.baselineProbe;$('training-probe-summary').hidden=!probe;
  if(probe)$('training-probe-summary').textContent=`Baseline check: ${probe.candidates?.length??probe.candidates??0} nearby layouts evaluated. Best measured difference: ${trainingDelta(probe.bestDeltaSeconds)}. ${probe.improvesBaseline?'A tested alternative improved the baseline.':'These tested alternatives did not improve the baseline.'} This check is separate from the trained policy.`;
  syncTrainingReplayOptions(status);renderTrainingHistory(status);
@@ -444,6 +445,12 @@ async function exportTrainingData(){
  try{const data=await api('/api/training/export'),blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`${(training.status.modelName||'training-run').replace(/[^a-z0-9_-]+/gi,'-')}-evidence.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
  catch(e){showError(`Could not download run data: ${e.message}`);}finally{controls();}
 }
+function updateTrainingInitializationHelp(status=training.status){
+ const algorithm=status.running?status.algorithm:($('training-algorithm').value||status.algorithm);
+ if(algorithm==='local_ppo')$('training-initialization-help').textContent='PPO learns nearby moves and rotations for each sensor in the selected contractor layout. Every edit preserves the selected sensor inventory and full-layout legality. The starting layout has no probability advantage.';
+ else if(status.running&&status.initialLayout?.coverage_intent)$('training-initialization-help').textContent=status.initialLayout.coverage_intent+' The layout initializes trainable logits and is not locked.';
+ else $('training-initialization-help').textContent='The selected layout gives the policy a starting preference. Training also explores other legal placements.';
+}
 function applyTrainingStatus(status){
  training.status=status;const total=status.totalEpisodes||0,episode=status.episode||0,latest=status.history?.at(-1);
  $('training-progress').textContent=`${episode} / ${total}`;$('training-progress-bar').style.width=`${total?Math.min(100,episode/total*100):0}%`;
@@ -452,8 +459,7 @@ function applyTrainingStatus(status){
  $('training-status').textContent=status.phase==='idle'?'Ready to train. Choose a starting placement and settings above.':`${labels[status.phase]||status.phase}. ${status.modelName?`Model: ${status.modelName}.`:''} ${status.algorithmLabel||''}. ${status.sensorCount?`${status.sensorCount} sensors.`:''} ${status.initializationLabel||''}`.trim();
  const checkpointText=status.checkpoints?.length?` Policy snapshots: ${status.checkpoints.join(', ')}.`:'';
  $('training-output').textContent=status.registeredModel?`Saved “${status.registeredModel.name}” (${status.registeredModel.algorithmLabel}) as a validation-selected policy from episode ${status.registeredModel.bestEpisode} (${fmt(status.registeredModel.bestWarningSeconds,2)} s validation warning), plus exact best observed episode ${status.registeredModel.bestObservedEpisode} (${fmt(status.registeredModel.bestObservedWarningSeconds,2)} s sampled warning). Both are in Compare placements.${checkpointText}`:status.outputDirectory?`Artifacts: ${status.outputDirectory}.${checkpointText}`:'';
- if(status.initialLayout?.coverage_intent)$('training-initialization-help').textContent=status.initialLayout.coverage_intent+' The layout initializes trainable logits and is not locked.';
- else $('training-initialization-help').textContent='The selected layout gives the policy a starting preference. Training also explores other legal placements.';
+ updateTrainingInitializationHelp(status);
  renderTrainingEvidence(status);drawTrainingCharts(status.history);drawTrainingRewardLog(status.history);
  const signature=`${status.outputDirectory}-${status.episode}-${status.phase}`;if(mode==='training'&&training.replaySelection==='latest'&&status.viewer&&(training.lastViewerEpisode!==signature||view?.mode!=='training')&&!playing&&!training.replayLoading){const autoReplay=status.running&&(status.viewer.frames?.length||0)>1;training.lastViewerEpisode=signature;setView({...status.viewer,trainingReplayLabel:trainingReplayLabel(status.viewerSelection||'latest')});if(autoReplay){$('speed').value=String(Math.max(4,Number($('speed').value)||1));elapsed=status.viewer.frames[0].time;lastWall=0;playing=true;controls();}}
  else if(mode==='training'&&training.replaySelection!=='latest'&&training.replayViewer&&view!==training.replayViewer)setView(training.replayViewer);
@@ -485,7 +491,7 @@ $('training-replay-load').onclick=()=>selectTrainingReplay($('training-replay').
 $('training-episode-open').onclick=()=>selectTrainingReplay($('training-episode-number').value.trim());
 $('training-episode-number').onkeydown=event=>{if(event.key==='Enter')selectTrainingReplay($('training-episode-number').value.trim());};
 $('training-export').onclick=exportTrainingData;
-$('training-algorithm').onchange=()=>{$('training-algorithm-help').textContent=$('training-algorithm').selectedOptions[0]?.dataset.description||'';};
+$('training-algorithm').onchange=()=>{$('training-algorithm-help').textContent=$('training-algorithm').selectedOptions[0]?.dataset.description||'';const local=$('training-algorithm').value==='local_ppo',untrained=$('training-initialization').querySelector('[value="untrained"]');if(untrained)untrained.disabled=local;if(local&&$('training-initialization').value==='untrained')$('training-initialization').value='directional_balanced_8';updateTrainingInitializationHelp();controls();};
 $('connect').onclick=()=>{pause();liveAction(connected?'disconnect':'connect');};
 $('plan').onclick=()=>{pause();liveAction(isSavedLayout($('live-policy').value)?'preview':'reset',{seed:Number($('seed').value),policy:$('live-policy').value});};
 $('live-policy').onchange=()=>{$('plan').textContent=isSavedLayout($('live-policy').value)?'Apply saved layout':'Plan new episode';};
@@ -497,5 +503,5 @@ $('timeline').oninput=()=>{pause();const requested=Number($('timeline').value);i
 $('speed').onchange=()=>render();
 const mapResizeObserver=new ResizeObserver(()=>draw(view?.frames[frameIndex]));
 for(const id of ['map','comparison-map-rl','comparison-map-baseline'])mapResizeObserver.observe($(id).parentElement);
-api('/api/session').then(async session=>{token=session.token;catalog=session.replays;connected=session.status.connected;training.status=session.training||training.status;const limits=session.trainingLimits||{};for(const [id,min,max] of [['training-episodes',limits.minEpisodes,limits.maxEpisodes],['training-sensors',limits.minSensors,limits.maxSensors]]){if(Number.isInteger(min))$(id).min=String(min);if(Number.isInteger(max))$(id).max=String(max);}for(const item of session.trainingAlgorithms||[]){const option=element('option',item.label);option.value=item.id;option.dataset.description=item.description;$('training-algorithm').append(option);}if($('training-algorithm').querySelector('[value="reinforce"]'))$('training-algorithm').value='reinforce';$('training-algorithm').onchange();for(const item of session.trainingInitializations||[]){const option=element('option',item.label);option.value=item.id;$('training-initialization').append(option);}if($('training-initialization').querySelector('[value="directional_balanced_8"]'))$('training-initialization').value='directional_balanced_8';syncModelCatalog(session);applyTrainingStatus(training.status);await loadReplay();connectionStatus();}).catch(e=>showError(e.message));
+api('/api/session').then(async session=>{token=session.token;catalog=session.replays;connected=session.status.connected;training.status=session.training||training.status;const limits=session.trainingLimits||{};for(const [id,min,max] of [['training-episodes',limits.minEpisodes,limits.maxEpisodes],['training-sensors',limits.minSensors,limits.maxSensors]]){if(Number.isInteger(min))$(id).min=String(min);if(Number.isInteger(max))$(id).max=String(max);}for(const item of session.trainingAlgorithms||[]){const option=element('option',item.label);option.value=item.id;option.dataset.description=item.description;$('training-algorithm').append(option);}if($('training-algorithm').querySelector('[value="local_ppo"]'))$('training-algorithm').value='local_ppo';for(const item of session.trainingInitializations||[]){const option=element('option',item.label);option.value=item.id;$('training-initialization').append(option);}if($('training-initialization').querySelector('[value="directional_balanced_8"]'))$('training-initialization').value='directional_balanced_8';$('training-algorithm').onchange();syncModelCatalog(session);applyTrainingStatus(training.status);await loadReplay();connectionStatus();}).catch(e=>showError(e.message));
 controls();requestAnimationFrame(animate);

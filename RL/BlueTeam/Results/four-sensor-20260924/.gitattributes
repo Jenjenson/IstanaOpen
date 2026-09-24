@@ -1,0 +1,2 @@
+# Exact archived bytes and SHA-256 values must survive checkout on every OS.
+* -text

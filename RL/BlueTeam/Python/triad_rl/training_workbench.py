@@ -2,8 +2,9 @@
 
 This is a UI orchestration layer, not a second sensing implementation. Episodes
 are executed by the same loopback Unreal bridge, warning evidence is validated
-by :mod:`warning_policy`, and the optional warm start only changes initial
-policy logits. No Red truth is used when constructing a starting layout.
+by :mod:`warning_policy`. Legacy policies can warm-start their logits; local
+PPO refines the chosen layout using paired contractor-relative rewards.
+No Red truth is used when constructing a starting layout or planning an edit.
 """
 from __future__ import annotations
 
@@ -12,6 +13,7 @@ from datetime import datetime, timezone
 import hashlib
 import json
 import math
+import secrets
 from pathlib import Path
 import threading
 import time
@@ -24,7 +26,8 @@ from .directional_inputs import apply_placement, build_observation
 from .istana_live import IstanaLiveClient, public_planning_inputs
 from .red_policy import FixedRadiusSectorRedPolicy
 from .trained_models import COMPARISON_SCHEMA, TrainedModelRegistry, validate_model_name
-from .training_evidence import evaluation_summary, layout_changes, layout_key, legal_layout_probes, rollout_entropy
+from .training_evidence import (evaluation_summary, layout_changes, layout_key,
+                               legal_layout_probes, paired_training_reward, rollout_entropy)
 from .warning_algorithms import TRAINING_ALGORITHMS
 from .warning_policy import WarningPolicy, warning_metrics
 
@@ -39,6 +42,15 @@ MIN_TRAINING_EPISODES = 4
 MAX_TRAINING_EPISODES = 10_000
 MIN_TRAINING_SENSORS = 1
 MAX_TRAINING_SENSORS = len(BALANCED_LANE_YAWS)
+
+
+def scenario_panels(config):
+    """Persist reproducible, disjoint scenario panels; old runs keep their seeds."""
+    base = config.get("scenarioSeed")
+    training, validation, test = ((1700000, 2700000, 3800000) if base is None
+                                  else (base, base + 10000, base + 20000))
+    return (training, list(range(validation, validation + config["validationCases"])),
+            list(range(test, test + config["validationCases"])))
 
 
 def _angle_distance(left, right):
@@ -404,7 +416,7 @@ class TrainingManager:
         required = {"name", "algorithm", "episodes", "batchSize", "seed", "initialization",
                     "sensorCount"}
         optional = {"explorationProbability", "entropyCoefficient", "validationCases",
-                    "checkpointInterval", "headroomProbes", "sensorIds"}
+                    "checkpointInterval", "headroomProbes", "sensorIds", "scenarioSeed"}
         if (not isinstance(config, dict) or not required <= set(config)
                 or set(config) - required - optional):
             raise ValueError(
@@ -432,6 +444,15 @@ class TrainingManager:
         if config["algorithm"] not in TRAINING_ALGORITHMS:
             raise ValueError("Select an available training algorithm")
         result = deepcopy(config)
+        if config["algorithm"] == "local_ppo":
+            if initialization == "untrained":
+                raise ValueError("Local refinement requires a common-sense starting layout")
+            # Freeze fresh scenario panels before the first native outcome.
+            # The action seed remains separately controlled by the user.
+            result.setdefault("scenarioSeed", 10000000 + secrets.randbelow(2**31 - 10030000))
+        if "scenarioSeed" in result and (type(result["scenarioSeed"]) is not int
+                or not 0 <= result["scenarioSeed"] <= 2**31 - 30001):
+            raise ValueError("scenarioSeed must leave room for disjoint signed-32-bit scenario panels")
         defaults = {"explorationProbability": .2, "entropyCoefficient": .01,
                     "validationCases": 5, "checkpointInterval": 500, "headroomProbes": 4}
         for key, default in defaults.items():
@@ -569,7 +590,7 @@ class TrainingManager:
         selection_path = output / "evaluation-summary.json"
         selection = json.loads(selection_path.read_text(encoding="utf-8")) if selection_path.exists() else None
         test_seeds = (selection["testSeeds"] if selection else
-                      list(range(3800000, 3800000 + config["validationCases"])))
+                      scenario_panels(config)[2])
         baseline_layout = common_sense_start(
             context, config["initialization"] if config["initialization"] != "untrained"
             else "directional_balanced_8", count=config["sensorCount"],
@@ -690,6 +711,9 @@ class TrainingManager:
                 "bestObservedPlacements": observed["placements"],
                 "bestObservedReplayExact": observed_replay_exact,
                 "algorithm": config["algorithm"], "algorithmLabel": algorithm_label,
+                "rewardMode": getattr(best_policy, "reward_mode", "absolute_warning"),
+                "scenarioSeed": config.get("scenarioSeed"),
+                "actionSpace": getattr(best_policy, "action_space", None),
                 "sensorCount": config["sensorCount"],
                 "sensorIds": config.get("sensorIds"),
                 "bestNativeReward": final["reward"],
@@ -701,6 +725,9 @@ class TrainingManager:
         summary = {"schema": "istana.console_warning_training_summary.v1",
                    "modelName": config["name"], "modelId": registered["id"],
                    "algorithm": config["algorithm"], "algorithmLabel": algorithm_label,
+                   "rewardMode": getattr(best_policy, "reward_mode", "absolute_warning"),
+                   "scenarioSeed": config.get("scenarioSeed"),
+                   "actionSpace": getattr(best_policy, "action_space", None),
                    "episodes": config["episodes"],
                    "requestedEpisodes": config["episodes"],
                    "completedEpisodes": self.status()["episode"],
@@ -753,7 +780,7 @@ class TrainingManager:
         config_document = json.loads((output / "configuration.json").read_text(encoding="utf-8"))
         fields = {"name", "algorithm", "episodes", "batchSize", "seed", "initialization",
                   "sensorCount", "explorationProbability", "entropyCoefficient", "validationCases",
-                  "checkpointInterval", "headroomProbes", "sensorIds"}
+                  "checkpointInterval", "headroomProbes", "sensorIds", "scenarioSeed"}
         config = self.validate({key: value for key, value in config_document.items() if key in fields})
         self.registry.ensure_available(config["name"])
         rows = [json.loads(line) for line in
@@ -791,7 +818,7 @@ class TrainingManager:
             raise ValueError("Saved selected checkpoint file is missing")
         observed_row = max(rows, key=lambda row: row["meanWarningSeconds"])
         observed_run = {
-            "seed": 1700000 + observed_row["episode"] - 1,
+            "seed": scenario_panels(config)[0] + observed_row["episode"] - 1,
             "action_seed": (config["seed"] & 0xffffffff) * 100000 + observed_row["episode"],
             "placements": observed_row["placements"],
             "metrics": {"mean_drone_warning_s": observed_row["meanWarningSeconds"]},
@@ -868,14 +895,17 @@ class TrainingManager:
                     baseline_action_probability=1. - config["explorationProbability"])
             output.mkdir(parents=True, exist_ok=False)
             (output / "episodes").mkdir()
-            validation_seeds = list(range(2700000, 2700000 + config["validationCases"]))
-            test_seeds = list(range(3800000, 3800000 + config["validationCases"]))
+            training_seed, validation_seeds, test_seeds = scenario_panels(config)
+            paired_reward = getattr(policy, "reward_mode", None) == "paired_contractor_delta"
+            if paired_reward:
+                (output / "contractor-episodes").mkdir()
             configuration = {"schema": "istana.console_warning_training.v2", **config,
                 "bridgePort": self.bridge_port, "initialLayout": start_layout,
                 "contractorLayout": contractor,
                 "redScenario": {"policy": FixedRadiusSectorRedPolicy.name, "trained": False,
-                    "episodeSeedRule": "1700000 + episode - 1", "validationSeeds": validation_seeds,
+                    "episodeSeedRule": f"{training_seed} + episode - 1", "validationSeeds": validation_seeds,
                     "testSeeds": test_seeds},
+                "rewardMode": "paired_contractor_delta" if paired_reward else "absolute_warning",
                 "warningMetric": "mean per-drone max(0, 20m zone arrival - first detection); undetected=0",
                 "limitations": "Synthetic native simulation; ties and regressions are retained."}
             _write_json_atomic(output / "configuration.json", configuration)
@@ -896,6 +926,7 @@ class TrainingManager:
                 return viewer
             self._set(phase="evaluating", initialLayout=start_layout, outputDirectory=str(output),
                 checkpoints=[0], validationCases=config["validationCases"],
+                rewardMode=configuration["rewardMode"], scenarioSeed=config.get("scenarioSeed"),
                 exploration={"explorationProbability": config["explorationProbability"], "uniqueLayouts": 0})
             fixed = _FixedPlacementPolicy(contractor["placements"])
             baseline_summary, baseline_runs = self._evaluate(
@@ -942,10 +973,18 @@ class TrainingManager:
                 for number in range(1, config["episodes"] + 1):
                     if self.stop_event.is_set():
                         raise InterruptedError("Training stopped before the next episode")
-                    run, records = self.episode_runner(client, policy, 1700000 + number - 1,
+                    run, records = self.episode_runner(client, policy, training_seed + number - 1,
                         action_seed=(config["seed"] & 0xffffffff) * 100000 + number,
                         should_stop=self.stop_event.is_set)
                     reward = run["metrics"]["mean_drone_warning_s"]
+                    training_reward, paired = reward, None
+                    if paired_reward:
+                        reference_run, _ = self.episode_runner(client, fixed, run["seed"],
+                            deterministic=True, should_stop=self.stop_event.is_set)
+                        paired = paired_training_reward(run, reference_run)
+                        training_reward = paired["rewardSeconds"]
+                        self._record(output, f"contractor-episodes/episode-{number:06d}.json",
+                            reference_run, number, config["episodes"], "Matched contractor control")
                     unique_layouts.add(layout_key(run["placements"]))
                     changed = layout_changes(run["placements"], initial_placements)
                     entropy = rollout_entropy(records)
@@ -961,7 +1000,8 @@ class TrainingManager:
                                           number, config["episodes"])
                     breakdown = _reward_breakdown(run)
                     entry = {"episode": number, "seed": run["seed"], "actionSeed": run.get("action_seed"),
-                        "reward": reward, "trainingReward": reward, "meanWarningSeconds": reward,
+                        "reward": reward, "trainingReward": training_reward, "meanWarningSeconds": reward,
+                        "rewardMode": configuration["rewardMode"], "pairedTraining": paired,
                         "blueNativeReward": breakdown["total"], "nativeReward": breakdown["total"],
                         "redNativeReward": run["red_native_reward"], "redPolicy": run["red_policy"],
                         "redDecision": run["red_decision"], "metrics": run["metrics"],
@@ -979,7 +1019,7 @@ class TrainingManager:
                         "missedCount": sum(row["firstDetectionSeconds"] is None for row in run["warning_evidence"]),
                         "nativeMetrics": run["native_metrics"],
                         "sensorsChangedFromInitial": changed, "uniqueLayouts": len(unique_layouts), **entropy}
-                    batch.append((records, reward))
+                    batch.append((records, training_reward))
                     milestone = number % config["checkpointInterval"] == 0 or number == config["episodes"]
                     try:
                         if number % config["batchSize"] == 0:
@@ -1024,7 +1064,8 @@ class TrainingManager:
                         self._set(episode=number, viewer=viewer, viewerSelection="latest",
                             exploration={"uniqueLayouts": len(unique_layouts), "changedFromInitial": changed,
                                 "sensorsChangedFromInitial": changed, "meanNormalizedEntropy": entropy["normalizedEntropy"],
-                                "explorationProbability": config["explorationProbability"]})
+                                "explorationProbability": None if paired_reward else config["explorationProbability"],
+                                "localEdits": paired_reward})
             policy.save(output / "final-policy.json")
             self._publish(client=client, context=context, config=config, output=output,
                 best_policy=best_policy, best_path=best_path, best_episode=best_episode,

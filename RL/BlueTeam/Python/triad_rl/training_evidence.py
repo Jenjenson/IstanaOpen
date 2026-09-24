@@ -74,6 +74,26 @@ def evaluation_summary(runs, baseline=None):
     return result
 
 
+def paired_training_reward(run, contractor_run):
+    """Subtract an action-independent native control on the identical scenario.
+
+    The control is evaluation evidence only; it is never passed to plan().
+    Reuse the formal comparison checks before allowing a delta into PPO.
+    """
+    reference = evaluation_summary([contractor_run])
+    result = evaluation_summary([run], reference)
+    if (run["metrics"]["targets"] != contractor_run["metrics"]["targets"]
+            or run["metrics"]["cost"] != contractor_run["metrics"]["cost"]
+            or sorted(row["profileId"] for row in run["placements"]) !=
+               sorted(row["profileId"] for row in contractor_run["placements"])):
+        raise ValueError("Paired training requires the same drones and sensor inventory")
+    return {"mode": "paired_contractor_delta", "rewardSeconds": result["deltaSeconds"],
+            "policyWarningSeconds": result["meanWarningSeconds"],
+            "contractorWarningSeconds": reference["meanWarningSeconds"],
+            "seed": run["seed"], "trajectorySha256": result["cases"][0]["trajectorySha256"],
+            "constraintsSha256": result["cases"][0]["constraintsSha256"]}
+
+
 def legal_layout_probes(context, placements, limit=4):
     """Predeclared small legal alternatives to test headroom, never train the actor.
 

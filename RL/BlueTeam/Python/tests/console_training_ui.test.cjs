@@ -55,6 +55,17 @@ async function main() {
   assert.ok(nodes.get('training-replay').children.some(option => option.value === 'checkpoint-500'));
   assert.ok(nodes.get('training-replay').children.some(option => option.value === '500'));
 
+  context.applyTrainingStatus({ ...status, algorithm: 'local_ppo', rewardMode: 'paired_contractor_delta',
+    exploration: { ...status.exploration, localEdits: true, explorationProbability: null },
+    history: [{ episode: 1000, meanWarningSeconds: 9, trainingReward: -2,
+      pairedTraining: { contractorWarningSeconds: 11 } }] });
+  assert.equal(nodes.get('training-sample-warning').textContent, '9.00 s');
+  assert.match(nodes.get('training-sample-note').textContent, /contractor 11.00 s · gain -2.00 s/);
+  assert.match(nodes.get('training-exploration-summary').textContent, /Local edits start with equal probabilities/);
+  assert.doesNotMatch(nodes.get('training-exploration-summary').textContent, /Initial exploration target/);
+  assert.match(nodes.get('training-initialization-help').textContent, /no probability advantage/);
+  context.applyTrainingStatus(status);
+
   await context.selectTrainingReplay('checkpoint-500');
   assert.equal(requests.at(-1), '/api/training/replay/checkpoint-500');
   assert.equal(context.training.replaySelection, 'checkpoint-500');
@@ -93,6 +104,14 @@ async function main() {
   context.applyTrainingStatus({ phase: 'idle', initializationLabel: 'Untrained random policy', history: [] });
   assert.equal(nodes.get('training-status').textContent, 'Ready to train. Choose a starting placement and settings above.');
   assert.doesNotMatch(nodes.get('training-status').textContent, /Untrained random policy/);
+  context.$('training-algorithm').value = 'local_ppo';
+  context.$('training-validation').value = '8';
+  context.applyTrainingStatus({ phase: 'idle', algorithm: 'reinforce', validationCases: 5, history: [] });
+  assert.match(nodes.get('training-initialization-help').textContent, /no probability advantage/);
+  assert.match(nodes.get('training-evaluation-note').textContent, /8 fixed validation scenarios/);
+  context.$('training-algorithm').value = 'ppo';
+  context.updateTrainingInitializationHelp();
+  assert.match(nodes.get('training-initialization-help').textContent, /starting preference/);
   vm.runInContext(source.slice(source.indexOf('function isSavedLayout('), source.indexOf('function syncModelCatalog(')), context);
   context.comparison = { selectedPolicy: null, episodes: [
     { policy: '406' }, { policy: 'trained-new', trainedModel: true },

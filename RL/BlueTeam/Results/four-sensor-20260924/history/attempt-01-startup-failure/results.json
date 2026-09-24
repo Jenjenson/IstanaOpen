@@ -1,0 +1,42 @@
+{
+  "schema": "istana.four_sensor_experiment_results.v1",
+  "updatedUtc": "2026-09-24T06:11:05.131366+00:00",
+  "phase": "failed",
+  "protocol": "protocol.json",
+  "protocolSha256": "6fc5622cfabaec956d6676c369d134a16512e585339bb2b6ebe88d8b85696319",
+  "trials": [
+    {
+      "trial": "A",
+      "seed": 917,
+      "name": "Four-sensor study 2026-09-24 Trial A",
+      "status": "cancelled",
+      "startedUtc": "2026-09-24T06:11:00.063085+00:00",
+      "nativeContractVerified": false,
+      "outputDirectory": "Saved\\WarningTraining\\console-20260924-061100-065086",
+      "error": "Study cancelled after another trial failed or execution was interrupted",
+      "stopRequest": "Stop requested for owned trial; phase=stopping. Native manager finishes/cancels its current action safely."
+    },
+    {
+      "trial": "B",
+      "seed": 918,
+      "name": "Four-sensor study 2026-09-24 Trial B",
+      "status": "failed",
+      "startedUtc": "2026-09-24T06:11:00.064085+00:00",
+      "nativeContractVerified": false,
+      "error": "Trial ended in failed: [WinError 183] Cannot create a file when that file already exists: 'Saved\\\\WarningTraining\\\\console-20260924-061100-066086'",
+      "stopRequest": "No matching owned active run; no stop command sent"
+    },
+    {
+      "trial": "C",
+      "seed": 919,
+      "name": "Four-sensor study 2026-09-24 Trial C",
+      "status": "cancelled",
+      "startedUtc": "2026-09-24T06:11:00.064085+00:00",
+      "nativeContractVerified": false,
+      "outputDirectory": "Saved\\WarningTraining\\console-20260924-061100-066086",
+      "error": "Study cancelled after another trial failed or execution was interrupted",
+      "stopRequest": "Stop requested for owned trial; phase=stopping. Native manager finishes/cancels its current action safely."
+    }
+  ],
+  "error": "Trial A: Study cancelled after another trial failed or execution was interrupted; Trial B: Trial ended in failed: [WinError 183] Cannot create a file when that file already exists: 'Saved\\\\WarningTraining\\\\console-20260924-061100-066086'; Trial C: Study cancelled after another trial failed or execution was interrupted"
+}

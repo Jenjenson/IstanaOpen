@@ -1,10 +1,9 @@
 """Alternative masked optimizers for the native warning-placement policy.
 
-All algorithms intentionally share the same map-specific actor and public-only
-action contract.  They differ only in how complete native episode returns
-update the actor and, for actor-critic methods, a small placement-step critic.
-This keeps algorithm comparisons from silently changing the environment,
-sensor options, legal mask, reward, or deployment limits.
+The global REINFORCE, PPO and A2C algorithms share a map-specific actor and
+public action contract. The separately versioned local refinement actor reuses
+PPO's exact update over per-sensor edits and paired contractor-relative returns.
+All actors obey the selected sensor, budget and native deployment limits.
 """
 from __future__ import annotations
 
@@ -272,7 +271,23 @@ class MaskedPPOPolicy(_MaskedActorCriticPolicy):
                 "parameter_delta_norm": float(np.linalg.norm(self.option_logits - before))}
 
 
+class _LocalRefinementPPOFactory:
+    """Resolve the local actor lazily so either policy module can be imported first."""
+
+    def __new__(cls, *args, **kwargs):
+        from .local_refinement_policy import LocalRefinementPPOPolicy
+        return LocalRefinementPPOPolicy(*args, **kwargs)
+
+    @classmethod
+    def load(cls, path, context):
+        from .local_refinement_policy import LocalRefinementPPOPolicy
+        return LocalRefinementPPOPolicy.load(path, context)
+
+
 TRAINING_ALGORITHMS = {
+    "local_ppo": {"label": "Local refinement PPO", "description":
+        "PPO refines each starting sensor through legal nearby sites and orientations, using paired contractor-relative returns.",
+        "factory": _LocalRefinementPPOFactory},
     "reinforce": {"label": "REINFORCE", "description":
         "Current masked policy-gradient baseline with a batch reward baseline.",
         "factory": WarningPolicy},
