@@ -1,0 +1,249 @@
+{
+  "frozenAt": "2026-09-24T10:52:24.062720+00:00",
+  "purpose": "Load confirmation from exact pilot core implementation. Unchanged dependency modules copied from repository; all seven launched core modules overlaid from source-snapshot.",
+  "rootReportedOnlyChange": "Local legality empty-layout sentinel guard for min_separation>300m; study uses20m.",
+  "postLaunchDeltas": [
+    {
+      "file": "RL\\BlueTeam\\Python\\triad_rl\\local_refinement_policy.py",
+      "frozenSha256": "c1e2974027346dbc98bc489ab25feb05749c26715cc323b64dbb8d2c347cd614",
+      "currentSha256": "23a20ce476f88d7d099bca5dc16700bcacbcdaf42b96606b08f0deb135ddf058",
+      "diff": "--- launched/triad_rl\\local_refinement_policy.py\n+++ current/triad_rl\\local_refinement_policy.py\n@@ -96,7 +96,10 @@\n         likewise imply legal sequential deployment. Native deploy still checks\n         the authoritative terrain/support contract represented by blocked sites.\n         \"\"\"\n+        # The canonical public mask uses 300 m as the empty-layout nearest\n+        # distance. Respect that limit too, even when pairwise spacing fits.\n         if (state[\"done\"] or state[\"placements\"] or not placements\n+                or state[\"min_separation\"] > 300. + 1e-9\n                 or len(placements) > state[\"max_sites\"]):\n             return False\n         sensors = {row[\"id\"]: row for row in catalogue}\n"
+    },
+    {
+      "file": "RL/BlueTeam/Python/triad_rl/training_evidence.py",
+      "frozenSha256": "6191afc18d117573edcfa526989555fd95571890e8de40da612e195eae530027",
+      "currentSha256": "acdc8a81881354b4f1f084cfbaffacd67e96195d9a27a87300161ccfc9c176b2",
+      "diff": "--- launched/triad_rl/training_evidence.py\n+++ current/triad_rl/training_evidence.py\n@@ -44,7 +44,8 @@\n         public = context[\"publicSnapshot\"]\n         value = {key: context[key] for key in (\"catalogue\", \"temporalConfig\", \"worldOriginCm\")}\n         value[\"deployment\"] = {key: public.get(key) for key in (\n-            \"budget_total\", \"max_sites\", \"sites\", \"blocked_sites\", \"min_separation\",\n+            \"budget_total\", \"budget_remaining\", \"max_sites\", \"sites\", \"blocked_sites\", \"min_separation\",\n+            \"deployment_min_radius\", \"deployment_max_radius\",\n             \"weather\", \"forecast\", \"available_sensor_ids\")}\n         return hashlib.sha256(json.dumps(value, sort_keys=True, allow_nan=False).encode()).hexdigest()\n     cases = [{\"seed\": run[\"seed\"], **deepcopy(run[\"metrics\"]),\n",
+      "recordedAt": "2026-09-24T11:54:33.932969+00:00",
+      "purpose": "Postlaunch paired constraint validation hardening; no policy/train numeric change. Exact new fields audited retrospectively in all 1000 retained paired training/confirmation cases."
+    }
+  ],
+  "modules": [
+    {
+      "file": "triad_rl\\__init__.py",
+      "origin": "unchanged dependency copied after launch",
+      "sha256": "600bb157966aa55c98f2ed3fa51b41e2c0d944515cf5e6088bdd1ca64bdd0645"
+    },
+    {
+      "file": "triad_rl\\adaptive_env.py",
+      "origin": "unchanged dependency copied after launch",
+      "sha256": "afbf0bdedb62ffeb07e416dfa8745378d7057f549d8b5f771cbfd599ae428cc8"
+    },
+    {
+      "file": "triad_rl\\adaptive_evaluation.py",
+      "origin": "unchanged dependency copied after launch",
+      "sha256": "01fd9293a699f25cfeaaff3ad6399b7ec1695a5e67ee6583efb3076ddb5e0910"
+    },
+    {
+      "file": "triad_rl\\adaptive_inputs.py",
+      "origin": "unchanged dependency copied after launch",
+      "sha256": "fe011855192d1f5450f10955178f7ed6069cbed58bde090734b0407e474799b9"
+    },
+    {
+      "file": "triad_rl\\adaptive_policy.py",
+      "origin": "unchanged dependency copied after launch",
+      "sha256": "bc3909894e3b4f418a0a2740fe5fd42c28023d9c1ed96e456c57e829fb06577d"
+    },
+    {
+      "file": "triad_rl\\anchored_credit.py",
+      "origin": "unchanged dependency copied after launch",
+      "sha256": "38bf2926674310b4d675691b96d0093962fd2ca846d846ebc60eaa60aff7f0c2"
+    },
+    {
+      "file": "triad_rl\\anchored_lineage.py",
+      "origin": "unchanged dependency copied after launch",
+      "sha256": "1b6e11e37c69292fd839d4db00db9d7b3ae5ab02d26191390b74d5fcdf213fa5"
+    },
+    {
+      "file": "triad_rl\\balanced_policy.py",
+      "origin": "unchanged dependency copied after launch",
+      "sha256": "a9c8b72521d890dd6cfcd40e4fdffd5970f13d5e29aaf11451656274fe327704"
+    },
+    {
+      "file": "triad_rl\\common_sense.py",
+      "origin": "unchanged dependency copied after launch",
+      "sha256": "9d04c60addbd03c2ec5267995de6f08c98e661ca2ce6d28862afa488c1b98c36"
+    },
+    {
+      "file": "triad_rl\\counterfactual_rollout.py",
+      "origin": "unchanged dependency copied after launch",
+      "sha256": "6d659ec831b9ff906b295d7729d9613c4812c4577fe3220e184d1f741b1cd791"
+    },
+    {
+      "file": "triad_rl\\credit_lineage.py",
+      "origin": "unchanged dependency copied after launch",
+      "sha256": "4c5596c333f5617fc3f1047b977066240b2d2dcf349d94ead6e1aa3b7ca96a02"
+    },
+    {
+      "file": "triad_rl\\directional_inputs.py",
+      "origin": "unchanged dependency copied after launch",
+      "sha256": "43e650e4286ebcb8eb3d7cf556d378a34ead606452666957adbaee5d77219271"
+    },
+    {
+      "file": "triad_rl\\environment.py",
+      "origin": "unchanged dependency copied after launch",
+      "sha256": "48079bff33088ff85c3d4c81db5255d59da439bc1d74fca810ba62bff39ec59d"
+    },
+    {
+      "file": "triad_rl\\evaluate_anchored_pilot.py",
+      "origin": "unchanged dependency copied after launch",
+      "sha256": "01df53b7a36b24affc710311f9a76d688ca70f0d0528ebc5726908ac9d009dac"
+    },
+    {
+      "file": "triad_rl\\evaluate_credit_pilot.py",
+      "origin": "unchanged dependency copied after launch",
+      "sha256": "044b1196f5b6ece6e99fcd13680095d796d33dc9d2e4cfd8fcb1e72e4e278517"
+    },
+    {
+      "file": "triad_rl\\istana_live.py",
+      "origin": "exact launch snapshot",
+      "sha256": "93722ec7b2722103e5a3840b7e4896afa385c030455df78fdefce79bd78c8677"
+    },
+    {
+      "file": "triad_rl\\local_refinement_policy.py",
+      "origin": "exact launch snapshot",
+      "sha256": "c1e2974027346dbc98bc489ab25feb05749c26715cc323b64dbb8d2c347cd614"
+    },
+    {
+      "file": "triad_rl\\placement_policy.py",
+      "origin": "unchanged dependency copied after launch",
+      "sha256": "29fe2d3eb327ef25d0416b0c38324d7d31ebd7f7134727b3486afdf128d10607"
+    },
+    {
+      "file": "triad_rl\\policy.py",
+      "origin": "unchanged dependency copied after launch",
+      "sha256": "4bde1adf6c66665ebc601d608b06612871c71eae9dae8661f1d4073f6b163629"
+    },
+    {
+      "file": "triad_rl\\ranking_lineage.py",
+      "origin": "unchanged dependency copied after launch",
+      "sha256": "e91a0f5833679ec29b4108d74215993e6f79696b1e9f607e3b4542203efc8b6d"
+    },
+    {
+      "file": "triad_rl\\ranking_policy.py",
+      "origin": "unchanged dependency copied after launch",
+      "sha256": "b54405aefd8fff8717915226614b6692aded7b698d1e698e57e166fd9f5d8a6c"
+    },
+    {
+      "file": "triad_rl\\ranking_rollout.py",
+      "origin": "unchanged dependency copied after launch",
+      "sha256": "14f1107fc302de8841655ae4b987567456e29482a6ac04fe785f78f7950a057b"
+    },
+    {
+      "file": "triad_rl\\red_policy.py",
+      "origin": "exact launch snapshot",
+      "sha256": "8621943dfab4524952738ca2dfdca8810fc9fb1cd3b1e19966df6240097705e3"
+    },
+    {
+      "file": "triad_rl\\remote_control.py",
+      "origin": "unchanged dependency copied after launch",
+      "sha256": "b55bd890f30f7cd8ec49853a3d447f96ca1cdee1ac412ea3beee1bbe04db32f9"
+    },
+    {
+      "file": "triad_rl\\robust_scenarios.py",
+      "origin": "unchanged dependency copied after launch",
+      "sha256": "e07cbe525f5997a91561ef3c1c52e62e618b58b5efc915c57e68f82a9d86e6ba"
+    },
+    {
+      "file": "triad_rl\\rollout.py",
+      "origin": "unchanged dependency copied after launch",
+      "sha256": "c632a74862f557f6e0766061d97c6eb12986968bf4e5856ad121a10b761a275a"
+    },
+    {
+      "file": "triad_rl\\self_play.py",
+      "origin": "unchanged dependency copied after launch",
+      "sha256": "77e201e7c735c3f5999d2f69b18af7c21ab8b06811002456cba5d4315aafd168"
+    },
+    {
+      "file": "triad_rl\\temporal_confirmation.py",
+      "origin": "unchanged dependency copied after launch",
+      "sha256": "50647e7b1237ac55efc3556a3aca0e512abb1aac85f259fc086b1ee605764eea"
+    },
+    {
+      "file": "triad_rl\\temporal_env.py",
+      "origin": "unchanged dependency copied after launch",
+      "sha256": "c69350413dafd10b936414e9a015af6fceb4ba0c2cec9d6ce4203e301b665d7d"
+    },
+    {
+      "file": "triad_rl\\temporal_inputs.py",
+      "origin": "unchanged dependency copied after launch",
+      "sha256": "643ad89cd4060361d6a858a94ad61f7e26408bd55a46015e895eb331bf9c61d1"
+    },
+    {
+      "file": "triad_rl\\temporal_lineage.py",
+      "origin": "unchanged dependency copied after launch",
+      "sha256": "b93dfe6fadb2d8303900659b143e4e0c8f60e26005adea7e056e4074bdcecaf9"
+    },
+    {
+      "file": "triad_rl\\temporal_policy.py",
+      "origin": "unchanged dependency copied after launch",
+      "sha256": "55c48c66cc6c8f11efd02e65b42cbb6b37c4933fb5d1c2220dc1b734f908b140"
+    },
+    {
+      "file": "triad_rl\\train_adaptive.py",
+      "origin": "unchanged dependency copied after launch",
+      "sha256": "e356a4e46782a2fe93d54f7da1095ae4e34fd0664ccecdbde3561756297c66c9"
+    },
+    {
+      "file": "triad_rl\\train_anchored_pilot.py",
+      "origin": "unchanged dependency copied after launch",
+      "sha256": "d370cec786f992d150e61a3e45424edce86c2cea1acb509875d05f17630a94ba"
+    },
+    {
+      "file": "triad_rl\\train_balanced.py",
+      "origin": "unchanged dependency copied after launch",
+      "sha256": "e9711cc093ba5bfc3c11b394c28b814ee1f4786f0debad02102f71e913fc1e7c"
+    },
+    {
+      "file": "triad_rl\\train_credit_pilot.py",
+      "origin": "unchanged dependency copied after launch",
+      "sha256": "a4a4b90558223bd9b63561680542a08415a62e07c2ce74c4a739e85f8894cde5"
+    },
+    {
+      "file": "triad_rl\\train_ranking.py",
+      "origin": "unchanged dependency copied after launch",
+      "sha256": "57f5cfcde18885c2c08340f4ae8e444731f86847360fb862bef5470fff4c834d"
+    },
+    {
+      "file": "triad_rl\\train_robust.py",
+      "origin": "unchanged dependency copied after launch",
+      "sha256": "79b870b2a00d46f93e8cc0544d5b85818a2ce8d88fbb9a807df0ac90a1f95e87"
+    },
+    {
+      "file": "triad_rl\\trained_models.py",
+      "origin": "unchanged dependency copied after launch",
+      "sha256": "fadecf9ff0b315681302d6a4da0eb3e02cef204b5fdc0f3043590e068c57abca"
+    },
+    {
+      "file": "triad_rl\\training_evidence.py",
+      "origin": "exact launch snapshot",
+      "sha256": "6191afc18d117573edcfa526989555fd95571890e8de40da612e195eae530027"
+    },
+    {
+      "file": "triad_rl\\training_recording.py",
+      "origin": "unchanged dependency copied after launch",
+      "sha256": "173d6bf601e3251a87e628b6a45a84582e34469024a40f16b23a51eb2a7deb04"
+    },
+    {
+      "file": "triad_rl\\training_workbench.py",
+      "origin": "exact launch snapshot",
+      "sha256": "746e22e61c1ba6c642591c3d3fadcd15b6376f572dc05d951fc94206a79160cb"
+    },
+    {
+      "file": "triad_rl\\warning_algorithms.py",
+      "origin": "exact launch snapshot",
+      "sha256": "1070de7adcf91fd61619b0e5c1402c23adc6bab14a3ecfb339ccfd9f0596b276"
+    },
+    {
+      "file": "triad_rl\\warning_policy.py",
+      "origin": "exact launch snapshot",
+      "sha256": "cfc5413c33d3520e7a46bd8f3fc9da977f2d92d8e8ffa2331460e114d092ae14"
+    },
+    {
+      "file": "triad_rl\\warning_scenario.py",
+      "origin": "unchanged dependency copied after launch",
+      "sha256": "0c68a756e403f16f52e8df51d7b1546b941849caa52cc7fb474f2cf98b43b517"
+    }
+  ],
+  "constraintHardeningAudit": "constraint-audit.json and constraint-audit-pairs.jsonl.gz"
+}

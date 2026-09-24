@@ -5,6 +5,10 @@ For the native limited-FOV sensor workbench, see
 contractor layout using matched native scenario rewards. Historical trained
 weights and their unchanged selected layouts are retained in the
 [four-sensor model archive](Results/four-sensor-20260924/README.md).
+The [native local-refinement pilot](Results/local-refinement-20260924/README.md)
+changes layouts but has not improved on the contractor: validation retained the
+starting checkpoint, and the final trained weights regressed. Both artifacts
+and the complete comparison evidence are included.
 
 Blue learns **which sensor profile to deploy and where to place it** around a
 synthetic objective. It supports passive RF, search radar, electro-optical,

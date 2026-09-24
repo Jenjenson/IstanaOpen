@@ -1,0 +1,115 @@
+{
+  "schema": "istana.controlled_local_ppo_pilot.v1",
+  "declaredAt": "2026-09-24T10:45:30.272939+00:00",
+  "arms": [
+    {
+      "id": "local-917",
+      "port": 8771,
+      "config": {
+        "episodes": 200,
+        "batchSize": 8,
+        "scenarioSeed": 61000000,
+        "validationCases": 8,
+        "checkpointInterval": 100,
+        "headroomProbes": 0,
+        "sensorCount": 4,
+        "sensorIds": [
+          "thermal"
+        ],
+        "initialization": "directional_balanced_8",
+        "entropyCoefficient": 0.01,
+        "explorationProbability": 0.2,
+        "algorithm": "local_ppo",
+        "seed": 917,
+        "name": "Local refinement pilot 2026-09-24 A917"
+      }
+    },
+    {
+      "id": "local-918",
+      "port": 8772,
+      "config": {
+        "episodes": 200,
+        "batchSize": 8,
+        "scenarioSeed": 61000000,
+        "validationCases": 8,
+        "checkpointInterval": 100,
+        "headroomProbes": 0,
+        "sensorCount": 4,
+        "sensorIds": [
+          "thermal"
+        ],
+        "initialization": "directional_balanced_8",
+        "entropyCoefficient": 0.01,
+        "explorationProbability": 0.2,
+        "algorithm": "local_ppo",
+        "seed": 918,
+        "name": "Local refinement pilot 2026-09-24 A918"
+      }
+    },
+    {
+      "id": "legacy-917",
+      "port": 8770,
+      "config": {
+        "episodes": 200,
+        "batchSize": 8,
+        "scenarioSeed": 61000000,
+        "validationCases": 8,
+        "checkpointInterval": 100,
+        "headroomProbes": 0,
+        "sensorCount": 4,
+        "sensorIds": [
+          "thermal"
+        ],
+        "initialization": "directional_balanced_8",
+        "entropyCoefficient": 0.01,
+        "explorationProbability": 0.2,
+        "algorithm": "ppo",
+        "seed": 917,
+        "name": "Legacy PPO pilot 2026-09-24 control917"
+      }
+    }
+  ],
+  "registry": "D:\\triad\\IstanaOpen-LearningReview\\Saved\\WarningTraining\\models",
+  "trainingSeeds": [
+    61000000,
+    61000199
+  ],
+  "validationSeeds": [
+    61010000,
+    61010001,
+    61010002,
+    61010003,
+    61010004,
+    61010005,
+    61010006,
+    61010007
+  ],
+  "testSeeds": [
+    61020000,
+    61020001,
+    61020002,
+    61020003,
+    61020004,
+    61020005,
+    61020006,
+    61020007
+  ],
+  "objective": "Mean per-drone early warning; undetected drones contribute zero.",
+  "selection": "Use built-in fixed validation selection; retain every result and ties. Test only after selection is frozen.",
+  "comparison": "Two action-seed repetitions of local PPO and one legacy PPO control on identical scenario panels.",
+  "compute": "Each arm has 200 sampled training episodes and 25 updates. Local arms also replay the contractor on each training scenario. Milestone100 adds one validation panel beyond batch updates. Record actual native calls, steps and wall time.",
+  "expectedNativeCalls": {
+    "local-917": 641,
+    "local-918": 641,
+    "legacy-917": 441
+  },
+  "limitations": [
+    "Pilot has eight final test cases, not definitive superiority.",
+    "Previous500-episode trials had25 updates; this pilot has200 episodes and25 updates. Control receives the same200 sampled training episodes.",
+    "Local PPO consumes more native calls because of paired contractor references.",
+    "All outcomes are retained. No layout, seed, or checkpoint is selected by final test outcomes.",
+    "No extra held-out cases are requested by this driver."
+  ],
+  "requiredStart": "Root explicitly reports focused tests pass before run mode is invoked.",
+  "ports": "8771 local917;8772 local918;8770 legacy control. Never stop or replace Unreal processes."
+}

@@ -1,0 +1,285 @@
+{
+  "schema": "istana.local_ppo_pilot_confirmation_bundle.v1",
+  "createdAt": "2026-09-24T11:55:26.761550+00:00",
+  "arms": [
+    {
+      "arm": "local-917",
+      "algorithm": "local_ppo",
+      "actionSeed": 917,
+      "sampledTrainingEpisodes": 200,
+      "optimizerUpdates": 25,
+      "selectedEpisode": 0,
+      "selectedPolicySha256": "3bf8a6b965063225e066c1a901d8f502a489bfbaec52f8f388e7cf25958ab381",
+      "contractorValidationWarning": 22.407291582495354,
+      "selectedValidationWarning": 22.407291582495354,
+      "finalValidationWarning": 21.077291582495352,
+      "finalValidationDelta": -1.3299999999999992,
+      "finalSensorsChanged": 3,
+      "nonzeroParameterUpdates": 25,
+      "validationDelta": 0.0,
+      "eightCaseTestDelta": 0.0,
+      "confirmationWarningDelta": {
+        "cases": 100,
+        "mean": 0.0,
+        "sd": 0.0,
+        "standardError": 0.0,
+        "approximate95PercentInterval": [
+          0.0,
+          0.0
+        ],
+        "interpretation": "Descriptive mean +/-1.96SE for this frozen policy; shared cases across arms."
+      },
+      "confirmationDetectionDelta": {
+        "cases": 100,
+        "mean": 0.0,
+        "sd": 0.0,
+        "standardError": 0.0,
+        "approximate95PercentInterval": [
+          0.0,
+          0.0
+        ],
+        "interpretation": "Descriptive mean +/-1.96SE for this frozen policy; shared cases across arms."
+      },
+      "confirmationContractorWarning": 23.582629538306623,
+      "confirmationSelectedWarning": 23.582629538306623,
+      "uniqueSampledLayouts": 158,
+      "nativePilotCost": {
+        "started": 641,
+        "completed": 641,
+        "failed": 0,
+        "roles": {
+          "validation_contractor": 8,
+          "validation_policy": 216,
+          "sampled_training": 200,
+          "paired_contractor_training": 200,
+          "final_test_contractor": 8,
+          "final_test_policy": 8,
+          "training_scenario_replay": 1
+        },
+        "nativeSteps": 862501,
+        "nativeCallWallSeconds": 2361.3560000000543
+      },
+      "nativeConfirmationCalls": 200,
+      "confirmationElapsedSeconds": 713.2659999999996,
+      "secondaryFinalPolicySha256": "ca5d4e517709907b711a1a43e49f5b47588b0feba680b7a782180095d1c1f82d",
+      "secondaryFinalWarningDelta": {
+        "cases": 100,
+        "mean": -1.7270609728650086,
+        "sd": 4.528294206082941,
+        "standardError": 0.45282942060829406,
+        "approximate95PercentInterval": [
+          -2.614606637257265,
+          -0.8395153084727522
+        ],
+        "interpretation": "Descriptive mean +/-1.96SE for this frozen policy; shared cases across arms."
+      },
+      "secondaryFinalWarning": 21.855568565441608,
+      "secondaryFinalDetectionDelta": {
+        "cases": 100,
+        "mean": -0.026,
+        "sd": 0.08362977576162328,
+        "standardError": 0.008362977576162329,
+        "approximate95PercentInterval": [
+          -0.04239143604927816,
+          -0.009608563950721835
+        ],
+        "interpretation": "Descriptive mean +/-1.96SE for this frozen policy; shared cases across arms."
+      },
+      "weightFiles": {
+        "selected": "selected-policy.json",
+        "final": "final-policy.json",
+        "initial": "initial-policy.json"
+      },
+      "sourceRunDirectory": "D:\\triad\\IstanaOpen-LearningReview\\Saved\\Experiments\\local-refinement-20260924\\arms\\local-917\\runs\\console-20260924-104729-082152"
+    },
+    {
+      "arm": "local-918",
+      "algorithm": "local_ppo",
+      "actionSeed": 918,
+      "sampledTrainingEpisodes": 200,
+      "optimizerUpdates": 25,
+      "selectedEpisode": 0,
+      "selectedPolicySha256": "6a2b47b9720510f4dbac84e659d9c96b2460dcde8d6cb1e0624472b44c9ed965",
+      "contractorValidationWarning": 22.407291582495354,
+      "selectedValidationWarning": 22.407291582495354,
+      "finalValidationWarning": 18.993048610843925,
+      "finalValidationDelta": -3.4142429716514275,
+      "finalSensorsChanged": 3,
+      "nonzeroParameterUpdates": 25,
+      "validationDelta": 0.0,
+      "eightCaseTestDelta": 0.0,
+      "confirmationWarningDelta": {
+        "cases": 100,
+        "mean": 0.0,
+        "sd": 0.0,
+        "standardError": 0.0,
+        "approximate95PercentInterval": [
+          0.0,
+          0.0
+        ],
+        "interpretation": "Descriptive mean +/-1.96SE for this frozen policy; shared cases across arms."
+      },
+      "confirmationDetectionDelta": {
+        "cases": 100,
+        "mean": 0.0,
+        "sd": 0.0,
+        "standardError": 0.0,
+        "approximate95PercentInterval": [
+          0.0,
+          0.0
+        ],
+        "interpretation": "Descriptive mean +/-1.96SE for this frozen policy; shared cases across arms."
+      },
+      "confirmationContractorWarning": 23.582629538306623,
+      "confirmationSelectedWarning": 23.582629538306623,
+      "uniqueSampledLayouts": 155,
+      "nativePilotCost": {
+        "started": 641,
+        "completed": 641,
+        "failed": 0,
+        "roles": {
+          "validation_contractor": 8,
+          "validation_policy": 216,
+          "sampled_training": 200,
+          "paired_contractor_training": 200,
+          "final_test_contractor": 8,
+          "final_test_policy": 8,
+          "training_scenario_replay": 1
+        },
+        "nativeSteps": 862501,
+        "nativeCallWallSeconds": 2292.9820000000145
+      },
+      "nativeConfirmationCalls": 200,
+      "confirmationElapsedSeconds": 695.9219999999987,
+      "secondaryFinalPolicySha256": "2da9ddd287fc9d88010ba1395bd91b4ba929dad983ebe25b7a1278c55c82ebd3",
+      "secondaryFinalWarningDelta": {
+        "cases": 100,
+        "mean": -2.123310307071314,
+        "sd": 7.791309430034846,
+        "standardError": 0.7791309430034846,
+        "approximate95PercentInterval": [
+          -3.650406955358144,
+          -0.5962136587844844
+        ],
+        "interpretation": "Descriptive mean +/-1.96SE for this frozen policy; shared cases across arms."
+      },
+      "secondaryFinalWarning": 21.45931923123531,
+      "secondaryFinalDetectionDelta": {
+        "cases": 100,
+        "mean": -0.028,
+        "sd": 0.15832456116050556,
+        "standardError": 0.015832456116050556,
+        "approximate95PercentInterval": [
+          -0.05903161398745909,
+          0.003031613987459089
+        ],
+        "interpretation": "Descriptive mean +/-1.96SE for this frozen policy; shared cases across arms."
+      },
+      "weightFiles": {
+        "selected": "selected-policy.json",
+        "final": "final-policy.json",
+        "initial": "initial-policy.json"
+      },
+      "sourceRunDirectory": "D:\\triad\\IstanaOpen-LearningReview\\Saved\\Experiments\\local-refinement-20260924\\arms\\local-918\\runs\\console-20260924-104729-083153"
+    },
+    {
+      "arm": "legacy-917",
+      "algorithm": "ppo",
+      "actionSeed": 917,
+      "sampledTrainingEpisodes": 200,
+      "optimizerUpdates": 25,
+      "selectedEpisode": 0,
+      "selectedPolicySha256": "894f9bf8fb02c40f433660429068454bee385419af77b2a9326138b4ae78d903",
+      "contractorValidationWarning": 22.407291582495354,
+      "selectedValidationWarning": 22.407291582495354,
+      "finalValidationWarning": 22.407291582495354,
+      "finalValidationDelta": 0.0,
+      "finalSensorsChanged": 0,
+      "nonzeroParameterUpdates": 25,
+      "validationDelta": 0.0,
+      "eightCaseTestDelta": 0.0,
+      "confirmationWarningDelta": {
+        "cases": 100,
+        "mean": 0.0,
+        "sd": 0.0,
+        "standardError": 0.0,
+        "approximate95PercentInterval": [
+          0.0,
+          0.0
+        ],
+        "interpretation": "Descriptive mean +/-1.96SE for this frozen policy; shared cases across arms."
+      },
+      "confirmationDetectionDelta": {
+        "cases": 100,
+        "mean": 0.0,
+        "sd": 0.0,
+        "standardError": 0.0,
+        "approximate95PercentInterval": [
+          0.0,
+          0.0
+        ],
+        "interpretation": "Descriptive mean +/-1.96SE for this frozen policy; shared cases across arms."
+      },
+      "confirmationContractorWarning": 23.582629538306623,
+      "confirmationSelectedWarning": 23.582629538306623,
+      "uniqueSampledLayouts": 135,
+      "nativePilotCost": {
+        "started": 441,
+        "completed": 441,
+        "failed": 0,
+        "roles": {
+          "validation_contractor": 8,
+          "validation_policy": 216,
+          "sampled_training": 200,
+          "final_test_contractor": 8,
+          "final_test_policy": 8,
+          "training_scenario_replay": 1
+        },
+        "nativeSteps": 593329,
+        "nativeCallWallSeconds": 2241.2800000000498
+      },
+      "nativeConfirmationCalls": 200,
+      "confirmationElapsedSeconds": 859.780999999999,
+      "secondaryFinalPolicySha256": "bb62e2482cb790fccba0e0b8dd975110248af3295d4cf61b2811001d7b43ed91",
+      "secondaryFinalWarningDelta": {
+        "cases": 100,
+        "mean": 0.0,
+        "sd": 0.0,
+        "standardError": 0.0,
+        "approximate95PercentInterval": [
+          0.0,
+          0.0
+        ],
+        "interpretation": "Descriptive mean +/-1.96SE for this frozen policy; shared cases across arms."
+      },
+      "secondaryFinalWarning": 23.582629538306623,
+      "secondaryFinalDetectionDelta": {
+        "cases": 100,
+        "mean": 0.0,
+        "sd": 0.0,
+        "standardError": 0.0,
+        "approximate95PercentInterval": [
+          0.0,
+          0.0
+        ],
+        "interpretation": "Descriptive mean +/-1.96SE for this frozen policy; shared cases across arms."
+      },
+      "weightFiles": {
+        "selected": "selected-policy.json",
+        "final": "final-policy.json",
+        "initial": "initial-policy.json"
+      },
+      "sourceRunDirectory": "D:\\triad\\IstanaOpen-LearningReview\\Saved\\Experiments\\local-refinement-20260924\\arms\\legacy-917\\runs\\console-20260924-104729-084153"
+    }
+  ],
+  "pilotElapsedSeconds": 2383.1720000000023,
+  "confirmationElapsedSeconds": 860.1090000000004,
+  "pilotNativeCalls": 1723,
+  "confirmationNativeCalls": 600,
+  "confirmationSharedScenarioCount": 100,
+  "secondaryNativeCalls": 300,
+  "secondaryElapsedSeconds": 510.7029999999977,
+  "allOutcomesRetained": true,
+  "rawFramesIncluded": false,
+  "limitations": "Two local training seeds and one legacy control; confirmation uses 100 shared cases. Per-policy intervals are descriptive. This pilot alone does not establish superiority of the algorithm."
+}

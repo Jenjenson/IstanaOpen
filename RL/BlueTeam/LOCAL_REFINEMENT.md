@@ -67,3 +67,34 @@ The selected model may correctly retain the contractor if validation finds no
 improvement. Old global-placement checkpoints remain loadable; local PPO uses
 the separate `istana.warning_directional_local_ppo.v1` schema, including its
 starting layout, candidate catalogue, optimizer and RNG state.
+
+## Native pilot outcome: no demonstrated improvement
+
+The [24 September pilot](Results/local-refinement-20260924/README.md) compares
+two local PPO training seeds and one legacy PPO control, each with 200 episodes,
+four thermal cameras, five drones and the same fixed scenario panels. Both local
+policies changed three of their four sensor poses; the legacy greedy layout did
+not change. Every run's validation-selected checkpoint was still episode zero.
+All three selected checkpoints therefore matched the contractor exactly on the
+predeclared 100-scenario confirmation panel.
+
+A separate diagnostic of the **final weights**, added after training and frozen
+before their confirmation evaluation, found these changes in mean warning time:
+
+| Final checkpoint | Difference from contractor | Approximate 95% interval |
+| --- | ---: | ---: |
+| Local PPO, policy seed 917 | -1.73 s | [-2.61, -0.84] s |
+| Local PPO, policy seed 918 | -2.12 s | [-3.65, -0.60] s |
+
+These intervals describe each frozen policy on 100 shared scenarios; they do
+not establish performance of the algorithm across training seeds. Final-weight
+results did not select or promote a model. The selected and final weights are
+both archived, along with the negative results and source/runtime provenance.
+
+The change removes a demonstrated exploration barrier and makes training
+rewards easier to compare across scenarios. It has **not** demonstrated a better
+native deployment. Changing layouts or updating weights alone is insufficient.
+The current symmetric approach distribution provides little demonstrated
+headroom over the outward-facing contractor layout. Any future scenario with
+different approach frequencies must be labeled separately and evaluated fairly;
+the existing benchmark and its results should remain intact.

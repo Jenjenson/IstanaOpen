@@ -1,0 +1,26 @@
+[
+  {
+    "profileId": "thermal",
+    "siteId": 0,
+    "yawDeg": 0.0,
+    "pitchDeg": 20.0
+  },
+  {
+    "profileId": "thermal",
+    "siteId": 24,
+    "yawDeg": 180.0,
+    "pitchDeg": 20.0
+  },
+  {
+    "profileId": "thermal",
+    "siteId": 19,
+    "yawDeg": 90.0,
+    "pitchDeg": 20.0
+  },
+  {
+    "profileId": "thermal",
+    "siteId": 27,
+    "yawDeg": 270.0,
+    "pitchDeg": 20.0
+  }
+]

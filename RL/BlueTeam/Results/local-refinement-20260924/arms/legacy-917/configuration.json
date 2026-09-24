@@ -1,0 +1,167 @@
+{
+  "schema": "istana.console_warning_training.v2",
+  "episodes": 200,
+  "batchSize": 8,
+  "scenarioSeed": 61000000,
+  "validationCases": 8,
+  "checkpointInterval": 100,
+  "headroomProbes": 0,
+  "sensorCount": 4,
+  "sensorIds": [
+    "thermal"
+  ],
+  "initialization": "directional_balanced_8",
+  "entropyCoefficient": 0.01,
+  "explorationProbability": 0.2,
+  "algorithm": "ppo",
+  "seed": 917,
+  "name": "Legacy PPO pilot 2026-09-24 control917",
+  "bridgePort": 8770,
+  "initialLayout": {
+    "preset": "directional_balanced_8",
+    "label": "4 \u00b7 Directional sensors \u00b7 balanced sectors",
+    "sensor_count": 4,
+    "placements": [
+      {
+        "profileId": "thermal",
+        "siteId": 16,
+        "yawDeg": 0.0,
+        "pitchDeg": 20.0
+      },
+      {
+        "profileId": "thermal",
+        "siteId": 24,
+        "yawDeg": 180.0,
+        "pitchDeg": 20.0
+      },
+      {
+        "profileId": "thermal",
+        "siteId": 20,
+        "yawDeg": 90.0,
+        "pitchDeg": 20.0
+      },
+      {
+        "profileId": "thermal",
+        "siteId": 28,
+        "yawDeg": 270.0,
+        "pitchDeg": 20.0
+      }
+    ],
+    "selection": {
+      "kind": "common_sense",
+      "rule": "outward perimeter cameras centered on eight benchmark sectors",
+      "sensor_model": "directional type/site/yaw/pitch choices",
+      "explanation": "Spread 4 limited-FOV cameras across the eight benchmark sectors before randomized approaches are sampled."
+    },
+    "public_only": true,
+    "synthetic_lane_yaws_deg": [
+      0.0,
+      180.0,
+      90.0,
+      270.0
+    ],
+    "coverage_yaws_deg": [
+      0.0,
+      180.0,
+      90.0,
+      270.0
+    ],
+    "coverage_intent": "4 limited-FOV cameras cover representative bearings before five distinct Red approach sectors are sampled. This is a sensible benchmark start, not a guarantee of 360-degree or universal detection.",
+    "warm_start": {
+      "placements": 4,
+      "strength": 6.429719478039138,
+      "option_indices": [
+        482,
+        686,
+        584,
+        788
+      ],
+      "trainable": true,
+      "target_initial_baseline_action_probability": 0.8,
+      "initial_baseline_action_probability": 0.8,
+      "initial_exploration_probability": 0.19999999999999996,
+      "legal_baseline_actions": 4,
+      "legal_alternative_actions": 620,
+      "calibration": "first legal placement decision; later masks may change probability mass"
+    }
+  },
+  "contractorLayout": {
+    "preset": "directional_balanced_8",
+    "label": "4 \u00b7 Directional sensors \u00b7 balanced sectors",
+    "sensor_count": 4,
+    "placements": [
+      {
+        "profileId": "thermal",
+        "siteId": 16,
+        "yawDeg": 0.0,
+        "pitchDeg": 20.0
+      },
+      {
+        "profileId": "thermal",
+        "siteId": 24,
+        "yawDeg": 180.0,
+        "pitchDeg": 20.0
+      },
+      {
+        "profileId": "thermal",
+        "siteId": 20,
+        "yawDeg": 90.0,
+        "pitchDeg": 20.0
+      },
+      {
+        "profileId": "thermal",
+        "siteId": 28,
+        "yawDeg": 270.0,
+        "pitchDeg": 20.0
+      }
+    ],
+    "selection": {
+      "kind": "common_sense",
+      "rule": "outward perimeter cameras centered on eight benchmark sectors",
+      "sensor_model": "directional type/site/yaw/pitch choices",
+      "explanation": "Spread 4 limited-FOV cameras across the eight benchmark sectors before randomized approaches are sampled."
+    },
+    "public_only": true,
+    "synthetic_lane_yaws_deg": [
+      0.0,
+      180.0,
+      90.0,
+      270.0
+    ],
+    "coverage_yaws_deg": [
+      0.0,
+      180.0,
+      90.0,
+      270.0
+    ],
+    "coverage_intent": "4 limited-FOV cameras cover representative bearings before five distinct Red approach sectors are sampled. This is a sensible benchmark start, not a guarantee of 360-degree or universal detection."
+  },
+  "redScenario": {
+    "policy": "fixed_radius_random_sectors",
+    "trained": false,
+    "episodeSeedRule": "61000000 + episode - 1",
+    "validationSeeds": [
+      61010000,
+      61010001,
+      61010002,
+      61010003,
+      61010004,
+      61010005,
+      61010006,
+      61010007
+    ],
+    "testSeeds": [
+      61020000,
+      61020001,
+      61020002,
+      61020003,
+      61020004,
+      61020005,
+      61020006,
+      61020007
+    ]
+  },
+  "rewardMode": "absolute_warning",
+  "warningMetric": "mean per-drone max(0, 20m zone arrival - first detection); undetected=0",
+  "limitations": "Synthetic native simulation; ties and regressions are retained."
+}

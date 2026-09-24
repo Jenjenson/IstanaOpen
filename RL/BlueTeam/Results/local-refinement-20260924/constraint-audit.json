@@ -1,0 +1,26 @@
+{
+  "auditedAt": "2026-09-24T11:54:33.932969+00:00",
+  "retrospective": true,
+  "reason": "Postlaunch validation hardening added three previously omitted fields to the constraint hash. Direct raw public-context comparison checks them independently without altering frozen run evidence.",
+  "fields": [
+    "budget_remaining",
+    "deployment_min_radius",
+    "deployment_max_radius"
+  ],
+  "pairs": 1000,
+  "counts": {
+    "paired_training": 400,
+    "primary_confirmation": 300,
+    "secondary_final_confirmation": 300
+  },
+  "allPairsExact": true,
+  "valuesSeen": [
+    {
+      "budget_remaining": 8,
+      "deployment_min_radius": 30,
+      "deployment_max_radius": 150
+    }
+  ],
+  "rawFramesIncluded": false,
+  "rawPaths": "Historical provenance; each retained side has the raw source file hash and directly extracted initial public values."
+}

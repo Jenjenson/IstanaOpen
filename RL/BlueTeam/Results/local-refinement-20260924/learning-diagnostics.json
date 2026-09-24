@@ -1,0 +1,188 @@
+[
+  {
+    "arm": "local-917",
+    "initialLayout": [
+      {
+        "profileId": "thermal",
+        "siteId": 16,
+        "yawDeg": 0.0,
+        "pitchDeg": 20.0
+      },
+      {
+        "profileId": "thermal",
+        "siteId": 24,
+        "yawDeg": 180.0,
+        "pitchDeg": 20.0
+      },
+      {
+        "profileId": "thermal",
+        "siteId": 20,
+        "yawDeg": 90.0,
+        "pitchDeg": 20.0
+      },
+      {
+        "profileId": "thermal",
+        "siteId": 28,
+        "yawDeg": 270.0,
+        "pitchDeg": 20.0
+      }
+    ],
+    "finalLayout": [
+      {
+        "profileId": "thermal",
+        "siteId": 0,
+        "yawDeg": 0.0,
+        "pitchDeg": 20.0
+      },
+      {
+        "profileId": "thermal",
+        "siteId": 24,
+        "yawDeg": 180.0,
+        "pitchDeg": 20.0
+      },
+      {
+        "profileId": "thermal",
+        "siteId": 19,
+        "yawDeg": 90.0,
+        "pitchDeg": 20.0
+      },
+      {
+        "profileId": "thermal",
+        "siteId": 27,
+        "yawDeg": 270.0,
+        "pitchDeg": 20.0
+      }
+    ],
+    "finalEqualsInitial": false,
+    "uniqueSampledLayouts": 158,
+    "positiveParameterUpdates": 25,
+    "updates": 25,
+    "parameterDeltaNormSum": 8.583914716515753,
+    "positivePairedTrainingEpisodes": 65,
+    "meanTrainingReward": -4.108949059369515
+  },
+  {
+    "arm": "local-918",
+    "initialLayout": [
+      {
+        "profileId": "thermal",
+        "siteId": 16,
+        "yawDeg": 0.0,
+        "pitchDeg": 20.0
+      },
+      {
+        "profileId": "thermal",
+        "siteId": 24,
+        "yawDeg": 180.0,
+        "pitchDeg": 20.0
+      },
+      {
+        "profileId": "thermal",
+        "siteId": 20,
+        "yawDeg": 90.0,
+        "pitchDeg": 20.0
+      },
+      {
+        "profileId": "thermal",
+        "siteId": 28,
+        "yawDeg": 270.0,
+        "pitchDeg": 20.0
+      }
+    ],
+    "finalLayout": [
+      {
+        "profileId": "thermal",
+        "siteId": 16,
+        "yawDeg": 45.0,
+        "pitchDeg": 20.0
+      },
+      {
+        "profileId": "thermal",
+        "siteId": 25,
+        "yawDeg": 180.0,
+        "pitchDeg": 20.0
+      },
+      {
+        "profileId": "thermal",
+        "siteId": 20,
+        "yawDeg": 90.0,
+        "pitchDeg": 20.0
+      },
+      {
+        "profileId": "thermal",
+        "siteId": 12,
+        "yawDeg": 270.0,
+        "pitchDeg": 20.0
+      }
+    ],
+    "finalEqualsInitial": false,
+    "uniqueSampledLayouts": 155,
+    "positiveParameterUpdates": 25,
+    "updates": 25,
+    "parameterDeltaNormSum": 9.342065603909301,
+    "positivePairedTrainingEpisodes": 65,
+    "meanTrainingReward": -3.5592312012734886
+  },
+  {
+    "arm": "legacy-917",
+    "initialLayout": [
+      {
+        "profileId": "thermal",
+        "siteId": 16,
+        "yawDeg": 0.0,
+        "pitchDeg": 20.0
+      },
+      {
+        "profileId": "thermal",
+        "siteId": 20,
+        "yawDeg": 90.0,
+        "pitchDeg": 20.0
+      },
+      {
+        "profileId": "thermal",
+        "siteId": 24,
+        "yawDeg": 180.0,
+        "pitchDeg": 20.0
+      },
+      {
+        "profileId": "thermal",
+        "siteId": 28,
+        "yawDeg": 270.0,
+        "pitchDeg": 20.0
+      }
+    ],
+    "finalLayout": [
+      {
+        "profileId": "thermal",
+        "siteId": 20,
+        "yawDeg": 90.0,
+        "pitchDeg": 20.0
+      },
+      {
+        "profileId": "thermal",
+        "siteId": 24,
+        "yawDeg": 180.0,
+        "pitchDeg": 20.0
+      },
+      {
+        "profileId": "thermal",
+        "siteId": 16,
+        "yawDeg": 0.0,
+        "pitchDeg": 20.0
+      },
+      {
+        "profileId": "thermal",
+        "siteId": 28,
+        "yawDeg": 270.0,
+        "pitchDeg": 20.0
+      }
+    ],
+    "finalEqualsInitial": true,
+    "uniqueSampledLayouts": 135,
+    "positiveParameterUpdates": 25,
+    "updates": 25,
+    "parameterDeltaNormSum": 50.80686754598577,
+    "positivePairedTrainingEpisodes": null,
+    "meanTrainingReward": 18.024965261114694
+  }
+]
