@@ -5,20 +5,26 @@ All displayed warning results come from the original fixed-checkpoint evaluation
 """
 import argparse
 import hashlib
+import html
 import json
 from pathlib import Path
-import shutil
 
 import imageio_ffmpeg
 import numpy as np
 from PIL import Image, ImageDraw
 from render_warning_timelapse import font
+from triad_rl.training_recording import RECORDING_SCHEMA
 
 W,H,FPS = 1920,1080,15
 BG,INK,MUTED,BLUE,GREEN,AMBER,RED = "#081320","#eff5ff","#a9bdd0","#56beff","#6ee3b4","#ffd16e","#ff7384"
 
 
 def result_text(summary):
+    if summary.get("schema") == RECORDING_SCHEMA:
+        return ("RECORDED TRAINING AND EVALUATION EVIDENCE",
+                "The film retains measured warning times and saved sensor placements. "
+                "Training episodes use changing scenarios; compare fixed evaluation panels to measure progress.",
+                "Separate final-test entries are identified when available. Improvement is not guaranteed.")
     rows=[e for e in summary['evaluations'] if e['checkpoint']!='greedy']
     initial,final=rows[0],rows[-1]
     lo,hi=summary['final_minus_control']['untrained']['mean_drone_warning_s']['bootstrap_95_ci']
@@ -50,8 +56,8 @@ def gallery_frame(shot):
     d.rounded_rectangle((55,90,710,460),radius=20,fill=(8,19,32,238))
     names={"eo":"Electro-optical camera","thermal":"Dual-aperture thermal head",
            "radar":"Flat-panel radar","rf":"Passive RF antenna array","fused":"Radar + thermal assembly"}
-    label(d,(85,118),"BLUE TEAM / NEW 3D SENSOR MODELS",20,BLUE)
-    label(d,(85,170),names[shot["profile"]],38)
+    label(d,(85,118),"BLUE TEAM / SELECTED SENSOR MODEL",20,BLUE)
+    label(d,(85,170),shot.get("profile_label", names.get(shot["profile"], shot["profile"])),28)
     label(d,(85,243),"Telescoping mast · anchored base",26,MUTED)
     label(d,(85,287),"Weatherproof enclosure · PBR materials",26,MUTED)
     label(d,(85,355),"Actual Unreal capture, not generated imagery",22,GREEN)
@@ -62,6 +68,8 @@ def gallery_frame(shot):
 
 
 def replay_frame(native,record,summary,stage,final=False):
+    if summary.get("schema") == RECORDING_SCHEMA:
+        return console_replay_frame(native, record, summary, stage, final=final)
     image=Image.new("RGB",(W,H),BG)
     image.paste(checked_image(native).resize((1440,810),Image.Resampling.LANCZOS),(0,125))
     d=ImageDraw.Draw(image)
@@ -132,12 +140,63 @@ def replay_frame(native,record,summary,stage,final=False):
     return image
 
 
+def console_replay_frame(native, record, summary, stage, final=False):
+    """Native footage overlays sourced only from current recorded evidence."""
+    image = Image.new("RGB", (W,H), BG)
+    image.paste(checked_image(native).resize((1440,810),Image.Resampling.LANCZOS),(0,125))
+    d = ImageDraw.Draw(image)
+    label(d,(35,20),"ISTANA / NATIVE 3D TRAINING REPLAY",22,BLUE)
+    label(d,(35,58),record.get("label", f"Episode {record['checkpoint']}"),38)
+    evaluation = record.get("evaluation", record["recorded_metrics"])
+    warning = evaluation.get("mean_drone_warning_s", evaluation.get("meanWarningSeconds"))
+    label(d,(1470,145),"RECORDED MEAN WARNING",21,MUTED)
+    label(d,(1470,185),f"{warning:.3f} s",53,GREEN)
+    count = len(record.get("evaluation_seeds", [record["seed"]]))
+    label(d,(1470,260),"Sampled training episode" if record["kind"] == "training" else f"Across {count} evaluation cases",21,MUTED)
+    label(d,(1470,307),"Missed detections count as zero",19,MUTED)
+    if "deltaSeconds" in evaluation and record["kind"] != "training":
+        delta = evaluation["deltaSeconds"]
+        label(d,(1470,337),f"{delta:+.3f} s vs contractor",21,GREEN if delta >= 0 else RED)
+    label(d,(1470,367),"SHOWN CASE / REPLAY CHECK",21,BLUE)
+    metrics = record["metrics"]
+    label(d,(1470,410),f"Warning {metrics['mean_drone_warning_s']:.3f} s / drone",25)
+    label(d,(1470,459),f"Detected {metrics['detected_fraction']:.0%}",25)
+    label(d,(1470,508),f"Team warning {metrics['team_warning_s']:.3f} s",25)
+    label(d,(1470,565),"Original detection evidence matched",20,GREEN)
+    label(d,(1470,599),f"Scenario {record['seed']}",21,MUTED)
+    context = record["context"]
+    budget = context["publicSnapshot"].get("budget", context["publicSnapshot"].get("budget_remaining", "?"))
+    label(d,(1470,650),f"{len(record['placements'])} sensors · cost {metrics['cost']:g}/{budget}",22)
+    label(d,(1470,687),f"{metrics.get('targets', len(record['warning_evidence']))} drones · limited FOV",22)
+    weather = context["publicSnapshot"].get("weather", {})
+    label(d,(1470,750),f"Rain {weather.get('rain', '?')}",21,MUTED)
+    label(d,(1470,785),f"Visibility {weather.get('visibility', '?')}",21,MUTED)
+    label(d,(35,965),f"Simulation t = {native['elapsed_s']:.1f} s · {record['kind']} recording",23)
+    if native.get("presentation_only"):
+        label(d,(35,1005),"Cinematic camera orbit · frozen simulation state",22,BLUE)
+    else:
+        label(d,(35,1005),"Native Unreal frames · saved actions replayed exactly · no policy resampling",22,BLUE)
+    label(d,(35,1050),"20 m target-zone entry, not impact · synthetic sensing assumptions · different scenario samples are not paired gains",18,MUTED)
+    if final:
+        d.rounded_rectangle((180,350,1280,660),radius=20,fill=BG,outline=BLUE,width=2)
+        label(d,(220,389),"RECORDED RESULT",32,BLUE)
+        label(d,(220,449),f"{record.get('label', 'Selected layout')}: {warning:.3f} s warning / drone",29)
+        label(d,(220,514),"Replay detection and arrival evidence matches the saved run.",25)
+        label(d,(220,572),"Use matching evaluation cases to quantify improvement.",24,MUTED)
+    return image
+
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument("capture",type=Path)
+    parser.add_argument("--clean", action="store_true", help="Export native footage without burned-in metrics/text for editing")
     args=parser.parse_args();folder=args.capture
     manifest=json.loads((folder/'capture-manifest.json').read_text())
-    summary=json.loads((Path(manifest['source_run'])/'summary.json').read_text())
-    movie=folder/'warning-3d-timelapse.mp4'
+    summary=manifest.get('presentation_summary')
+    if summary is None:
+        summary=json.loads((Path(manifest['source_run'])/'summary.json').read_text())
+    if not manifest['recordings']:
+        raise ValueError("Capture manifest has no episode recordings")
+    movie=folder/('warning-3d-clean.mp4' if args.clean else 'warning-3d-timelapse.mp4')
     if movie.exists():raise FileExistsError(movie)
     writer=imageio_ffmpeg.write_frames(str(movie),(W,H),fps=FPS,codec='libx264',quality=8,macro_block_size=2,output_params=['-movflags','+faststart'])
     writer.send(None);frame_count=0;chapters=[]
@@ -147,33 +206,38 @@ def main():
         for _ in range(count):writer.send(pixels)
         frame_count+=count
     try:
-        for shot in manifest['gallery']:
-            hero=gallery_frame(shot);frames(hero,2*FPS)
-            if shot['profile']=='eo':hero.save(folder/'sensor-model-preview.jpg',quality=95)
+        for index, shot in enumerate(manifest['gallery']):
+            hero=checked_image(shot).resize((W,H),Image.Resampling.LANCZOS) if args.clean else gallery_frame(shot)
+            frames(hero,2*FPS)
+            if index == 0: hero.save(folder/'sensor-model-preview.jpg',quality=95)
         for stage,record in enumerate(manifest['recordings']):
-            chapters.append({'episode':record['checkpoint'],'seconds':frame_count/FPS})
-            for native in record['frames']:frames(replay_frame(native,record,summary,stage),3)
-        final=replay_frame(record['frames'][-1],record,summary,stage,final=True)
+            chapters.append({'episode':record['checkpoint'],'label':record.get('label', f"Episode {record['checkpoint']}"),'seconds':frame_count/FPS})
+            for native in record['frames']:
+                frames(checked_image(native).resize((W,H),Image.Resampling.LANCZOS) if args.clean
+                       else replay_frame(native,record,summary,stage),3)
+        final=(checked_image(record['frames'][-1]).resize((W,H),Image.Resampling.LANCZOS) if args.clean
+               else replay_frame(record['frames'][-1],record,summary,stage,final=True))
         final.save(folder/'timelapse-3d-poster.png');frames(final,6*FPS)
     finally:writer.close()
-    shutil.copy2(Path(manifest['source_run'])/'summary.json',folder/'training-summary.json')
-    buttons=''.join(f'<button data-time="{c["seconds"]}">Episode {c["episode"]}</button>' for c in chapters)
+    (folder/'training-summary.json').write_text(json.dumps(summary, indent=2),encoding='utf-8')
+    buttons=''.join(f'<button data-time="{c["seconds"]}">{html.escape(c["label"])}</button>' for c in chapters)
     headline,description,team_text=result_text(summary)
     page=f'''<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Istana | Native 3D RL timelapse</title>
 <style>body{{margin:auto;padding:28px;max-width:1300px;background:#081320;color:#eff5ff;font:18px system-ui}}h1{{font-size:38px;margin:10px 0}}p,li{{color:#b8c9dc;line-height:1.6}}video,img{{width:100%;border-radius:15px}}button{{background:#233c55;color:white;border:1px solid #55728c;padding:12px 18px;border-radius:8px;margin:6px;cursor:pointer}}a{{color:#63c8ff}}.panel{{background:#112237;padding:24px;border-radius:14px;margin:24px 0}}</style>
 <p style="color:#6ee3b4;letter-spacing:2px">ACTUAL UNREAL CAPTURE · 1080P</p><h1>Blue Team: native 3D training timelapse</h1>
-<p>Detailed sensor models, recorded Red approaches, and warning times across all five fixed training checkpoints.</p>
-<video id="film" controls preload="auto" poster="timelapse-3d-poster.png"><source src="warning-3d-timelapse.mp4" type="video/mp4"></video>
+<p>Native sensor models, recorded Red approaches, and warning times for the retained layouts listed below.</p>
+<video id="film" controls preload="auto" poster="timelapse-3d-poster.png"><source src="{movie.name}" type="video/mp4"></video>
 <div><button data-time="0">Sensor model close-ups</button>{buttons}</div>
 <script>document.querySelectorAll('button[data-time]').forEach(b=>b.onclick=()=>{{const v=document.getElementById('film');v.currentTime=Number(b.dataset.time);v.play();}});</script>
 <div class="panel"><strong>{headline}</strong><p>{description} {team_text} This recording does not claim that cosmetic improvements improved learning.</p>
 <p>As requested, the endpoint remains entry into the 20 m target zone, <strong>not physical impact</strong>. Red is scripted, not a learned opponent. Probabilities are simulation assumptions; directional thermal line of sight is traced against Unreal world-static geometry.</p></div>
-<h2>What changed</h2><p>Five distinct equipment assemblies replace the plain cylinders: EO camera, thermal head, flat-panel radar, passive RF array and combined radar/thermal. Each has a surface-mounted base, telescoping mast, braces, fasteners, weatherproof electronics and existing authored PBR materials. The video begins with native model close-ups.</p>
-<p>The overhead sequences are rendered by Unreal from the same saved checkpoints and held-out scenario as the earlier pilot. Every replay's full per-drone detection and arrival evidence was checked against the original. The small colored markers are observer overlays on native drone/sensor positions; they are not policy inputs. The map displays one preselected case while the performance cards average all eight held-out scenarios.</p>
-<p><a href="warning-3d-timelapse.mp4" download>Download the 3D MP4</a> · <a href="sensor-model-preview.jpg">Sensor close-up</a> · <a href="training-summary.json">Measured training results</a> · <a href="capture-manifest.json">Native capture evidence</a></p>
+<h2>Equipment footage</h2><p>New capture galleries contain only the selected available limited-FOV sensor profiles. Each shot retains its catalogue specifications alongside the native model image. Historical capture manifests retain their originally recorded equipment.</p>
+<p>The sequences are rendered by Unreal from saved placements. Every replay's full per-drone detection and arrival evidence was checked against the original. The footage shows one recorded case per layout; performance cards identify whether results describe that sampled episode or a fixed evaluation panel. Presentation-only camera orbits freeze simulation time.</p>
+<p><a href="{movie.name}" download>Download the 3D MP4</a> · <a href="training-summary.json">Measured training results</a> · <a href="capture-manifest.json">Native capture evidence</a></p>
 <p>Training is replayed here, not repeated or selected for favorable outcomes. The existing scenario and all original training artifacts remain preserved.</p></html>'''
     (folder/'index.html').write_text(page,encoding='utf-8')
-    (folder/'video-metadata.json').write_text(json.dumps({'fps':FPS,'frames':frame_count,'duration_s':frame_count/FPS,'chapters':chapters,'native_frame_count':sum(len(r['frames']) for r in manifest['recordings'])},indent=2))
+    (folder/'video-metadata.json').write_text(json.dumps({'fps':FPS,'frames':frame_count,'duration_s':frame_count/FPS,'chapters':chapters,'burned_in_overlays':not args.clean,'native_frame_count':sum(len(r['frames']) for r in manifest['recordings'])},indent=2))
+    (folder/'CREDITS.txt').write_text('Map data © OpenStreetMap contributors / ODbL. Actual Unreal rendering. Retain these credits with exported footage.\n',encoding='utf-8')
     hashes={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in folder.iterdir() if p.is_file() and p.name!='artifact-sha256.json'}
     (folder/'artifact-sha256.json').write_text(json.dumps(hashes,indent=2))
     print(json.dumps({'movie':str(movie),'duration_s':frame_count/FPS,'chapters':chapters},indent=2))

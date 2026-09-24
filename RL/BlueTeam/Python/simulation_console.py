@@ -329,6 +329,12 @@ def make_server(port=9048, bridge_port=8765, *, state=None, replays=None, compar
                 return self.reply(state.status())
             if self.path == "/api/training/status":
                 return self.reply(trainer.status())
+            training_replay = re.fullmatch(r"/api/training/replay/(initial|baseline|latest|best|checkpoint-\d+|\d+)", self.path)
+            if training_replay or self.path == "/api/training/export":
+                try:
+                    return self.reply(trainer.replay(training_replay[1]) if training_replay else trainer.export())
+                except (ValueError, OSError) as error:
+                    return self.reply({"error": str(error)}, 400)
             match = re.fullmatch(r"/api/replay/(\d+)", self.path)
             if match and int(match[1]) < len(replays):
                 return self.reply(replay_view(replays[int(match[1])]))

@@ -3,6 +3,8 @@ from copy import deepcopy
 import http.client
 import json
 from pathlib import Path
+import shutil
+import subprocess
 import threading
 
 import pytest
@@ -96,6 +98,77 @@ def test_training_tab_uses_native_status_and_exposes_no_fake_detection_claim():
     assert "entry.redScenario.spawnBearingsDeg" in script
     assert "syncModelCatalog(session)" in script
     assert 'actual detected fraction' not in html.lower()  # results are populated from native status
+
+
+def test_training_evidence_replay_behavior():
+    node = shutil.which('node')
+    if node is None:
+        pytest.skip('Node is needed for the console behavior checks')
+    result = subprocess.run(
+        [node, str(Path(__file__).with_name('console_training_ui.test.cjs'))],
+        capture_output=True, text=True, timeout=20, check=False)
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+def test_training_evidence_controls_match_the_api_contract():
+    html = (CONSOLE / 'index.html').read_text(encoding='utf-8')
+    script = (CONSOLE / 'app.js').read_text(encoding='utf-8')
+    for control in ('training-exploration', 'training-validation', 'training-checkpoint',
+                    'training-baseline-warning', 'training-best-warning', 'training-test-warning',
+                    'training-validation-chart', 'training-replay', 'training-episode-number',
+                    'training-history-rows', 'training-export', 'training-sensor-eligibility'):
+        assert f'id="{control}"' in html
+    assert "explorationProbability:Number($('training-exploration').value)" in script
+    assert "validationCases:Number($('training-validation').value)" in script
+    assert "checkpointInterval:Number($('training-checkpoint').value)" in script
+    assert '/api/training/replay/${encodeURIComponent(selection)}' in script
+    assert "api('/api/training/export')" in script
+
+
+def test_training_replay_routes_keep_sampled_episode_and_policy_checkpoint_distinct(http_server, tmp_path):
+    trainer = http_server.training_manager
+    trainer._set(outputDirectory=str(tmp_path), episode=500)
+    (tmp_path / 'episodes').mkdir()
+    recordings = {
+        'initial-episode.json': (0, 'Initial policy'),
+        'baseline-episode.json': (0, 'Contractor baseline'),
+        'best-episode.json': (500, 'Best validated policy'),
+        'checkpoint-000500-episode.json': (500, 'Deterministic policy checkpoint'),
+        'episodes/episode-000500.json': (500, 'Sampled training episode'),
+    }
+    for filename, (episode, label) in recordings.items():
+        (tmp_path / filename).write_text(json.dumps({
+            'episode': episode, 'viewer': {'label': label, 'mode': 'training'}}), encoding='utf-8')
+    expected = {'initial': 'Initial policy', 'baseline': 'Contractor baseline',
+                'best': 'Best validated policy', 'checkpoint-500': 'Deterministic policy checkpoint',
+                '500': 'Sampled training episode', 'latest': 'Sampled training episode'}
+    for selection, label in expected.items():
+        status, _, raw = request(http_server, f'/api/training/replay/{selection}')
+        assert status == 200
+        assert json.loads(raw)['viewer']['label'] == label
+    for selection in ('501', 'checkpoint-501', '10001'):
+        status, _, raw = request(http_server, f'/api/training/replay/{selection}')
+        assert status == 400 and json.loads(raw)['error']
+    assert request(http_server, '/api/training/replay/../../configuration.json')[0] == 404
+
+
+def test_training_export_includes_complete_log_lines_and_recording_manifest(http_server, tmp_path):
+    trainer = http_server.training_manager
+    assert request(http_server, '/api/training/export')[0] == 400
+    assert request(http_server, '/api/training/replay/initial')[0] == 400
+    trainer._set(outputDirectory=str(tmp_path), episode=1)
+    configuration = {'name': 'Retained run', 'episodes': 1500}
+    recording = {'entries': [{'kind': 'sampled', 'checkpoint': 1}]}
+    (tmp_path / 'configuration.json').write_text(json.dumps(configuration), encoding='utf-8')
+    (tmp_path / 'recording-manifest.json').write_text(json.dumps(recording), encoding='utf-8')
+    (tmp_path / 'training.jsonl').write_text('{"episode": 1}\n{"episode":', encoding='utf-8')
+    status, _, raw = request(http_server, '/api/training/export')
+    exported = json.loads(raw)
+    assert status == 200
+    assert exported['configuration'] == configuration
+    assert exported['recording'] == recording
+    assert exported['history'] == [{'episode': 1}]
+    assert exported['summary'] is None  # A running/stopped run is exportable before publication.
 
 
 def test_compare_tab_offers_measured_eight_sensor_results_with_contract_caveat():

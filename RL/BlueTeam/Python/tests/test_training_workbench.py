@@ -213,6 +213,7 @@ def test_background_manager_retains_progress_checkpoints_and_summary(tmp_path):
                               policy_factory=Policy, episode_runner=episode)
     manager.start({"name": "Perimeter watcher", "algorithm": "reinforce",
                    "episodes": 4, "batchSize": 2,
+                   "validationCases": 2, "headroomProbes": 0, "checkpointInterval": 2,
                    "sensorCount": 3, "seed": 917, "initialization": "untrained"})
     manager.thread.join(timeout=5)
     status = manager.status()
@@ -225,7 +226,7 @@ def test_background_manager_retains_progress_checkpoints_and_summary(tmp_path):
     assert all(row["redPolicy"] == "fixed_radius_random_sectors" for row in status["history"])
     assert status["history"][0]["redScenario"]["spawnRadiusM"] == 570.
     assert all(len(row["rewardBreakdown"]["components"]) == 5 for row in status["history"])
-    assert status["history"][-1]["validationChanges"][0]["value"] == pytest.approx(3.)
+    assert status["history"][-1]["validationChanges"][0]["value"] == pytest.approx(4.)
     assert status["registeredModel"]["name"] == "Perimeter watcher"
     assert status["sensorCount"] == 3
     assert status["bestEpisode"] == 4
@@ -235,12 +236,15 @@ def test_background_manager_retains_progress_checkpoints_and_summary(tmp_path):
     logged = [json.loads(line) for line in
               (output / "training.jsonl").read_text(encoding="utf-8").splitlines()]
     assert len(logged) == 4 and logged[-1]["validationChanges"]
-    assert len(calls) == 9
-    assert all(call[1]["deterministic"] for call in
-               (calls[2], calls[5], calls[6], calls[7], calls[8]))
+    assert len(calls) == 17
+    assert all(kwargs.get("deterministic") for seed, kwargs in calls if seed >= 2700000)
+    validation_seeds = {seed for seed, _ in calls if 2700000 <= seed < 2800000}
+    test_seeds = {seed for seed, _ in calls if 3800000 <= seed < 3900000}
+    assert len(validation_seeds) == len(test_seeds) == 2
+    assert validation_seeds.isdisjoint(test_seeds)
     assert manager.registry.list()[0]["name"] == "Perimeter watcher"
     assert status["registeredModel"]["bestObservedEpisode"] == 4
-    assert status["registeredModel"]["bestObservedWarningSeconds"] == pytest.approx(5.)
+    assert status["registeredModel"]["bestObservedWarningSeconds"] == pytest.approx(10.)
     assert (output / "best-observed-episode.json").exists()
     comparison = manager.registry.comparison(status["registeredModel"]["id"])
     assert comparison["rl"]["maxSensors"] == comparison["baseline"]["maxSensors"] == 3
@@ -251,6 +255,13 @@ def test_background_manager_retains_progress_checkpoints_and_summary(tmp_path):
     assert observed["audit"]["generalPolicyClaim"] is False
     json.loads((output / "summary.json").read_text(encoding="utf-8"))
     assert manager.registry.list()[0]["sensorCount"] == 3
+    assert len(list((output / "episodes").glob("episode-*.json"))) == 4
+    assert manager.replay("baseline")["episode"] == 0
+    assert manager.replay("latest")["episode"] == 4
+    assert manager.replay("checkpoint-2")["episode"] == 2
+    assert manager.replay("best")["episode"] == 4
+    assert len(manager.export()["history"]) == 4
+    assert manager.status()["viewerSelection"] == "latest"
 
 
 @pytest.mark.parametrize("name", ["", "   ", "bad\nname", "x" * 65])

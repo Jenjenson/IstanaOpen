@@ -10,11 +10,11 @@ import json
 from pathlib import Path
 import time
 
-import numpy as np
 from PIL import Image
 
 from triad_rl.istana_live import IstanaLiveClient
-from triad_rl.warning_policy import WarningPolicy, warning_metrics
+from triad_rl.warning_policy import warning_metrics
+from triad_rl.training_recording import load_recordings, parse_episodes, RECORDING_SCHEMA
 from train_warning_live import red_centers, write_json
 from triad_rl.warning_scenario import approach_centers, scenario_contract, digest
 
@@ -49,6 +49,41 @@ def capture(client, saved, view="overview", site_id=None, orbit_degrees=None, pr
     raise TimeoutError(f"Native PNG was not completed: {path}")
 
 
+def prepare_replay(client, expected, protocol):
+    """Deploy recorded actions directly; never resample a saved actor."""
+    red = client.reset(expected["seed"])
+    context = client.get_blue_context()
+    if "red_context" in expected:
+        if digest(scenario_contract(red, context)) != digest(
+                scenario_contract(expected["red_context"], expected["context"])):
+            raise ValueError("Capture scene differs from the recorded physical/weather contract")
+    elif protocol.get("schema") == RECORDING_SCHEMA:
+        raise ValueError("Console recording has no frozen Red context; exact capture cannot be verified")
+    is_approach = protocol.get("schema") == "istana.native_warning_approach.v2"
+    if is_approach and digest(scenario_contract(red, context)) != expected["physical_contract_sha256"]:
+        raise ValueError("Capture scene differs from the frozen training scenario")
+    placements = expected["placements"]
+    client.deploy(placements)
+    if "red_decision" in expected:
+        centers = expected["red_decision"]["centers"]
+    else:
+        centers = (approach_centers if is_approach else red_centers)(red, expected["seed"])
+    client.place_red(centers)
+    return placements
+
+
+def gallery_profiles(context, selected_ids=None):
+    """Show only selected, available limited-FOV equipment in new captures."""
+    available = context["publicSnapshot"]["available_sensor_ids"]
+    directional = {row["id"] for row in context["catalogue"]
+                   if row.get("directional") and row["id"] in available}
+    if selected_ids is None:
+        return [row["id"] for row in context["catalogue"] if row["id"] in directional]
+    if not selected_ids or not set(selected_ids) <= directional:
+        raise ValueError("The recorded sensor selection must contain only available limited-FOV profiles")
+    return list(selected_ids)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("run", type=Path)
@@ -57,17 +92,33 @@ def main():
     parser.add_argument("--step-batch", type=int, default=10)
     parser.add_argument("--gallery-only", action="store_true")
     parser.add_argument("--detail-views", action="store_true", help="Presentation-only drone/sensor close-ups during the unchanged replay")
+    parser.add_argument("--episodes", help="Recorded sampled episodes: all or comma-separated numbers (e.g. 500,1000,1500)")
+    parser.add_argument("--best-only", action="store_true", help="Capture the selected best policy's separate test case")
+    parser.add_argument("--skip-gallery", action="store_true")
+    parser.add_argument("--cinematic-orbit", action="store_true", help="Append an overview orbit of the final frozen layout")
+    parser.add_argument("--orbit-frames", type=int, default=120, help="Presentation frames in the optional frozen-scene orbit")
     args = parser.parse_args()
-    if not 1 <= args.step_batch <= 20: parser.error("step-batch must be 1..20")
+    if not 1 <= args.step_batch <= 250: parser.error("step-batch must be 1..250")
+    if not 2 <= args.orbit_frames <= 600: parser.error("orbit-frames must be 2..600")
     args.output.mkdir(parents=True, exist_ok=False)
     saved = Path(__file__).resolve().parents[3] / "Saved"
-    summary = json.loads((args.run / "summary.json").read_text())
-    protocol = summary["protocol"]
+    if args.gallery_only:
+        path = args.run / "recording-manifest.json"
+        summary, entries = (json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}), []
+    else:
+        summary, entries = load_recordings(
+            args.run, episodes=parse_episodes(args.episodes), best_only=args.best_only)
+    protocol = summary.get("protocol", summary)
     shots, recordings = [], []
     with IstanaLiveClient(port=args.port) as client:
         # Product close-ups are presentation-only resets, not extra training or
         # selected evaluation episodes. One supported roof site for all heads.
-        for index, profile in enumerate(("eo", "thermal", "radar", "rf", "fused")):
+        profiles = []
+        if not args.skip_gallery:
+            client.reset(4900000)
+            profiles = gallery_profiles(client.get_blue_context(),
+                summary.get("configuration", {}).get("sensorIds"))
+        for index, profile in enumerate(profiles):
             client.reset(4900000 + index)
             context = client.get_blue_context()
             blocked = context["publicSnapshot"]["blocked_sites"]
@@ -81,22 +132,14 @@ def main():
             capture(client, saved, "sensor", site)
             time.sleep(.4)
             image = capture(client, saved, "sensor", site)
-            shots.append({"profile": profile, "site_id": site, **image})
+            shots.append({"profile": profile, "profile_label": sensor.get("label", profile),
+                          "profile_specifications": sensor, "site_id": site, **image})
             print(json.dumps({"gallery": profile, **image}), flush=True)
         write_json(args.output / "gallery.json", shots)
         if args.gallery_only: return
-        for number in protocol["checkpoints"]:
-            expected = json.loads((args.run / f"evaluation-{number:04d}.json").read_text())[0]
-            red = client.reset(expected["seed"])
-            context = client.get_blue_context()
-            policy = WarningPolicy.load(args.run / f"policy-{number:04d}.json", context)
-            placements, _ = policy.plan(context, rng=np.random.default_rng(expected["action_seed"]))
-            if placements != expected["placements"]: raise ValueError("Checkpoint layout differs from recorded evaluation")
-            client.deploy(placements)
-            is_approach = protocol.get("schema") == "istana.native_warning_approach.v2"
-            if is_approach and digest(scenario_contract(red, context)) != expected["physical_contract_sha256"]:
-                raise ValueError("Capture scene differs from the frozen training scenario")
-            client.place_red((approach_centers if is_approach else red_centers)(red, expected["seed"]))
+        for entry in entries:
+            number, expected = entry["checkpoint"], entry["run"]
+            placements = prepare_replay(client, expected, protocol)
             # A close tracking view makes the real drone mesh visible during
             # the distant approach; the original overview shows deployment.
             switch_time = max(0., (expected["metrics"]["first_detection_s"] or 0.) - 3.)
@@ -125,15 +168,27 @@ def main():
             metrics = warning_metrics(blue)
             if blue["warningEvidenceForEvaluationOnly"] != expected["warning_evidence"]:
                 raise ValueError("Presentation change altered native detection/arrival evidence")
+            if args.cinematic_orbit:
+                # Orbit frozen simulation state. These are presentation frames,
+                # not extra successful detections or additional evaluation time.
+                for index in range(args.orbit_frames):
+                    frames.append({**capture(client, saved, "overview", orbit_degrees=-30 + 60 * index / (args.orbit_frames-1)),
+                                   "view": "overview", "presentation_only": True})
             record = {"checkpoint": number, "seed": expected["seed"], "placements": placements,
                       "frames": frames, "metrics": metrics,
+                      "label": entry["label"], "kind": entry["kind"],
+                      "recorded_metrics": expected["metrics"],
+                      "evaluation": entry.get("evaluation", expected["metrics"]),
+                      "evaluation_seeds": entry.get("evaluation_seeds", [expected["seed"]]),
+                      "context": expected["context"],
                       "warning_evidence": blue["warningEvidenceForEvaluationOnly"],
                       "matched_original_evidence": True}
             recordings.append(record)
-            write_json(args.output / f"capture-{number:04d}.json", record)
+            write_json(args.output / f"capture-{entry['kind']}-{number:04d}.json", record)
             print(json.dumps({"checkpoint": number, "frames": len(frames), "metrics": metrics}), flush=True)
-    write_json(args.output / "capture-manifest.json", {"schema": "istana.native_3d_capture.v1",
+    write_json(args.output / "capture-manifest.json", {"schema": "istana.native_3d_capture.v2",
                "source_run": str(args.run.resolve()), "gallery": shots, "recordings": recordings,
+               "presentation_summary": summary,
                "endpoint": "20m target-zone arrival, NOT impact", "native_frames": True,
                "warning_evidence_unchanged": True, "rendering_only_changes": True,
                "observer_markers": False})

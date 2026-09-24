@@ -38,14 +38,22 @@
    <div id="training-controls" hidden>
      <p class="helper live-note">Train the directional warning-time policy against an inference-only Red scenario generator—not a pretrained Red model. Every episode samples five distinct, reproducible approach sectors from an eight-sector benchmark at the same fixed spawn radius, then Unreal flies the drones toward the target. This tab temporarily owns the Unreal bridge.</p>
     <label for="training-name">Model name</label><input id="training-name" type="text" maxlength="64" value="My warning model" autocomplete="off" spellcheck="false">
-    <p class="helper">After training, the held-out-selected policy and the exact highest-warning completed episode are retained separately and added to Compare placements automatically.</p>
+    <p class="helper">Completed runs add the validation-selected policy and exact highest-warning sampled episode to Compare placements separately. Stop retains recordings and checkpoints without running a new final test or publishing a model.</p>
     <label for="training-algorithm">Training algorithm</label><select id="training-algorithm"></select>
     <p id="training-algorithm-help" class="helper">Choose how complete native episode returns update the masked placement policy.</p>
     <label for="training-initialization">Starting placement</label><select id="training-initialization"></select>
-    <p id="training-initialization-help" class="helper">The selected common-sense layout initializes trainable logits; it is not locked during RL.</p>
+    <p id="training-initialization-help" class="helper">The selected layout gives the policy a starting preference. Training also explores other legal placements.</p>
      <div class="training-grid"><label for="training-episodes">Episodes<input id="training-episodes" type="number" min="4" max="10000" step="4" value="32"></label><label for="training-batch">Batch size<input id="training-batch" type="number" min="2" max="32" step="1" value="4"></label><label for="training-sensors">Sensor count<input id="training-sensors" type="number" min="1" max="8" step="1" value="8"></label></div>
     <p class="helper">Sensor count is exact: every training and held-out layout uses that many legal sensors. Native episodes can be slow; the 10,000-episode ceiling prevents accidental unbounded runs, and Stop safely remains available.</p>
+    <p id="training-sensor-eligibility" class="helper">Training and its contractor comparison use only the selected realistic, limited-FOV sensor profiles. Both use the same sensor selection, count and budget.</p>
     <label for="training-seed">Training seed</label><input id="training-seed" type="number" step="1" value="917" min="-2147483648" max="2147483647">
+    <details class="training-settings"><summary>Exploration and evaluation</summary>
+     <label for="training-exploration">Starting exploration<input id="training-exploration" type="number" min="0.05" max="0.8" step="0.05" value="0.2"></label>
+     <p class="helper">For common-sense starts, 0.2 gives the first placement decision a 20% chance of choosing outside the starting layout. Later probabilities change with legal choices and learning.</p>
+     <label for="training-validation">Fixed validation scenarios<input id="training-validation" type="number" min="2" max="20" step="1" value="5"></label>
+     <label for="training-checkpoint">Save policy every N episodes<input id="training-checkpoint" type="number" min="1" max="10000" step="1" value="500"></label>
+     <p class="helper">The baseline and each evaluated policy face the same validation scenarios. A separate final test checks unseen scenarios. Episode replays and logs are retained between policy snapshots.</p>
+    </details>
     <div class="training-actions"><button id="training-start" class="primary">Start training</button><button id="training-stop" class="secondary" disabled>Stop safely</button></div>
     <p id="training-status" class="helper" role="status" aria-live="polite">Ready. Start Unreal with <code>-TrainingWorkbench -DelayedDetectionDemo</code>.</p>
     <div class="budget-track training-track"><span id="training-progress-bar"></span></div>
@@ -54,7 +62,7 @@
     <p class="training-chart-label">Native rewards · Blue (gold) and Red (coral), logged separately</p><canvas id="training-reward-chart" class="training-chart reward-chart" role="img" aria-label="Separate Blue and Red native rewards by episode"></canvas>
     <div class="training-reward-heading"><span>Reward log</span><small>Blue components + separate Red return</small></div><div id="training-reward-log" class="training-reward-log" role="log" aria-live="polite"><p class="helper">Reward details appear after episode 1.</p></div>
     <p class="helper">The map retains each episode's Red trajectory. Use <strong>Play replay</strong> to see the drones move from their randomized fixed-radius spawns toward the target while training continues.</p>
-    <p class="helper">Every completed episode is appended to <code>training.jsonl</code>. Policy snapshots are saved at episode 0 and batch-aligned 25/50/75/100% milestones; every new held-out best also gets its own checkpoint. Compare and Live retain both the held-out-selected policy and the exact highest-warning sampled episode, clearly labelled for their different purposes.</p>
+    <p class="helper">Every completed episode retains its layout, metrics and replay. Policy snapshots follow the interval above and every new validation best. Sampled episode scores and fixed-scenario policy evaluations are different evidence; improvement is measured, not assumed.</p>
     <p id="training-output" class="helper"></p>
    </div>
    <div id="deployment-controls">
@@ -72,6 +80,21 @@
   </aside>
   <section class="stage" aria-label="Simulation viewer">
    <div class="stage-header"><div><span id="source-badge" class="source-badge">RECORDED</span><h2 id="episode-title">Loading episode…</h2></div><div class="stage-clock"><span>SIMULATION TIME</span><strong id="clock">00:00.0</strong></div></div>
+   <section id="training-evidence" class="training-evidence" aria-label="Training progress and retained evidence" hidden>
+    <div class="training-evidence-heading"><div><h2>Is the policy learning?</h2><p id="training-evaluation-note" class="helper">Evaluate the starting layout before judging later episodes. Higher warning time is better; missed detections count as zero.</p></div><button id="training-export" class="secondary" disabled>Download run data</button></div>
+    <div class="training-evidence-cards">
+     <article><span>Contractor baseline · fixed scenarios</span><strong id="training-baseline-warning">—</strong><small id="training-initial-warning">Initial policy: awaiting evaluation</small></article>
+     <article><span>Latest sampled episode</span><strong id="training-sample-warning">—</strong><small id="training-sample-note">No completed episode</small></article>
+     <article><span>Best validated policy</span><strong id="training-best-warning">—</strong><small id="training-validation-delta">Awaiting fixed-scenario evaluation</small></article>
+     <article><span>Separate final test</span><strong id="training-test-warning">—</strong><small id="training-test-delta">Runs after policy selection</small></article>
+    </div>
+    <p id="training-exploration-summary" class="helper">Layout diversity and exploration measurements appear during training.</p>
+    <p id="training-probe-summary" class="helper" hidden></p>
+    <p class="training-chart-label">Fixed-scenario validation · warning seconds · dashed line = contractor baseline</p><canvas id="training-validation-chart" class="training-chart" role="img" aria-label="Validation mean warning time against the contractor baseline"></canvas>
+    <div class="training-replay-controls"><label for="training-replay">Layout to replay<select id="training-replay"><option value="latest">Follow latest sampled episode</option></select></label><button id="training-replay-load" class="secondary" disabled>Show layout</button><label for="training-episode-number">Episode number<input id="training-episode-number" type="number" min="1" step="1" placeholder="500"></label><button id="training-episode-open" class="secondary" disabled>Show episode</button></div>
+    <p id="training-replay-note" class="helper" role="status">Following the latest sampled episode. Selected earlier replays stay on screen while training continues.</p>
+    <details class="training-history"><summary>Per-episode log <span id="training-history-count">0 episodes</span></summary><div class="training-history-scroll"><table><caption>Sampled warning and fixed-scenario validation are reported separately.</caption><thead><tr><th scope="col">Episode</th><th scope="col">Sampled warning</th><th scope="col">Detected</th><th scope="col">Sensors changed</th><th scope="col">Validation mean</th><th scope="col">Replay</th></tr></thead><tbody id="training-history-rows"></tbody></table></div></details>
+   </section>
    <section id="comparison-panel" class="comparison-panel" aria-label="Placement comparison" hidden>
     <div class="comparison-heading"><div><h2 id="comparison-heading">Reinforcement learning vs common sense</h2><p id="comparison-fairness" class="helper">Two layouts. The same adversaries, sensor model and deployment limits.</p></div><span id="comparison-tag" class="source-badge">NATIVE EVALUATION</span></div>
     <div class="comparison-map-grid">

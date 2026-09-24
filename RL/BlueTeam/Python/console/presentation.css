@@ -19,3 +19,8 @@
 .presentation #live-policy optgroup{font-size:11px}
 .presentation #surface-status{font-size:10px;margin:5px 0}
 .presentation .sensor-row{margin:8px 0}
+.presentation .training-evidence-cards,.presentation .training-chart,
+.presentation .training-chart-label,.presentation .training-history,
+.presentation .training-numbers,.presentation .training-reward-heading,
+.presentation .training-reward-log,.presentation #training-exploration-summary,
+.presentation #training-probe-summary,.presentation #training-evaluation-note{display:none}
