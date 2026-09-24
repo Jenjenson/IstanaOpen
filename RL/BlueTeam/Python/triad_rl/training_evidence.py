@@ -44,7 +44,8 @@ def evaluation_summary(runs, baseline=None):
         public = context["publicSnapshot"]
         value = {key: context[key] for key in ("catalogue", "temporalConfig", "worldOriginCm")}
         value["deployment"] = {key: public.get(key) for key in (
-            "budget_total", "max_sites", "sites", "blocked_sites", "min_separation",
+            "budget_total", "budget_remaining", "max_sites", "sites", "blocked_sites", "min_separation",
+            "deployment_min_radius", "deployment_max_radius",
             "weather", "forecast", "available_sensor_ids")}
         return hashlib.sha256(json.dumps(value, sort_keys=True, allow_nan=False).encode()).hexdigest()
     cases = [{"seed": run["seed"], **deepcopy(run["metrics"]),

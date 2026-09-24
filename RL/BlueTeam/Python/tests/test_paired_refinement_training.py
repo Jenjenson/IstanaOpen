@@ -27,7 +27,8 @@ def test_paired_reward_cancels_scenario_only_offset(offset):
     assert result["contractorWarningSeconds"] == offset + 1.
 
 
-@pytest.mark.parametrize("mismatch", ["seed", "trajectory", "weather", "inventory", "targets", "cost"])
+@pytest.mark.parametrize("mismatch", ["seed", "trajectory", "weather", "inventory", "targets", "cost",
+                                     "deployment_min_radius", "deployment_max_radius", "budget_remaining"])
 def test_paired_training_rejects_unmatched_evidence(mismatch):
     actual, baseline = evidence(31, 5.), evidence(31, 4.)
     if mismatch == "seed": baseline["seed"] = 32
@@ -36,6 +37,9 @@ def test_paired_training_rejects_unmatched_evidence(mismatch):
     if mismatch == "inventory": baseline["placements"][0]["profileId"] = "omni"
     if mismatch == "targets": baseline["metrics"]["targets"] = 6
     if mismatch == "cost": baseline["metrics"]["cost"] = .5
+    if mismatch in ("deployment_min_radius", "deployment_max_radius", "budget_remaining"):
+        baseline["context"]["publicSnapshot"][mismatch] = {
+            "deployment_min_radius": 40., "deployment_max_radius": 90., "budget_remaining": 1.}[mismatch]
     with pytest.raises(ValueError):
         paired_training_reward(actual, baseline)
 
