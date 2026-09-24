@@ -204,41 +204,39 @@ placement, training algorithm, episode count, batch size, exact sensor count
 pitch/STOP choices and native legality mask; only the optimizer changes. DDPG is
 not offered because its continuous action contract does not match the approved
 discrete mounting-site workflow.
-After every policy update the console evaluates the checkpoint on one fixed
-held-out native episode. When training finishes, it saves the highest-warning
-checkpoint under the chosen name and automatically adds its matched evaluation
-to **Compare placements**; the same saved best layout also appears in the Live
-Unreal planner list. The Training tab owns bridge
-port 8765 until the run completes or is stopped; Live Unreal controls cannot run
-at the same time. Run artifacts are retained under
-`Saved\WarningTraining\console-*`; named models are under
-`Saved\WarningTraining\models\trained-*`.
-The chosen sensor count is enforced for sampled and deterministic layouts; STOP
-is masked until that many legal placements exist, and choices that would leave
-too little budget for the remaining sensors are rejected by the same action
-mask. Common-sense warm starts and the final comparison baseline automatically
-use the selected count. The episode field accepts 4–10,000 episodes. The upper
-bound is a console guard against accidental unbounded native runs, not an RL or
-Unreal limitation; large runs can take many hours and can be stopped safely.
-Starting layouts use the current 24° directional frustum and public approach
-priors. Static 24° cameras cannot guarantee full 360° or universal detection;
-the UI therefore reports each episode's actual detected fraction.
+The console evaluates the contractor layout and initial policy before training,
+then selects checkpoints using mean warning time across a fixed validation
+panel. A separate test panel measures the final comparison. Ties retain the
+earlier checkpoint, including episode zero; the UI distinguishes sampled
+training results from validated policy improvement.
 
-The Training tab has a warning-time graph and a native-reward graph with Blue
-and Red returns shown separately. The policy
-still optimizes mean per-drone warning time (missed drones contribute zero); the
-Blue native reward is tracked as an additional diagnostic using the Unreal formula
-`2·detected + 3·confirmed + 5·timely − 5·late/unconfirmed − cost/budget`.
-Red native reward is logged separately as the opposite terminal sensing return;
-the fixed Red scenario generator is not updated. Its per-episode log shows each signed Blue component, Red spawn radius/bearings, and matched held-out warning
-improvements after batch updates. Every completed episode, placement and metric
-is appended to `training.jsonl`. Policy snapshots are retained at episode 0 and
-batch-aligned 25/50/75/100% milestones, and every new held-out best is saved separately; only
-the selected final best is published to Compare and Live. Red opponents in this
-tab choose five distinct seeded sectors from an eight-sector benchmark, add up
-to 4° bearing jitter, and keep one fixed spawn radius plus Unreal swarm movement.
-This is a scenario generator, not a pretrained Red policy. The Training map retains a trajectory
-replay so **Play replay** visibly shows the drones moving toward the target.
+Warm starts default to 20% initial exploration outside the starting layout,
+with entropy regularization and measured layout-diversity diagnostics. New
+workbench policies use only the selected available limited-FOV sensor profiles,
+and retain that constraint when loaded. One to eight sensors and 4–10,000
+episodes are supported. The actor learns map-specific sensor/site/yaw/pitch
+preferences. Red remains a seeded eight-sector scenario generator, not a
+pretrained or jointly trained adversary.
+
+Every completed episode retains its placements, metrics and sparse native
+trajectory replay. Policy checkpoints default to every 500 episodes, plus
+initial and final; the UI can replay sampled episodes and evaluated checkpoints
+separately. Stop retains recordings and the current/best policy without running
+additional tests. Completed, tested named policies appear in Compare and Live.
+Artifacts live under `Saved/WarningTraining/console-*` and
+`Saved/WarningTraining/models/trained-*`.
+
+Warning time remains mean per-drone time from first detection to protected-zone
+arrival, with missed drones contributing zero. Native Blue and Red rewards and
+confirmation evidence are additional recorded diagnostics. Both sides use the
+same selected sensor limits, budget and paired Red scenarios. Static 24° cameras
+do not guarantee full-circle or universal detection. Compare placements excludes
+legacy omnidirectional pairs and prefers a named validated model when available;
+historical Recorded replays remain available as archival evidence.
+
+See [the training guide](Docs/WARNING_TIME_TRAINING.md) and
+[footage workflow](Docs/TRAINING_FOOTAGE.md) for per-episode timelapses, contractor
+and milestone comparisons, clean cinematic export and weather-capture limits.
 
 In Unreal, press **1** for a closer palace view or **3** for an aerial view;
 use **WASD + mouse** to explore and **E/Q** to move up/down. Sensors have cyan

@@ -15,6 +15,10 @@ from pathlib import Path
 import imageio_ffmpeg
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
+from triad_rl.training_recording import (
+    RECORDING_SCHEMA, evaluation_warning, frame_drones, frame_time,
+    load_recordings, parse_episodes,
+)
 
 W, H = 1440, 900
 BG, PANEL, INK, MUTED = "#0a1220", "#111e30", "#edf4ff", "#9caec8"
@@ -132,12 +136,176 @@ def draw_frame(summary, runs, stage, progress):
     return image
 
 
+def draw_training_frame(metadata, entries, stage, progress):
+    """Current console evidence, including per-episode layouts and log rows."""
+    entry = entries[min(stage, len(entries) - 1)]
+    run, context = entry["run"], entry["run"]["context"]
+    config = metadata["configuration"]
+    image = Image.new("RGB", (W, H), BG)
+    d = ImageDraw.Draw(image)
+    def text(x, y, value, size=20, fill=INK):
+        d.text((x, y), str(value), font=font(size), fill=fill)
+    text(36, 22, "ISTANA / RECORDED TRAINING EVIDENCE", 18, BLUE)
+    text(36, 54, entry["label"], 34)
+    text(1040, 28, str(config.get("algorithm", "RL")).upper(), 20, GREEN)
+    text(1040, 59, f"Episode {entry['checkpoint']} / {config.get('episodes', '?')}", 22)
+    d.rounded_rectangle((28, 115, 850, 800), radius=18, fill=PANEL)
+    d.rounded_rectangle((870, 115, 1410, 800), radius=18, fill=PANEL)
+    frames = run.get("frames", [])
+    if not frames:
+        raise ValueError("Recorded episode has no trajectory frames")
+    t = frame_time(frames[-1]) * min(1., max(0., progress))
+    frame = frames[max(0, bisect.bisect_right([frame_time(f) for f in frames], t) - 1)]
+    sites = context["publicSnapshot"]["sites"]
+    origin = context["worldOriginCm"]
+    # Keep placement geometry legible; the inset shows the full approach so
+    # distant drone spawns do not shrink the sensor ring to a few pixels.
+    positions = [(p[0], p[1]) for p in sites]
+    extent = max(50., max(abs(value) for point in positions for value in point)) * 1.35
+    route_positions = [tuple((row["positionCm"][axis] - origin[axis]) / 100 for axis in "xy")
+                       for f in frames for row in frame_drones(run, f)]
+    route_extent = max(extent, max((abs(value) for point in route_positions for value in point), default=extent)) * 1.1
+    scale, cx, cy = 270 / extent, 410, 449
+    def point(x, y): return cx + x * scale, cy - y * scale
+    for fraction in (-1, -.5, 0, .5, 1):
+        q = extent * fraction
+        d.line((*point(q, -extent), *point(q, extent)), fill="#203249")
+        d.line((*point(-extent, q), *point(extent, q)), fill="#203249")
+    radius = context["temporalConfig"]["objective_radius_m"] * scale
+    d.ellipse((cx-radius, cy-radius, cx+radius, cy+radius), outline=AMBER, width=2)
+    text(cx + radius + 5, cy, "Target zone", 15, AMBER)
+    for placement in run["placements"]:
+        x, y = point(*sites[placement["siteId"]])
+        yaw = np.deg2rad(placement.get("yawDeg", 0))
+        d.line((x, y, x + 24 * np.cos(yaw), y - 24 * np.sin(yaw)), fill=BLUE, width=3)
+        d.ellipse((x-5, y-5, x+5, y+5), fill=BLUE)
+        text(x+7, y-20, f"S{placement['siteId']}", 14, BLUE)
+    evidence = {row["droneId"]: row for row in run["warning_evidence"]}
+    for drone in frame_drones(run, frame):
+        row = evidence.get(drone["droneId"], {})
+        first, arrival = row.get("firstDetectionSeconds"), row.get("zoneEntrySeconds")
+        color = MUTED if arrival is not None and t >= arrival else GREEN if first is not None and t >= first else RED
+        p = drone["positionCm"]
+        x, y = point((p["x"]-origin["x"])/100, (p["y"]-origin["y"])/100)
+        if 50 <= x <= 826 and 208 <= y <= 705:
+            d.polygon(((x,y-6),(x+5,y+4),(x-5,y+4)), fill=color)
+    d.rounded_rectangle((610, 512, 829, 707), radius=10, fill=BG, outline="#34465e")
+    text(624, 523, "FULL APPROACH", 14, MUTED)
+    mini_scale = 74 / route_extent
+    def mini_point(x, y): return 719 + x * mini_scale, 622 - y * mini_scale
+    for drone_id in evidence:
+        trail = []
+        for f in frames:
+            if frame_time(f) > t:
+                break
+            row = next((item for item in frame_drones(run, f) if item["droneId"] == drone_id), None)
+            if row:
+                p = row["positionCm"]
+                trail.append(mini_point((p["x"]-origin["x"])/100, (p["y"]-origin["y"])/100))
+        if len(trail) > 1:
+            d.line(trail, fill="#685563", width=1)
+    for placement in run["placements"]:
+        x, y = mini_point(*sites[placement["siteId"]])
+        d.ellipse((x-2, y-2, x+2, y+2), fill=BLUE)
+    for drone in frame_drones(run, frame):
+        p = drone["positionCm"]
+        x, y = mini_point((p["x"]-origin["x"])/100, (p["y"]-origin["y"])/100)
+        d.ellipse((x-2, y-2, x+2, y+2), fill=RED)
+    text(48, 136, "TOP-DOWN DATA REPLAY / NATIVE RECORDED POSITIONS", 16, MUTED)
+    text(48, 165, f"Layout detail · scenario {run['seed']} · t = {t:.1f} s", 18)
+    metrics = run["metrics"]
+    budget = context["publicSnapshot"].get("budget", context["publicSnapshot"].get("budget_remaining", "?"))
+    text(48, 723, f"{len(run['placements'])} sensors · {metrics.get('targets', len(evidence))} drones · cost {metrics['cost']:g} / {budget}", 20)
+    text(48, 754, "Sensor heading →   Red: undetected   Green: detected   Gray: arrived", 16, MUTED)
+    warning = evaluation_warning(entry)
+    text(895, 141, "MEAN WARNING PER DRONE", 19, MUTED)
+    text(895, 177, f"{warning:.3f} s", 49, GREEN)
+    training = entry["kind"] == "training"
+    seeds = entry.get("evaluation_seeds", [run["seed"]])
+    text(895, 248, "Sampled training episode" if training else f"{len(seeds)} fixed evaluation scenarios", 18, MUTED)
+    text(895, 278, "Missed detections count as zero", 18, MUTED)
+    baseline = next((item for item in entries if item["kind"] == "baseline"), None)
+    evaluation = entry.get("evaluation", {})
+    if not training and ("deltaSeconds" in evaluation or baseline and seeds == baseline.get("evaluation_seeds")):
+        delta = evaluation["deltaSeconds"] if "deltaSeconds" in evaluation else warning - evaluation_warning(baseline)
+        text(895, 313, f"{delta:+.3f} s vs contractor baseline", 21, GREEN if delta >= 0 else RED)
+    else:
+        text(895, 313, "Different scenarios are not a paired gain", 18, MUTED)
+    text(895, 365, "PER-EPISODE WARNING LOG (s)", 19, MUTED)
+    history_end = (max((row["episode"] for row in metadata.get("training_history", [])), default=0)
+                   if entry["kind"] in ("best", "best_test") else entry["checkpoint"])
+    history = [row for row in metadata.get("training_history", []) if row["episode"] <= history_end]
+    if history:
+        chart_rows = history[::max(1, len(history)//450)]
+        if chart_rows[-1] is not history[-1]: chart_rows.append(history[-1])
+        maximum = max(1., max(row["meanWarningSeconds"] for row in chart_rows))
+        right_episode = max(1, history_end)
+        pts = [(902 + 470 * row["episode"] / right_episode,
+                541 - 115 * row["meanWarningSeconds"] / maximum) for row in chart_rows]
+        d.line((902, 550, 1380, 550), fill=MUTED)
+        if len(pts) > 1: d.line(pts, fill=GREEN, width=2)
+        text(905, 558, "Training scenarios vary; spikes are not validation gains", 15, MUTED)
+        for index, row in enumerate(history[-5:]):
+            text(900, 609 + index * 29,
+                 f"ep {row['episode']:>5}   warning {row['meanWarningSeconds']:>7.3f}s   "
+                 f"detected {row.get('detectedFraction', 0):.0%}", 18)
+    else:
+        text(895, 417, "Initial layout, before any optimizer update", 18, MUTED)
+    text(36, 824, "Every displayed layout and event comes from saved evidence. Timing improvement is not guaranteed.", 19, MUTED)
+    weather = context["publicSnapshot"].get("weather", {})
+    text(36, 855, f"Synthetic sensing · limited FOV · weather retained: rain {weather.get('rain', '?')}, visibility {weather.get('visibility', '?')}", 18, MUTED)
+    return image
+
+
+def render_console_run(folder, metadata, entries, *, preview_only=False, seconds_per_stage=3., fps=15):
+    movie = folder / "warning-timelapse.mp4"
+    if not preview_only and movie.exists():
+        raise FileExistsError(movie)
+    final = draw_training_frame(metadata, entries, len(entries)-1, 1.)
+    final.save(folder / "timelapse-poster.png")
+    if preview_only:
+        return
+    writer = imageio_ffmpeg.write_frames(str(movie), (W,H), fps=fps, codec="libx264", quality=8,
+                                        macro_block_size=2, output_params=["-movflags", "+faststart"])
+    writer.send(None)
+    count = max(1, round(seconds_per_stage * fps))
+    chapters = []
+    try:
+        for stage, entry in enumerate(entries):
+            chapters.append({"label": entry["label"], "episode": entry["checkpoint"], "seconds": stage*count/fps})
+            for index in range(count):
+                writer.send(np.asarray(draw_training_frame(metadata, entries, stage, index/max(1,count-1))))
+    finally:
+        writer.close()
+    (folder / "timelapse-chapters.json").write_text(json.dumps(chapters, indent=2), encoding="utf-8")
+    rows = "".join(f"<tr><td>{html.escape(entry['label'])}</td><td>{entry['kind']}</td>"
+                   f"<td>{evaluation_warning(entry):.3f} s</td><td>{len(entry.get('evaluation_seeds', [entry['run']['seed']]))}</td></tr>"
+                   for entry in entries)
+    page = f'''<!doctype html><html lang="en"><meta charset="utf-8"><title>Training evidence</title>
+<style>body{{background:#0a1220;color:#edf4ff;max-width:1200px;margin:32px auto;font:18px system-ui}}video{{width:100%}}td,th{{padding:12px;text-align:left}}a{{color:#59bcff}}</style>
+<h1>Recorded training layouts and warning times</h1><video controls poster="timelapse-poster.png" src="warning-timelapse.mp4"></video>
+<p>Top-down data replay, not Unreal camera footage. Sampled training episodes use different scenarios; only evaluations on matching seeds measure paired improvement. All outcomes, including regressions, are retained.</p>
+<table><tr><th>Layout</th><th>Evidence</th><th>Mean warning / drone</th><th>Cases</th></tr>{rows}</table>
+<p><a href="training.jsonl">Per-episode logs</a> · <a href="recording-manifest.json">Recording manifest</a> · <a href="timelapse-chapters.json">Video chapters</a></p></html>'''
+    (folder / "index.html").write_text(page, encoding="utf-8")
+    print(f"Rendered {movie}")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("run", type=Path)
     parser.add_argument("--preview-only", action="store_true")
+    parser.add_argument("--episodes", help="all or comma-separated sampled training episodes; default: baseline and checkpoint evaluations")
+    parser.add_argument("--best-only", action="store_true")
+    parser.add_argument("--seconds-per-stage", type=float, default=3.)
+    parser.add_argument("--fps", type=int, default=15)
     args = parser.parse_args()
-    summary = json.loads((args.run / "summary.json").read_text())
+    if not 0 < args.seconds_per_stage <= 60 or not 1 <= args.fps <= 60:
+        parser.error("seconds-per-stage must be in (0,60] and fps in 1..60")
+    summary, entries = load_recordings(args.run, episodes=parse_episodes(args.episodes), best_only=args.best_only)
+    if summary.get("schema") == RECORDING_SCHEMA:
+        return render_console_run(args.run, summary, entries, preview_only=args.preview_only,
+                                  seconds_per_stage=args.seconds_per_stage, fps=args.fps)
     checkpoints = summary["protocol"]["checkpoints"]
     runs = [json.loads((args.run / f"evaluation-{i:04d}.json").read_text())[0] for i in checkpoints]
     final = draw_frame(summary, runs, len(runs)-1, 1)

@@ -17,15 +17,18 @@ import numpy as np
 
 from .directional_inputs import apply_placement, build_observation
 from .istana_live import public_planning_inputs
-from .warning_policy import WarningPolicy
+from .warning_policy import WarningPolicy, _entropy_and_gradient
 
 
 class _MaskedActorCriticPolicy(WarningPolicy):
     algorithm = None
     schema = None
 
-    def __init__(self, context, seed=917, *, sensor_count=None):
-        super().__init__(context, seed=seed, sensor_count=sensor_count)
+    def __init__(self, context, seed=917, *, sensor_count=None, entropy_coefficient=.01,
+                 allowed_sensor_ids=None):
+        super().__init__(context, seed=seed, sensor_count=sensor_count,
+                         entropy_coefficient=entropy_coefficient,
+                         allowed_sensor_ids=allowed_sensor_ids)
         state, _, _ = public_planning_inputs(context)
         if self.sensor_count is not None:
             state["max_sites"] = self.sensor_count
@@ -93,6 +96,10 @@ class _MaskedActorCriticPolicy(WarningPolicy):
                         or record["old_probability"] <= 0
                         or not np.isfinite(record["value"])):
                     raise ValueError("Invalid actor-critic action record")
+                _entropy_and_gradient(old)
+                if (np.any(old[~mask]) or not np.isclose(old[action], record["old_probability"],
+                                                       atol=1e-12, rtol=1e-8)):
+                    raise ValueError("Invalid actor-critic sampling probabilities")
                 samples.append((record, float(reward), float(reward - record["value"])))
         return rewards, samples
 
@@ -125,6 +132,9 @@ class _MaskedActorCriticPolicy(WarningPolicy):
         data = {"schema": self.schema, "algorithm": self.algorithm,
                 "contract": self.contract, "option_logits": self.option_logits.tolist(),
                 "sensor_count": self.sensor_count,
+                "entropy_coefficient": self.entropy_coefficient,
+                "allowed_sensor_ids": (list(self.allowed_sensor_ids)
+                                       if self.allowed_sensor_ids is not None else None),
                 "updates": self.updates, "baseline": self.baseline,
                 "adam_m": self.m.tolist(), "adam_v": self.v.tolist(),
                 "optimizer_steps": self.optimizer_steps, "values": self.values.tolist(),
@@ -137,7 +147,9 @@ class _MaskedActorCriticPolicy(WarningPolicy):
     @classmethod
     def load(cls, path, context):
         data = json.loads(Path(path).read_text(encoding="utf-8"))
-        policy = cls(context, sensor_count=data.get("sensor_count"))
+        policy = cls(context, sensor_count=data.get("sensor_count"),
+                     entropy_coefficient=data.get("entropy_coefficient", 0.),
+                     allowed_sensor_ids=data.get("allowed_sensor_ids"))
         if (data.get("schema") != cls.schema or data.get("algorithm") != cls.algorithm
                 or data.get("contract") != policy.contract):
             raise ValueError(f"Wrong {cls.algorithm} warning policy contract")
@@ -165,24 +177,69 @@ class MaskedA2CPolicy(_MaskedActorCriticPolicy):
     def update(self, episodes, learning_rate=.08, value_learning_rate=.08):
         rewards, samples = self._samples(episodes)
         gradient = np.zeros_like(self.option_logits)
+        entropy_gradient = np.zeros_like(gradient)
+        entropies, policy_loss = [], 0.
         for record, _, advantage in samples:
-            score = -np.asarray(record["probabilities"], dtype=float).copy()
+            probabilities = np.asarray(record["probabilities"], dtype=float)
+            entropy, regularizer = _entropy_and_gradient(probabilities)
+            score = -probabilities.copy()
             score[record["action"]] += 1
             gradient += advantage * score
+            policy_loss -= advantage * np.log(probabilities[record["action"]])
+            entropy_gradient += regularizer
+            entropies.append(entropy)
         gradient /= max(1, len(episodes))
+        policy_loss /= len(episodes)
+        entropy = float(np.mean(entropies))
+        gradient += self.entropy_coefficient * entropy_gradient / len(samples)
+        before = self.option_logits.copy()
         gradient_norm = self._actor_step(gradient, learning_rate)
         value_loss = self._critic_update(samples, value_learning_rate)
         self.updates += 1
         self.baseline = float(rewards.mean())
         return {"algorithm": self.algorithm, "update": self.updates,
                 "mean_training_warning_s": self.baseline,
-                "gradient_norm": gradient_norm, "value_loss": value_loss}
+                "gradient_norm": gradient_norm, "value_loss": value_loss,
+                "policy_loss": float(policy_loss), "entropy": entropy,
+                "entropy_coefficient": self.entropy_coefficient,
+                "objective_loss": float(policy_loss - self.entropy_coefficient * entropy),
+                "parameter_delta_norm": float(np.linalg.norm(self.option_logits - before))}
 
 
 class MaskedPPOPolicy(_MaskedActorCriticPolicy):
     """Clipped PPO over the legal categorical placement actions."""
     algorithm = "ppo"
     schema = "istana.warning_directional_masked_ppo.v1"
+
+    def _objective_gradient(self, samples, advantages, clip_ratio):
+        """Maximized clipped surrogate plus entropy, with its exact logit gradient.
+
+        Entropy is evaluated at the current policy on each recorded legal mask.
+        Its gradient remains active even when PPO clips the reward surrogate.
+        """
+        gradient = np.zeros_like(self.option_logits)
+        policy_loss, entropy_total, clipped = 0., 0., 0
+        for (record, _, _), advantage in zip(samples, advantages):
+            probabilities = self._probabilities(self.option_logits, record["mask"])
+            ratio = probabilities[record["action"]] / record["old_probability"]
+            bounded = np.clip(ratio, 1 - clip_ratio, 1 + clip_ratio)
+            policy_loss -= min(ratio * advantage, bounded * advantage)
+            outside = ((advantage >= 0 and ratio > 1 + clip_ratio)
+                       or (advantage < 0 and ratio < 1 - clip_ratio))
+            if outside:
+                clipped += 1
+            else:
+                score = -probabilities.copy()
+                score[record["action"]] += 1
+                gradient += advantage * ratio * score
+            entropy, regularizer = _entropy_and_gradient(probabilities)
+            entropy_total += entropy
+            gradient += self.entropy_coefficient * regularizer
+        count = max(1, len(samples))
+        return gradient / count, {
+            "policy_loss": float(policy_loss / count), "entropy": float(entropy_total / count),
+            "clip_fraction": clipped / count,
+        }
 
     def update(self, episodes, learning_rate=.04, value_learning_rate=.08,
                clip_ratio=.2, epochs=4):
@@ -192,30 +249,27 @@ class MaskedPPOPolicy(_MaskedActorCriticPolicy):
         advantages = np.asarray([sample[2] for sample in samples], dtype=float)
         if len(advantages) > 1 and advantages.std() > 1e-8:
             advantages = (advantages - advantages.mean()) / advantages.std()
-        gradient_norms, clipped = [], 0
+        gradient_norms, reports = [], []
+        before = self.option_logits.copy()
         for _ in range(epochs):
-            gradient = np.zeros_like(self.option_logits)
-            for (record, _, _), advantage in zip(samples, advantages):
-                probabilities = self._probabilities(self.option_logits, record["mask"])
-                ratio = probabilities[record["action"]] / record["old_probability"]
-                outside = ((advantage >= 0 and ratio > 1 + clip_ratio)
-                           or (advantage < 0 and ratio < 1 - clip_ratio))
-                if outside:
-                    clipped += 1
-                    continue
-                score = -probabilities
-                score[record["action"]] += 1
-                gradient += advantage * ratio * score
-            gradient /= max(1, len(samples))
+            gradient, report = self._objective_gradient(samples, advantages, clip_ratio)
+            reports.append(report)
             gradient_norms.append(self._actor_step(gradient, learning_rate))
         value_loss = self._critic_update(samples, value_learning_rate)
         self.updates += 1
         self.baseline = float(rewards.mean())
+        averaged = {key: float(np.mean([row[key] for row in reports]))
+                    for key in ("policy_loss", "entropy", "clip_fraction")}
         return {"algorithm": self.algorithm, "update": self.updates,
                 "mean_training_warning_s": self.baseline,
                 "gradient_norm": float(np.mean(gradient_norms)),
                 "value_loss": value_loss,
-                "clip_fraction": clipped / max(1, epochs * len(samples)), "epochs": epochs}
+                **averaged, "epochs": epochs,
+                "entropy_coefficient": self.entropy_coefficient,
+                "rollout_entropy": float(np.mean([
+                    _entropy_and_gradient(record["probabilities"])[0] for record, _, _ in samples])),
+                "objective_loss": averaged["policy_loss"] - self.entropy_coefficient * averaged["entropy"],
+                "parameter_delta_norm": float(np.linalg.norm(self.option_logits - before))}
 
 
 TRAINING_ALGORITHMS = {

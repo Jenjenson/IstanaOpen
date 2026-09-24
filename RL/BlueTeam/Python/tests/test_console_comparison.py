@@ -59,19 +59,32 @@ def test_session_offers_native_cases_separately_from_historical_replays(server):
     assert len(archived) == 9
     assert {row["policyLabel"] for row in archived} == {
         "Temporal RL · policy A", "Temporal RL · policy B", "Temporal RL · policy C"}
-    assert [row["id"] for row in session["comparisonLayouts"]] == [
-        "matched_common_sense", "directional_balanced_8"]
+    assert [row["id"] for row in session["comparisonLayouts"]] == ["directional_balanced_8"]
+    assert all(row["defaultLayout"] == "directional_balanced_8" for row in archived)
 
 
 def test_native_recordings_work_without_unreal_and_preserve_live(server):
     code, scenario = request(server, "/api/comparison/scenario", {"episodeId": "native-406-1"})
     assert code == 200 and scenario["sites"] and scenario["catalogue"]
     code, result = request(server, "/api/comparison/run", {"episodeId": "native-406-1"})
-    assert code == 200 and result["method"] == "common_sense"
+    assert code == 200 and result["method"] == "directional_balanced_8"
     assert result["rl"]["frames"] and result["baseline"]["frames"]
     assert result["audit"]["native_unreal_capture"]
-    assert result["metrics"]["rl"]["target_count"] == result["metrics"]["baseline"]["target_count"] == 60
+    assert result["metrics"]["rl"]["target_count"] == result["metrics"]["baseline"]["target_count"] == 5
+    for side in ("rl", "baseline"):
+        catalogue = {row["id"]: row for row in result[side]["catalogue"]}
+        assert all(catalogue[row["sensor_id"]]["directional"] for row in result[side]["placements"])
     assert not server.console_state.status()["connected"]
+    assert server.console_state.view == {"existing_live_episode": True}
+
+
+@pytest.mark.parametrize("action", ["scenario", "run"])
+def test_legacy_omnidirectional_comparison_request_fails_without_removing_recorded_replays(server, action):
+    code, result = request(server, f"/api/comparison/{action}", {
+        "episodeId": "native-406-1", "layoutId": "matched_common_sense"})
+    assert code == 400 and "limited-FOV" in result["error"]
+    code, replay = request(server, "/api/replay/0")
+    assert code == 200 and replay["mode"] == "recorded" and replay["frames"]
     assert server.console_state.view == {"existing_live_episode": True}
 
 

@@ -21,60 +21,72 @@ cd RL\BlueTeam\Python
 ..\.venv\Scripts\python.exe train_warning_live.py --port 8766 --episodes 128 --batch-size 8 --eval-cases 8 --output ..\..\..\Saved\WarningTraining\my-directional-run
 ```
 
-The browser console also has a **Training** tab for shorter interactive runs.
-Start the scene on the console's configured bridge port with
-`-TrainingWorkbench -DelayedDetectionDemo`, open `http://127.0.0.1:9048/`, and
-select Training. Enter a unique model name, choose an exact sensor count from
-one to five, then choose an untrained start or a selected-count directional,
-public-only common-sense warm start. Warm starting
-changes initial logits only; all selected and unselected actions remain
-trainable. Select REINFORCE, Masked PPO or Masked A2C. Each optimizer consumes
-the same complete native episode reward and legal categorical action records;
-PPO and A2C add a placement-step value baseline without changing the simulator
-or observations. DDPG is not exposed because the native contract is a discrete
-choice among approved sensor/site/yaw/pitch options plus STOP. After each batch
-update, the console evaluates that checkpoint on
-the same fixed held-out native episode. A successful run saves the checkpoint
-with the highest measured mean per-drone warning time under
-`Saved/WarningTraining/models/trained-*` and immediately lists it in **Compare
-placements** and the Live saved-layout selector. Its comparison replays that
-best checkpoint and the matching selected-count directional start with the same Red episode,
-paths, speed, seed and sensing process. Browser run artifacts remain in
-`Saved/WarningTraining/console-*`. Stopped and failed runs are not registered.
-Use the CLI above for the full fixed multi-case evaluation protocol and audit
-reports; the console's single held-out case is a selection aid, not a general
-performance claim.
+The browser console has a **Training** tab using the same native sensor and
+warning-time environment. Start the scene with `-TrainingWorkbench
+-DelayedDetectionDemo`, then open the local console. Choose a unique model
+name, one to eight sensors, REINFORCE, Masked PPO or Masked A2C, and either an
+untrained policy or a public-only contractor/common-sense starting layout.
+Only selected, available directional profiles may be used by a new workbench
+policy. The sensor constraint is saved with the policy and enforced on reload.
 
-The browser accepts 4–10,000 episodes, and the batch size must divide the
-episode count. The original 512 ceiling was only a conservative UI guard for
-long native Unreal runs, not an optimizer limit. The higher ceiling still
-prevents an accidental unbounded request; use **Stop safely** to finish the
-current native action and retain the run artifacts. Exact-count training masks
-STOP until the requested number of sensors has been placed and preserves the
-native budget, approved-site, surface, separation and directional-FOV checks.
+The starting exploration control calibrates the first legal decision's
+probability of choosing outside the contractor layout (20% by default).
+Subsequent masks change that probability. It is not a fixed epsilon override.
+All three optimizers use an entropy bonus (default coefficient 0.01), preserve
+on-policy sampling probabilities, and report actual loss, entropy, gradient
+and parameter-change diagnostics. The actor remains a map-specific table of
+sensor/site/yaw/pitch preferences; it is not a context-conditioned neural net.
 
-The console tracks three distinct quantities so the graphs do not disguise the
-objective. **Warning-time objective** is the mean per-drone warning seconds used
-for Blue policy updates, with missed detections contributing zero. **Blue native reward**
-is the additional Unreal diagnostic
-`2·detected + 3·confirmed + 5·timely − 5·late/unconfirmed − cost/budget`.
-**Red native reward** is the separately logged opposite terminal sensing return;
-the Red scenario generator is never updated. The reward log lists the signed
-Blue native components, Red spawn radius/bearings for each recent episode and,
-after each batch, any warning-reward change on the same held-out episode. This
-is why a line such as `+10.00 reward; first detection was 6.00 s earlier` can be
-interpreted without comparing unmatched training seeds.
+Before training, both the contractor layout and deterministic initial policy
+are scored across the same validation panel (five scenarios by default).
+Four predeclared, legal single-sensor orientation/site alternatives also test
+whether nearby layouts improve warning time. This is a limited headroom check,
+not an exhaustive optimum or a replacement for the fixed contractor baseline.
+The probe results do not update the actor. `headroomProbes: 0` disables this
+optional diagnostic in the start API.
 
-Completed episode rows are flushed immediately to `training.jsonl`, including
-both rewards, warning/detection metrics, placements and the native breakdown.
-Policy files are saved at episode 0 and at batch-aligned 25%, 50%, 75% and 100%
-milestones. Each new best on the fixed held-out episode is also saved as
-`best-policy-NNNN.json`; the named model registry publishes only the selected
-best. Red drones in this browser workflow select five distinct approaches from
-eight synthetic 45° sectors, add up to ±4° seeded bearing jitter, use the fixed
-midpoint spawn radius, and are moved by Unreal's swarm logic. They
-are not a pretrained Red model and are not trained adversarially. The Training
-map retains each completed trajectory; use **Play replay** to verify movement.
+After each batch update, the deterministic policy is scored on every validation
+scenario. The highest panel mean wins; ties retain the earlier policy, including
+episode zero. Final reporting evaluates the selected policy and contractor on
+a separate untouched test panel. Per-case warning differences, ties and
+regressions are retained. Matching trajectory and sensor/budget/weather
+contracts are checked. A single favourable sampled episode is never treated
+as proof of general improvement.
+
+Training accepts 4–10,000 episodes; batch size must divide the total. Exact-count
+masks prevent STOP or expensive choices from making the requested count
+impossible. Checkpoint interval defaults to 500, with episode zero and the
+final checkpoint always saved. A checkpoint between batch updates contains the
+policy after its most recent completed update. Every completed sampled episode
+has a separate retained layout and replay, regardless of checkpoint frequency.
+
+**Stop safely** retains completed logs, replay files, the current policy and
+previously evaluated best. It does not start additional evaluation episodes or
+automatically publish an incompletely tested model. `stopped-summary.json`
+records any completed episodes in an unfinished optimizer batch. Explicitly
+finishing a stopped run through `TrainingManager.publish_saved_run(directory)`
+evaluates the retained selected checkpoint, including episode zero.
+
+The objective remains mean per-drone `max(0, 20 m zone arrival - first detection)`
+seconds; missed drones contribute zero. Confirmation timing is recorded
+separately. The native Blue diagnostic is
+`2·detected + 3·confirmed + 5·timely − 5·late/unconfirmed − cost/budget`;
+Red's opposite native return is logged separately. Red is a fixed scenario
+generator: five distinct approaches from eight sectors with ±4° jitter at one
+fixed spawn radius, moved by Unreal. It is not trained adversarially.
+
+The UI distinguishes contractor, initial, latest sampled, best validated and
+final-test results. It shows measured unique unordered layouts, changes from
+the initial placement and normalized action entropy. Select a sampled episode
+or evaluated policy checkpoint to pin its replay while training continues.
+Complete logs can be downloaded as JSON. Polling graphs are bounded to 1,000
+representative rows for long runs; the disk log and export retain every row.
+
+Run artifacts are in `Saved/WarningTraining/console-*`; completed tested models
+are registered under `Saved/WarningTraining/models/trained-*` for Compare and
+Live. See [Training footage and evidence](TRAINING_FOOTAGE.md) for retained
+recordings, milestone films, native cinematic capture, equipment close-ups and
+weather limitations. Historical CLI commands below keep their original format.
 
 For native early-to-trained footage, close the training scene, start the capture
 scene with the identical flag, and replay the fixed checkpoints:

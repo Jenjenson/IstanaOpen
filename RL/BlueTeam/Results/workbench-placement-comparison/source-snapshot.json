@@ -1,0 +1,93 @@
+{
+  "schema": "istana.archived_capture_sources.v1",
+  "restoredFromCommit": "2aaf7b698087646a084afc435879df97a80a6ea6",
+  "publishedManifestSha256": "b9a4e6822dc4cc88d5c0f790a1ee2902e0efce2249ae1b829b8e12f57f9c58bf",
+  "publishedBundleSha256": "2cc4f689aa7b5e19bd3fd831a4ef6e8d69c3df75de82409e924efea41b7adcd3",
+  "scope": "Historical source bytes matching the original capture protocol; not the current training implementation.",
+  "sources": [
+    {
+      "originalPath": "RL/BlueTeam/Python/build_workbench_comparison.py",
+      "snapshotPath": "source-snapshot/RL/BlueTeam/Python/build_workbench_comparison.py",
+      "sha256": "e57a7ae06920f0c7a8a6a4082440584405ce12dd570b03a5e30c7be40c70a2fe",
+      "bytes": 13323,
+      "gitBlob": "53c12bfad1033167f549cd9bc973c7185e926dae"
+    },
+    {
+      "originalPath": "RL/BlueTeam/Python/triad_rl/red_policy.py",
+      "snapshotPath": "source-snapshot/RL/BlueTeam/Python/triad_rl/red_policy.py",
+      "sha256": "8621943dfab4524952738ca2dfdca8810fc9fb1cd3b1e19966df6240097705e3",
+      "bytes": 23838,
+      "gitBlob": "2ef0a1a5fde3570f5c1e6fb14705aa49c1702a09"
+    },
+    {
+      "originalPath": "RL/BlueTeam/Python/triad_rl/training_workbench.py",
+      "snapshotPath": "source-snapshot/RL/BlueTeam/Python/triad_rl/training_workbench.py",
+      "sha256": "5207275d9dac5139014983ffa415181c9c62cbaabe86552efb439bb152ddfa65",
+      "bytes": 37527,
+      "gitBlob": "1bec5fe910e9712c9da3da9f9e774bdcc7ce5460"
+    },
+    {
+      "originalPath": "RL/BlueTeam/Python/triad_rl/istana_live.py",
+      "snapshotPath": "source-snapshot/RL/BlueTeam/Python/triad_rl/istana_live.py",
+      "sha256": "93722ec7b2722103e5a3840b7e4896afa385c030455df78fdefce79bd78c8677",
+      "bytes": 22693,
+      "gitBlob": "42bbe460db387373828a0f3045c0bc13f1e87dfa"
+    },
+    {
+      "originalPath": "RL/BlueTeam/Python/triad_rl/warning_policy.py",
+      "snapshotPath": "source-snapshot/RL/BlueTeam/Python/triad_rl/warning_policy.py",
+      "sha256": "d5b1467bf987e7adffb25ba86c35c29cbb6f718c62c387d27e306840300cc4f2",
+      "bytes": 13059,
+      "gitBlob": "f452682f966e05fb95422b154d544a385fbc0557"
+    },
+    {
+      "originalPath": "Source/IstanaOpen/IstanaGameMode.cpp",
+      "snapshotPath": "source-snapshot/Source/IstanaOpen/IstanaGameMode.cpp",
+      "sha256": "41d82d945982f428978e18c72b0295e682fc54a3406297f39c6d31eb5874d9d5",
+      "bytes": 26133,
+      "gitBlob": "65b2102432e06df2b86a184327358a856920cabd"
+    },
+    {
+      "originalPath": "Source/IstanaOpen/Simulation/BlueTeam/BlueTeamCoordinator.cpp",
+      "snapshotPath": "source-snapshot/Source/IstanaOpen/Simulation/BlueTeam/BlueTeamCoordinator.cpp",
+      "sha256": "48697c678529d14324de980861697020f24af5dcf075e158e4ed0d18556b2a2a",
+      "bytes": 52426,
+      "gitBlob": "2ddfb401f868a5b94efe719575ef185a283abdb4"
+    },
+    {
+      "originalPath": "Source/IstanaOpen/Simulation/BlueTeam/BlueWarningTime.h",
+      "snapshotPath": "source-snapshot/Source/IstanaOpen/Simulation/BlueTeam/BlueWarningTime.h",
+      "sha256": "55fe61b66379623756fa471dfb8913d4382ce7535ac2b9c4dd76c5fea4c5f90b",
+      "bytes": 380,
+      "gitBlob": "6c9e5605ef398a84676d6577be9c0516a9804baf"
+    },
+    {
+      "originalPath": "Source/IstanaOpen/Simulation/RedTeam/RedTeamManager.cpp",
+      "snapshotPath": "source-snapshot/Source/IstanaOpen/Simulation/RedTeam/RedTeamManager.cpp",
+      "sha256": "8842f0d253322f376b8d9bf565750e5c1960f976bfeb82a4e31159dc37589bd5",
+      "bytes": 17474,
+      "gitBlob": "7c5e3467b1c39dc0d3a7bd0166720c36c61dc8b9"
+    },
+    {
+      "originalPath": "Source/IstanaOpen/Simulation/Swarm/IstanaSwarmSimulation.cpp",
+      "snapshotPath": "source-snapshot/Source/IstanaOpen/Simulation/Swarm/IstanaSwarmSimulation.cpp",
+      "sha256": "8519c329626e37f2ef88474858213a8528215a9d24d1221569d3a8ed26dae624",
+      "bytes": 32535,
+      "gitBlob": "9fb97c35c088de0993ac04e45775108e46bd17a4"
+    },
+    {
+      "originalPath": "Source/IstanaOpen/Simulation/Sensing/DirectionalSensorModel.cpp",
+      "snapshotPath": "source-snapshot/Source/IstanaOpen/Simulation/Sensing/DirectionalSensorModel.cpp",
+      "sha256": "6a614eea5040c96e75273e6377bf5486fb340c83c79eb5bfa36f6d420720feb1",
+      "bytes": 4129,
+      "gitBlob": "e8c593e1852f04196553423c2c81dd215331a6d4"
+    },
+    {
+      "originalPath": "Source/IstanaOpen/Simulation/Sensing/DirectionalSensorModel.h",
+      "snapshotPath": "source-snapshot/Source/IstanaOpen/Simulation/Sensing/DirectionalSensorModel.h",
+      "sha256": "f44b285565c0eaaf2217453775dc0e705cfdb302c45f840ce4557dcc81afb62f",
+      "bytes": 4942,
+      "gitBlob": "889650f1968b805c19c88d8f42eda1bde556878c"
+    }
+  ]
+}

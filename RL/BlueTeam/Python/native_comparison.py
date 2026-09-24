@@ -32,6 +32,51 @@ def policy_label(identifier):
     return POLICY_LABELS.get(str(identifier), f"RL policy {identifier}")
 
 
+def _validate_directional_pair(episode, model=None, policy=None):
+    """Only expose evidence captured with realistic, limited-FOV profiles."""
+    profiles = []
+    for side in ("rl", "baseline"):
+        view = episode[side]
+        catalogue = {row["id"]: row for row in view["catalogue"]}
+        used = set()
+        for placement in view["placements"]:
+            sensor = catalogue.get(placement["sensor_id"], {})
+            fov = sensor.get("manufacturer_specifications", {}).get("horizontal_fov_deg")
+            if (sensor.get("directional") is not True or isinstance(fov, bool)
+                    or not isinstance(fov, (int, float)) or not math.isfinite(fov)
+                    or not 0 < fov < 360):
+                raise ValueError(
+                    "This archived comparison uses omnidirectional or undocumented sensor coverage. "
+                    "Compare placements requires realistic limited-FOV sensors on both sides; "
+                    "historical Recorded replays remain available.")
+            used.add(sensor["id"])
+        profiles.append(used)
+    if model is None:
+        return
+    left, right = episode["rl"], episode["baseline"]
+    policy = policy or {}
+    count = model.get("sensorCount", policy.get("sensor_count", len(left["placements"])))
+    if (len(left["placements"]) != count or len(right["placements"]) != count
+            or left["budget"] != right["budget"] or left["catalogue"] != right["catalogue"]):
+        raise ValueError("Named model comparisons require the same training-selected sensor count, catalogue and budget")
+    selected = model.get("sensorIds") or policy.get("allowed_sensor_ids")
+    if selected is None:
+        # Older named models did not save profile restrictions. Their actual
+        # trained deployment is the only supported evidence of selected types.
+        selected = {row["profileId"] for row in model.get("deploymentPlacements", [])}
+        selected = selected or profiles[0]
+    if any(not used <= set(selected) for used in profiles):
+        raise ValueError("Both comparison layouts must use only the training-selected sensor profiles")
+
+
+def _directional_pair_available(episode, model=None, policy=None):
+    try:
+        _validate_directional_pair(episode, model, policy)
+        return True
+    except ValueError:
+        return False
+
+
 def _average(values):
     return mean(values) if values else None
 
@@ -240,29 +285,46 @@ class NativeComparisons:
         return _read_bundle(str(self.workbench_root.resolve()), manifest.stat().st_mtime_ns)
 
     def list(self):
-        rows = ([] if not (self.root / "manifest.json").exists() else
-            [{"id": row["id"], "policy": row["policy"],
-              "policyLabel": policy_label(row["policy"]), "case": row["case"],
-              "label": row["label"]} for row in self._bundle()["episodes"]])
-        rows.extend({"id": model["id"], "policy": model["id"],
+        rows = []
+        workbench = (self._workbench_bundle()["episodes"]
+                     if (self.workbench_root / "manifest.json").exists() else [])
+        for row in self._bundle()["episodes"] if (self.root / "manifest.json").exists() else []:
+            measured = next((item for item in workbench
+                             if item["policy"] == row["policy"] and item["case"] == row["case"]), None)
+            available = []
+            if measured is not None and _directional_pair_available(measured):
+                available.append("directional_balanced_8")
+            if _directional_pair_available(row):
+                available.append("matched_common_sense")
+            if available:
+                rows.append({"id": row["id"], "policy": row["policy"],
+                    "policyLabel": policy_label(row["policy"]), "case": row["case"],
+                    "label": (measured if available[0] == "directional_balanced_8" else row)["label"],
+                    "defaultLayout": available[0], "availableLayouts": available})
+        for model in self.registry.list():
+            policy = json.loads(self.registry.policy_path(model["id"]).read_text(encoding="utf-8"))
+            if _directional_pair_available(self.registry.comparison(model["id"]), model, policy):
+                rows.append({"id": model["id"], "policy": model["id"],
             "policyLabel": f"{model['name']} · {model.get('algorithmLabel', 'REINFORCE')}", "case": 1,
-            "label": f"{model['name']} · held-out episode",
-            "defaultLayout": "directional_balanced_8", "trainedModel": True}
-            for model in self.registry.list())
-        rows.extend({"id": f"observed-{model['id']}", "policy": f"observed-{model['id']}",
+            "label": f"{model['name']} · {'unseen test scenario' if model.get('testEvaluation') else 'held-out episode'}",
+            "defaultLayout": "directional_balanced_8", "availableLayouts": ["directional_balanced_8"],
+            "trainedModel": True})
+            if (model.get("observedComparisonFile") and _directional_pair_available(
+                    self.registry.observed_comparison(model["id"]), model, policy)):
+                rows.append({"id": f"observed-{model['id']}", "policy": f"observed-{model['id']}",
             "policyLabel": f"{model['name']} · best observed episode {model['bestObservedEpisode']}",
             "case": 1, "label": (f"{model['name']} · "
                 f"{'exact training episode' if model.get('bestObservedReplayExact') else 'retained episode layout'} "
                 f"{model['bestObservedEpisode']}"),
             "defaultLayout": "directional_balanced_8", "trainedModel": True,
-            "bestObservedEpisode": True}
-            for model in self.registry.list() if model.get("observedComparisonFile"))
+            "availableLayouts": ["directional_balanced_8"], "bestObservedEpisode": True})
         return rows
 
     def layouts(self):
-        return deepcopy(COMPARISON_LAYOUTS)
+        available = {layout for row in self.list() for layout in row["availableLayouts"]}
+        return [deepcopy(row) for row in COMPARISON_LAYOUTS if row["id"] in available]
 
-    def get(self, identifier, *, scenario=False, layout_id="matched_common_sense"):
+    def get(self, identifier, *, scenario=False, layout_id="directional_balanced_8"):
         if not isinstance(identifier, str):
             raise ValueError("Choose an available native comparison episode")
         if layout_id not in {row["id"] for row in COMPARISON_LAYOUTS}:
@@ -273,6 +335,8 @@ class NativeComparisons:
             model_id = identifier.removeprefix("observed-")
             model = self.registry.get(model_id)
             episode = self.registry.observed_comparison(model_id)
+            _validate_directional_pair(episode, model, json.loads(
+                self.registry.policy_path(model_id).read_text(encoding="utf-8")))
             result = comparison_result(episode)
             exact_replay = bool(episode.get("audit", {}).get("exactTrainingReplay"))
             sensor_count = result["baseline"].get(
@@ -307,6 +371,8 @@ class NativeComparisons:
             if layout_id != "directional_balanced_8":
                 raise ValueError("Named warning models use their matched selected-count evaluation")
             episode = self.registry.comparison(identifier)
+            _validate_directional_pair(episode, self.registry.get(identifier), json.loads(
+                self.registry.policy_path(identifier).read_text(encoding="utf-8")))
             result = comparison_result(episode)
             sensor_count = result["baseline"].get(
                 "maxSensors", len(result["baseline"].get("placements", [])))
@@ -335,6 +401,7 @@ class NativeComparisons:
         if episode is None:
             raise ValueError("Choose an available native comparison episode")
         if layout_id == "matched_common_sense":
+            _validate_directional_pair(episode)
             result = comparison_result(episode, bundle.get("protocol"))
         else:
             workbench = self._workbench_bundle()
@@ -343,6 +410,7 @@ class NativeComparisons:
                              and row["case"] == episode["case"]), None)
             if measured is None:
                 raise ValueError("Choose an available measured eight-sensor comparison")
+            _validate_directional_pair(measured)
             result = comparison_result(measured, workbench.get("protocol"))
             result.update({"method": "directional_balanced_8", "layoutOnly": False,
                 "label": measured["label"],
