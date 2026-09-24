@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from native_comparison import NativeComparisons, ROOT, _validate_episode, paired_timing
+from native_comparison import NativeComparisons, ROOT, _validate_episode, _validate_directional_pair, paired_timing
 from triad_rl.trained_models import COMPARISON_SCHEMA, TrainedModelRegistry
 
 
@@ -46,14 +46,13 @@ def test_all_current_native_results_have_consistent_counts_and_delta_direction()
         assert result["metrics"]["rl"]["target_count"] == result["metrics"]["baseline"]["target_count"]
         assert result["metrics"]["rl"]["target_count"] > 0
         if not choice.get("trainedModel"):
-            assert result["metrics"]["rl"]["target_count"] == 60
+            assert result["metrics"]["rl"]["target_count"] == 5
         json.dumps(result, allow_nan=False)
 
 
 def test_eight_directional_workbench_start_has_matched_native_warning_evidence():
     store = NativeComparisons()
-    assert [row["id"] for row in store.layouts()] == [
-        "matched_common_sense", "directional_balanced_8"]
+    assert [row["id"] for row in store.layouts()] == ["directional_balanced_8"]
     result = store.get("native-406-1", layout_id="directional_balanced_8")
     assert not result["layoutOnly"] and result["metrics"]["rl"]["target_count"] == 5
     assert result["audit"]["native_unreal_capture"]
@@ -74,6 +73,35 @@ def test_eight_directional_workbench_start_has_matched_native_warning_evidence()
 def test_unknown_comparison_layout_fails_closed():
     with pytest.raises(ValueError, match="available fixed"):
         NativeComparisons().get("native-406-1", layout_id="manual")
+
+
+def test_omnidirectional_archive_is_retained_but_not_offered_as_current_comparison():
+    store = NativeComparisons()
+    archived = store._bundle()["episodes"][0]
+    assert {row["sensor_id"] for row in archived["baseline"]["placements"]} == {"eo"}
+    with pytest.raises(ValueError, match="limited-FOV sensors on both sides"):
+        store.get(archived["id"], layout_id="matched_common_sense")
+    assert all(row["defaultLayout"] == "directional_balanced_8" for row in store.list()
+               if not row.get("trainedModel"))
+
+
+@pytest.mark.parametrize("fov", [None, 360, 0, -1, float("nan"), True])
+def test_comparison_rejects_missing_or_unlimited_sensor_fov(fov):
+    episode = deepcopy(NativeComparisons()._workbench_bundle()["episodes"][0])
+    thermal = next(row for row in episode["baseline"]["catalogue"] if row["id"] == "thermal")
+    thermal["manufacturer_specifications"]["horizontal_fov_deg"] = fov
+    with pytest.raises(ValueError, match="limited-FOV"):
+        _validate_directional_pair(episode)
+
+
+def test_named_comparison_checks_training_count_and_selected_profiles():
+    episode = deepcopy(NativeComparisons()._workbench_bundle()["episodes"][0])
+    with pytest.raises(ValueError, match="sensor count"):
+        _validate_directional_pair(episode, {"sensorCount": 8, "sensorIds": ["thermal"]})
+    episode["rl"]["placements"] = deepcopy(episode["baseline"]["placements"])
+    with pytest.raises(ValueError, match="training-selected sensor profiles"):
+        _validate_directional_pair(episode, {"sensorCount": 8, "sensorIds": ["eo"]})
+    _validate_directional_pair(episode, {"sensorCount": 8, "sensorIds": ["thermal"]})
 
 
 def test_changed_native_trajectories_are_rejected():
@@ -103,6 +131,8 @@ def test_missing_capture_is_explicit_and_does_not_substitute_old_sensors(tmp_pat
 def test_completed_named_model_is_discovered_and_served_in_comparison(tmp_path):
     registry = TrainedModelRegistry(tmp_path / "models")
     source = deepcopy(NativeComparisons()._workbench_bundle()["episodes"][0])
+    source["rl"]["placements"] = deepcopy(source["baseline"]["placements"])
+    source["rl"]["metrics"]["cost"] = source["baseline"]["metrics"]["cost"]
     identifier = registry.identifier_for("Night Watch")
     source.update(schema=COMPARISON_SCHEMA, id=identifier, policy=identifier,
                   policyLabel="Night Watch", case=1,
@@ -120,7 +150,8 @@ def test_completed_named_model_is_discovered_and_served_in_comparison(tmp_path):
         metadata={"bestEpisode": 12, "bestWarningSeconds": 31.5,
                   "bestObservedEpisode": 7, "bestObservedWarningSeconds": 44.25,
                   "bestObservedReplayExact": True,
-                  "evaluationSeed": 2700000, "deploymentPlacements": []})
+                  "evaluationSeed": 2700000, "deploymentPlacements": [],
+                  "sensorCount": 8, "sensorIds": ["thermal"]})
     store = NativeComparisons(registry=registry)
     row = next(row for row in store.list() if row["id"] == identifier)
     assert row["policyLabel"] == "Night Watch · REINFORCE"
@@ -137,3 +168,9 @@ def test_completed_named_model_is_discovered_and_served_in_comparison(tmp_path):
     assert retained["audit"]["generalPolicyClaim"] is False
     with pytest.raises(ValueError, match="matched selected-count"):
         store.get(identifier, layout_id="matched_common_sense")
+    # A retained named record must not bypass the current comparison contract.
+    source["baseline"]["placements"][0]["sensor_id"] = "eo"
+    (registry.root / identifier / "comparison.json").write_text(json.dumps(source), encoding="utf-8")
+    assert identifier not in {row["id"] for row in store.list()}
+    with pytest.raises(ValueError, match="limited-FOV"):
+        store.get(identifier)

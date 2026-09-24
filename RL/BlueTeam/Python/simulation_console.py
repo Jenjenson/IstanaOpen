@@ -381,7 +381,7 @@ def make_server(port=9048, bridge_port=8765, *, state=None, replays=None, compar
                     with comparison_lock:
                         result = comparisons.get(payload["episodeId"],
                                                  scenario=comparison[1] == "scenario",
-                                                 layout_id=payload.get("layoutId", "matched_common_sense"))
+                                                 layout_id=payload.get("layoutId", "directional_balanced_8"))
                 else:
                     if trainer.status()["running"]:
                         raise ValueError("Live controls are reserved by the active Training run")

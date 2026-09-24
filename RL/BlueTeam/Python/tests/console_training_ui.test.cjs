@@ -90,6 +90,28 @@ async function main() {
   context.applyTrainingStatus({ phase: 'idle', initializationLabel: 'Untrained random policy', history: [] });
   assert.equal(nodes.get('training-status').textContent, 'Ready to train. Choose a starting placement and settings above.');
   assert.doesNotMatch(nodes.get('training-status').textContent, /Untrained random policy/);
+  vm.runInContext(source.slice(source.indexOf('function isSavedLayout('), source.indexOf('function syncModelCatalog(')), context);
+  context.comparison = { selectedPolicy: null, episodes: [
+    { policy: '406' }, { policy: 'trained-new', trainedModel: true },
+    { policy: 'observed-trained-new', trainedModel: true, bestObservedEpisode: true },
+  ] };
+  const policySelect = context.$('policy');
+  policySelect.options = ['406', '407', 'trained-new', 'trained-ineligible', 'observed-trained-new'].map(value => ({ value }));
+  context.mode = 'comparison';
+  context.syncComparisonPolicyOptions();
+  assert.equal(policySelect.value, 'trained-new', 'a valid trained policy is preferred over historical checkpoints');
+  assert.equal(policySelect.options.find(option => option.value === 'trained-ineligible').hidden, true);
+  assert.equal(policySelect.options.find(option => option.value === '407').hidden, true);
+  context.comparison.selectedPolicy = '406';
+  context.syncComparisonPolicyOptions();
+  assert.equal(policySelect.value, '406', 'an explicit eligible comparison choice is retained');
+  context.mode = 'recorded';
+  context.syncComparisonPolicyOptions();
+  assert.equal(policySelect.options.find(option => option.value === '407').hidden, false, 'historical recorded policies remain available');
+  context.mode = 'comparison';
+  context.comparison.episodes = [];
+  context.syncComparisonPolicyOptions();
+  assert.equal(policySelect.value, '', 'no eligible comparison must not fall back to an old omni layout');
   process.stdout.write('Training evidence and replay behavior checks passed.\n');
 }
 main().catch(error => { console.error(error); process.exitCode = 1; });

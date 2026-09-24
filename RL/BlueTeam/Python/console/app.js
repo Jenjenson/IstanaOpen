@@ -3,7 +3,7 @@ const $ = id => document.getElementById(id);
 let token='', catalog=[], view=null, frameIndex=0, mode='recorded', playing=false, busy=false, busyOperation='', connected=false;
 let elapsed=0, lastWall=0, liveWall=0, loadSequence=0;
 let nativeImage=null, eventSignature='';
-const comparison={episodes:[],layouts:[],scenario:null,result:null,loading:false,episodeId:null,sequence:0};
+const comparison={episodes:[],layouts:[],scenario:null,result:null,loading:false,episodeId:null,sequence:0,selectedPolicy:null};
 const training={status:{running:false,phase:'idle',episode:0,totalEpisodes:0,history:[]},timer:null,lastViewerEpisode:-1,polling:false,replaySelection:'latest',replayLoading:false,replaySequence:0,replayViewer:null,historySignature:''};
 const drawingCache=new WeakMap();
 const fmt=(v,n=1)=>Number.isFinite(v)?v.toFixed(n):'—';
@@ -94,9 +94,10 @@ async function switchMode(next){
  document.body.classList.toggle('comparison-mode',mode==='comparison');
  document.body.classList.toggle('training-mode',mode==='training');
  $('training-evidence').hidden=mode!=='training';
+ syncComparisonPolicyOptions();
  if(mode==='comparison')$('comparison-panel').insertBefore($('transport'),$('comparison-results'));else $('single-map-container').after($('transport'));
  $('recorded-controls').hidden=mode==='live'||mode==='training';$('profile').hidden=mode==='comparison';$('profile-label').hidden=mode==='comparison';$('deployment-controls').hidden=mode==='comparison';$('single-map-container').hidden=mode==='comparison';
- $('case-label').textContent=mode==='comparison'?'Episode':'Recorded case';$('policy-label').textContent=mode==='comparison'?'RL policy':'Trained checkpoint';$('episode-help').textContent=mode==='comparison'?'Each episode uses 60 adversaries in the native Istana environment. Both layouts face the same episode.':'All three checkpoints and all 18 published cases are available, including failures.';fillEpisodeOptions();$('live-controls').hidden=mode!=='live';$('training-controls').hidden=mode!=='training';$('comparison-controls').hidden=mode!=='comparison';$('comparison-panel').hidden=mode!=='comparison';
+ $('case-label').textContent=mode==='comparison'?'Episode':'Recorded case';$('policy-label').textContent=mode==='comparison'?'RL policy':'Trained checkpoint';$('episode-help').textContent=mode==='comparison'?'Both layouts face the same recorded native scenario using realistic limited-FOV sensors.':'All three checkpoints and all 18 published cases are available, including failures.';fillEpisodeOptions();$('live-controls').hidden=mode!=='live';$('training-controls').hidden=mode!=='training';$('comparison-controls').hidden=mode!=='comparison';$('comparison-panel').hidden=mode!=='comparison';
  $('source-badge').textContent=mode==='recorded'?'RECORDED · SYNTHETIC':mode==='comparison'?'COMPARISON · NATIVE UNREAL':mode==='training'?'TRAINING · NATIVE UNREAL':'LIVE UNREAL · SYNTHETIC';
  $('provenance').textContent=mode==='recorded'?'Published temporal-v6 evidence · 18 recorded cases':mode==='comparison'?'Matched native Unreal evaluation · fixed common-sense baseline':mode==='training'?'Local native training · directional policy · retained checkpoints':'Local Unreal bridge · scripted Red · experimental Blue';
  if(mode==='recorded')await loadReplay();else if(mode==='comparison')await loadComparisonScenario();else if(mode==='training'){$('empty-title').textContent='Start a native training run';$('empty-copy').textContent='Launch the scene with -TrainingWorkbench -DelayedDetectionDemo, then choose a starting placement and start training.';$('empty-note').textContent='The latest completed placement will appear here.';if(view?.mode!=='training')view=null;await refreshTraining();if(!view){$('empty').hidden=false;$('episode-title').textContent='Training workbench ready';$('clock').textContent='00:00.0';$('progress').textContent='No completed training episode';sensorDetails();results();render();controls();}}else{$('empty-title').textContent='Connect your Unreal scene';$('empty-copy').textContent='Launch Istana with -IstanaBlueLive, then connect from the left panel.';$('empty-note').textContent='Recorded replays remain available.';view=null;$('empty').hidden=false;$('episode-title').textContent='Awaiting live episode';$('clock').textContent='00:00.0';$('progress').textContent='Fixed-step simulation';sensorDetails();results();render();controls();}
@@ -207,16 +208,25 @@ function fillEpisodeOptions(){
  for(const row of rows){const option=element('option',row.label);option.value=row.id;select.append(option);}
  if(rows.some(row=>String(row.id)===previous))select.value=previous;
  else if(mode==='comparison'&&previousCase!==undefined){const equivalent=rows.find(row=>row.case===previousCase);if(equivalent)select.value=equivalent.id;}
- const chosen=rows.find(row=>String(row.id)===select.value);if(mode==='comparison'&&chosen?.defaultLayout)$('comparison-layout').value=chosen.defaultLayout;
+ const chosen=rows.find(row=>String(row.id)===select.value);if(mode==='comparison'&&chosen?.defaultLayout){for(const option of $('comparison-layout').options){option.hidden=!(chosen.availableLayouts||[chosen.defaultLayout]).includes(option.value);option.textContent=chosen.trainedModel&&option.value==='directional_balanced_8'?'Matched training sensors · contractor layout':comparison.layouts.find(row=>row.id===option.value)?.label||option.textContent;}$('comparison-layout').value=chosen.defaultLayout;}
 }
 
 function isSavedLayout(value){return value.startsWith('saved-')||value.startsWith('trained-')||value.startsWith('observed-trained-');}
+function syncComparisonPolicyOptions(){
+ const policies=new Set(comparison.episodes.map(row=>String(row.policy))),select=$('policy');
+ for(const option of select.options)option.hidden=mode==='comparison'?!policies.has(option.value):isSavedLayout(option.value);
+ if(mode==='comparison'){
+  const preferred=comparison.episodes.find(row=>row.trainedModel&&!row.bestObservedEpisode)||comparison.episodes[0];
+  select.value=policies.has(comparison.selectedPolicy)?comparison.selectedPolicy:String(preferred?.policy||'');
+ }else if(isSavedLayout(select.value))select.value='406';
+}
 function syncModelCatalog(session){
  comparison.episodes=session.comparisonEpisodes||comparison.episodes;
  $('trained-comparison-models')?.remove();
  if(session.trainedModels?.length){const group=document.createElement('optgroup');group.id='trained-comparison-models';group.label='Validated models and retained episode layouts';for(const model of session.trainedModels){const suffix=model.kind==='observedEpisode'?` · ${fmt(model.bestWarningSeconds,2)} s observed`:` · selected at episode ${model.bestEpisode}`;const option=element('option',`${model.label}${suffix}`);option.value=model.id;group.append(option);}$('policy').append(group);}
  $('saved-live-models')?.remove();
  if(session.savedModels?.length){const group=document.createElement('optgroup');group.id='saved-live-models';group.label='Saved native layouts';for(const model of session.savedModels){const option=element('option',model.label);option.value=model.id;group.append(option);}$('live-policy').append(group);}
+ syncComparisonPolicyOptions();
 }
 function comparisonControls(){
  const locked=comparison.loading||busy;
@@ -292,13 +302,13 @@ function comparisonResults(result){
 }
 async function loadComparisonScenario(){
  pause();const sequence=++comparison.sequence,row=comparison.episodes.find(row=>String(row.id)===$('case').value&&String(row.policy)===$('policy').value);
- const layoutId=$('comparison-layout').value||'matched_common_sense';
+ const layoutId=$('comparison-layout').value||row?.defaultLayout||'directional_balanced_8';
  comparison.scenario=null;comparison.result=null;comparison.episodeId=row?.id;comparison.loading=true;view=null;eventSignature='';nativeImage=null;document.body.classList.remove('native-preview');$('empty').hidden=true;
  $('comparison-budget').textContent='';$('comparison-reasoning').textContent='Loading the sensor model and evaluation details…';$('comparison-status').textContent='Loading both layouts and native sensing results…';$('episode-title').textContent='Preparing comparison';
  for(const id of ['comparison-forecast','comparison-weather','comparison-reports'])$(id).textContent='';
  comparisonClearResults();results();render();controls();showError('');
  try{
-  if(!row)throw new Error('No paired native evaluation is available for this policy. Choose another policy.');
+  if(!row)throw new Error('No eligible limited-FOV comparison is available. Complete a directional training run to create one; historical Recorded replays remain available.');
   const result=await api('/api/comparison/run',{episodeId:row.id,layoutId});
   if(sequence!==comparison.sequence||mode!=='comparison')return;
     comparison.result=result;comparison.scenario=result.scenario||{};const sectorBenchmark=result.method==='directional_balanced_8',trainedModel=Boolean(result.trainedModel),bestObserved=Boolean(result.bestObservedEpisode),trainedSensorCount=result.rl.maxSensors??result.rl.placements?.length??8,trainedBaseline=result.baseline.label||`${trainedSensorCount} directional sensors`;
@@ -461,7 +471,7 @@ async function trainingAction(action){
  }catch(e){showError(e.message);}finally{busy=false;busyOperation='';controls();connectionStatus();}
 }
 for(const id of ['profile','case'])$(id).addEventListener('change',loadReplay);
-$('policy').addEventListener('change',()=>{if(mode==='comparison')fillEpisodeOptions();loadReplay();});
+$('policy').addEventListener('change',()=>{if(mode==='comparison'){comparison.selectedPolicy=$('policy').value;fillEpisodeOptions();}loadReplay();});
 $('comparison-layout').addEventListener('change',loadComparisonScenario);
 for(const id of ['ranges','trails','drone-rings','sites'])$(id).addEventListener('change',()=>render());
 $('recorded-mode').onclick=()=>switchMode('recorded');$('live-mode').onclick=()=>switchMode('live');$('comparison-mode').onclick=()=>switchMode('comparison');$('training-mode').onclick=()=>switchMode('training');

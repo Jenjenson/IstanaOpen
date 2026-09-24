@@ -230,7 +230,9 @@ Warning time remains mean per-drone time from first detection to protected-zone
 arrival, with missed drones contributing zero. Native Blue and Red rewards and
 confirmation evidence are additional recorded diagnostics. Both sides use the
 same selected sensor limits, budget and paired Red scenarios. Static 24° cameras
-do not guarantee full-circle or universal detection.
+do not guarantee full-circle or universal detection. Compare placements excludes
+legacy omnidirectional pairs and prefers a named validated model when available;
+historical Recorded replays remain available as archival evidence.
 
 See [the training guide](Docs/WARNING_TIME_TRAINING.md) and
 [footage workflow](Docs/TRAINING_FOOTAGE.md) for per-episode timelapses, contractor

@@ -176,7 +176,7 @@ def test_compare_tab_offers_measured_eight_sensor_results_with_contract_caveat()
     script = (CONSOLE / 'app.js').read_text(encoding='utf-8')
     assert 'id="comparison-layout"' in html and 'id="comparison-layout-note"' in html
     assert 'comparison.layouts=session.comparisonLayouts||[]' in script
-    assert "layoutId=$('comparison-layout').value||'matched_common_sense'" in script
+    assert "layoutId=$('comparison-layout').value||row?.defaultLayout||'directional_balanced_8'" in script
     assert "sectorBenchmark=result.method==='directional_balanced_8'" in script
     assert 'the archived RL placement was trained for an earlier three-sensor contract' in script
     assert "'MATCHED WORKBENCH RESULTS'" in script
