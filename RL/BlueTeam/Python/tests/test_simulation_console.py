@@ -65,7 +65,7 @@ def test_http_session_replay_and_security_headers(http_server):
     assert not session['status']['connected']
     assert {row['id'] for row in session['trainingInitializations']} == {
         'untrained', 'directional_balanced_8', 'directional_public_8'}
-    assert {row['id'] for row in session['trainingAlgorithms']} == {'reinforce', 'ppo', 'a2c'}
+    assert {row['id'] for row in session['trainingAlgorithms']} == {'local_ppo', 'reinforce', 'ppo', 'a2c'}
     assert session['trainingLimits'] == {
         'minEpisodes': 4, 'maxEpisodes': 10000, 'minSensors': 1, 'maxSensors': 8}
     assert session['training']['phase'] == 'idle'
